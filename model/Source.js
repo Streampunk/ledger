@@ -1,4 +1,4 @@
-/* Copyright 2015 Christine MacNeill
+/* Copyright 2015 Christine S. MacNeill
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -13,18 +13,45 @@
   limitations under the License.
 */
 
+var Versionned = require('./Versionned.js');
+var immutable = require('seamless-immutable');
+var Formats = require('./Formats.js');
+
 function Source(id, version, label, description,
     format, caps, tags, device_id, parents) {
 
-  this.id = id;
-  this.version = version;
-  this.label = label;
-  this.description = description;
-  this.format = format;
+  // Globally unique identifier for the Source
+  this.id = this.generateID(id);
+  // String formatted PTP timestamp (<seconds>:<nanoseconds>) indicating
+  // precisely when an attribute of the resource last changed
+  this.version = this.generateVersion(version);
+  // Freeform string label for the Source
+  this.label = this.generateLabel(label);
+  // Detailed description of the Source
+  this.description = this.generateDescription(description);
+  this.format = this.generateFormat(format);
   this.caps = caps;
   this.tags = tags;
   this.device_id = device_id;
   this.parents = parents;
+  return immutable(this, { prototype: Source.prototype });
+}
+
+Source.prototype.validID = Versionned.prototype.validID;
+Source.prototype.validVersion = Versionned.prototype.validVersion;
+Source.prototype.validLabel = Versionned.prototype.validLabel;
+Source.prototype.generateID = Versionned.prototype.generateID;
+Source.prototype.generateVersion = Versionned.prototype.generateVersion;
+Source.prototype.generateLabel = Versionned.prototype.generateLabel;
+
+Source.prototype.validDescription = Versionned.prototype.validLabel;
+Source.prototype.generateDescription = Versionned.prototype.generateLabel;
+
+Source.prototype.validFormat = Formats.validFormat;
+Source.prototype.generateFormat = function (format) {
+  if (arguments.length === 0 || format === null || format === undefined)
+    return Formats.video;
+  else return format;
 }
 
 module.exports = Source;

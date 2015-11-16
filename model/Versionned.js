@@ -1,4 +1,4 @@
-/* Copyright 2015 Christine MacNeill
+/* Copyright 2015 Christine S. MacNeill
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ var loadDate = Date.now();
 function Versionned(id, version, label) {
   this.id = this.generateID(id);
   this.version = this.generateVersion(version);
-  this.label = this.generateLabel(label);
+  this.label = this.generate
+  Label(label);
   return immutable(this, {prototype: Versionned.prototype});
 }
 
