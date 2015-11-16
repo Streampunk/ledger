@@ -77,11 +77,11 @@ test('Validity checking of label values', function (t) {
 
 test('ID generation', function (t) {
   var testID = uuid.v4();
-  t.equals(methods.generateID(testID), testID,
+  t.equal(methods.generateID(testID), testID,
     'passes through a valud ID.')
-  t.equals(methods.generateID('streampunk'), 'streampunk',
+  t.equal(methods.generateID('streampunk'), 'streampunk',
     'passes through an arbitrary string (this is not a validation check).');
-  t.equals(methods.generateID(42), 42,
+  t.equal(methods.generateID(42), 42,
     'passes through an arbirary number (this is not a validation check).');
   t.ok(methods.validID(methods.generateID()),
     'generates a valid ID with no arguments.');
@@ -93,11 +93,11 @@ test('ID generation', function (t) {
 });
 
 test('Version generation', function (t) {
-  t.equals(methods.generateVersion('123456789:987654321'), '123456789:987654321',
+  t.equal(methods.generateVersion('123456789:987654321'), '123456789:987654321',
     'passes through a valid version value.');
-  t.equals(methods.generateVersion('streampunk'), 'streampunk',
+  t.equal(methods.generateVersion('streampunk'), 'streampunk',
     'passes through an arbitrary string (this is not a validation check).');
-  t.equals(methods.generateVersion(42), 42,
+  t.equal(methods.generateVersion(42), 42,
     'passes through an arbitrary number (this is not a validation check).');
   t.ok(methods.validVersion(methods.generateVersion()),
     'generates a valid version with no arguments.');
@@ -114,9 +114,9 @@ test('Version generation', function (t) {
 });
 
 test('Label generation', function (t) {
-  t.equals(methods.generateLabel('streampunk'), 'streampunk',
+  t.equal(methods.generateLabel('streampunk'), 'streampunk',
     'creates a label from a valid label');
-  t.equals(methods.generateLabel(42), 42,
+  t.equal(methods.generateLabel(42), 42,
     'passes through a number as a label (this is not a validation check).');
   t.ok(methods.validLabel(methods.generateLabel()),
     'generates a valid label with no arguments.');
@@ -129,8 +129,38 @@ test('Label generation', function (t) {
 
 test('Versionned objects', function (t) {
   for ( var x = 0 ; x < 10 ; x ++) {
-    t.ok((new Versionned()).valid(),
+    t.ok(new Versionned().valid(),
       'are valid on default creation.');
   }
+  var v = new Versionned(null, null, 'streampunk');
+  t.equal(v.label, 'streampunk',
+    'label gets set by constructor.');
+  t.deepEqual(Versionned.prototype.parse(v.stringify()), v,
+    'survive a JSON roundtrip.');
+  v.label = 'changed'; // Change does not work - seamless-immutable applied
+  t.equal(v.label, 'streampunk',
+    'are immutable.');
+  var w = JSON.parse(v.stringify());
+  t.deepEqual(w, { id: v.id, version: v.version, label: v.label},
+    'convert to JSON object as expected.');
+  t.deepEqual(Versionned.prototype.parse(
+      JSON.stringify({ "id": v.id, version: v.version, label: v.label})), w,
+    'convert from JSON object as expected.');
+  t.notOk(new Versionned('wibble', 'wobble').valid(),
+    'can be constructed as invalid.');
+  t.end();
+});
+
+test('JSON parsing', function(t) {
+  t.throws(function() { Versionned.prototype.parse('wibble'); },
+    'fails to parse a JSON syntex error string.');
+  t.throws(function() { Versionned.prototype.parse(null); },
+    'fails to parse a null value.');
+  t.throws(function() { Versionned.prototype.parse(42); },
+    'fails to parse a number value.');
+  t.throws(function() { Versionned.prototype.parse(undefined) },
+    'fails to parse an undefined value.');
+  t.doesNotThrow(function() { Versionned.prototype.parse('{}') },
+    'parses an empty object "{}".');
   t.end();
 });
