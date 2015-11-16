@@ -126,3 +126,11 @@ test('Label generation', function (t) {
     'generates a valid label with an undefined argument.');
   t.end();
 });
+
+test('Versionned objects', function (t) {
+  for ( var x = 0 ; x < 10 ; x ++) {
+    t.ok((new Versionned()).valid(),
+      'are valid on default creation.');
+  }
+  t.end();
+});
