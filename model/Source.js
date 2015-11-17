@@ -15,6 +15,7 @@
 
 var Versionned = require('./Versionned.js');
 var immutable = require('seamless-immutable');
+var Capabilities = require('./Capabilities.js')
 var Formats = require('./Formats.js');
 
 function Source(id, version, label, description,
@@ -29,8 +30,10 @@ function Source(id, version, label, description,
   this.label = this.generateLabel(label);
   // Detailed description of the Source
   this.description = this.generateDescription(description);
+  // Format of the data coming from the Source as a URN
   this.format = this.generateFormat(format);
-  this.caps = caps;
+  // Capabilities (not yet defined)
+  this.caps = this.generateCaps(caps);
   this.tags = tags;
   this.device_id = device_id;
   this.parents = parents;
@@ -52,6 +55,23 @@ Source.prototype.generateFormat = function (format) {
   if (arguments.length === 0 || format === null || format === undefined)
     return Formats.video;
   else return format;
+}
+
+Source.prototype.validCaps = function (caps) {
+  if (arguments.length === 0) return this.validCaps(this.caps);
+  return caps === Capabilities;
+}
+Source.prototype.generateCaps = function (caps) {
+  if (arguments.length === 0 || caps === null || caps === undefined)
+    return Capabilities;
+  else return caps;
+}
+
+Source.prototype.validTags = function (tags) {
+  if (arguments.length === 0) return this.validTags(this.tags);
+  if (typeof tags === 'object') {
+    // TODO
+  }
 }
 
 module.exports = Source;
