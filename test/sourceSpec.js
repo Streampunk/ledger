@@ -13,5 +13,25 @@
   limitations under the License.
 */
 
-var Source = require('./model/Source.js');
+var Source = require('../model/Source.js');
 var test = require('tape');
+
+var methods = Source.prototype;
+
+test('Validity checking of description values', function (t) {
+  t.ok(methods.validDescription('streampunk'),
+    'matches a valid label.');
+  t.ok(methods.validDescription(''),
+    'matches an empty string.');
+  t.ok(methods.validDescription(methods.generateDescription()),
+    'matches a generated label.');
+  t.notOk(methods.validDescription(null),
+    'fails for a null.');
+  t.notOk(methods.validDescription(undefined),
+    'fails for an undefined value.');
+  t.notOk(methods.validDescription(false),
+    'fails for false.');
+  t.notOk(methods.validDescription(42),
+    'fails for a number.');
+  t.end();
+});

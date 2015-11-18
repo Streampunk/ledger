@@ -26,8 +26,7 @@ var loadDate = Date.now();
 function Versionned(id, version, label) {
   this.id = this.generateID(id);
   this.version = this.generateVersion(version);
-  this.label = this.generate
-  Label(label);
+  this.label = this.generateLabel(label);
   return immutable(this, {prototype: Versionned.prototype});
 }
 
@@ -82,7 +81,7 @@ Versionned.prototype.stringify = function() { return JSON.stringify(this); }
 
 Versionned.prototype.parse = function (json) {
   if (json === null || json === undefined || arguments.length === 0 ||
-      json.constructor !== String.prototype.constructor)
+      typeof json !== 'string')
     throw "Cannot parse JSON to a Versionned value because it is not a valid input.";
   var parsedJSON = JSON.parse(json);
   return new Versionned(parsedJSON.id, parsedJSON.version, parsedJSON.label);

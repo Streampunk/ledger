@@ -34,9 +34,14 @@ function Source(id, version, label, description,
   this.format = this.generateFormat(format);
   // Capabilities (not yet defined)
   this.caps = this.generateCaps(caps);
-  this.tags = tags;
-  this.device_id = device_id;
-  this.parents = parents;
+  // Key value set of freeform string tags to aid in filtering Sources. Values
+  // should be represented as an array of strings. Can be empty.
+  this.tags = this.generateTags(tags);
+  // Globally unique identifier for the Device which initially created the Source
+  this.device_id = this.generateDeviceID(device_id);
+  // Array of UUIDs representing the Source IDs of Grains which came together at
+  // the input to this Source (may change over the lifetime of this Source)
+  this.parents = this.generateParents(parents);
   return immutable(this, { prototype: Source.prototype });
 }
 
@@ -59,7 +64,7 @@ Source.prototype.generateFormat = function (format) {
 
 Source.prototype.validCaps = function (caps) {
   if (arguments.length === 0) return this.validCaps(this.caps);
-  return caps === Capabilities;
+  return Object.keys(caps).length === 0;
 }
 Source.prototype.generateCaps = function (caps) {
   if (arguments.length === 0 || caps === null || caps === undefined)
@@ -69,9 +74,56 @@ Source.prototype.generateCaps = function (caps) {
 
 Source.prototype.validTags = function (tags) {
   if (arguments.length === 0) return this.validTags(this.tags);
-  if (typeof tags === 'object') {
-    // TODO
-  }
+  if (!(tags instanceof Object)) return false;
+  if (Array.isArray(tags)) return false;
+  return Object.keys(tags).every(function (k) {
+    var v = tags[k];
+    return Array.isArray(v) && v.every(function (s) {
+      return typeof s === 'string';
+    });
+  });
 }
+
+Source.prototype.generateTags = function (tags) {
+  if (arguments.length === 0 || tags === null || tags === undefined)
+    return {};
+  else return tags;
+}
+
+Source.prototype.validDeviceID = Versionned.prototype.validID;
+Source.prototype.generateDeviceID = Versionned.prototype.generateID;
+
+Source.prototype.validParents = function (parents) {
+  if (arguments.length === 0) return this.validParents(this.parents);
+  if (!Array.isArray(parents)) return false;
+  return parents.every(Versionned.prototype.validID);
+}
+Source.prototype.generateParents = function (parents) {
+  if (arguments.length === 0 || parents === null || parents === undefined)
+    return [];
+  else return parents;
+}
+
+Source.prototype.valid = function () {
+  return this.validID(this.id) &&
+    this.validVersion(this.version) &&
+    this.validLabel(this.label) &&
+    this.validDescription(this.description) &&
+    this.validFormat(this.format) &&
+    this.validCaps(this.caps) &&
+    this.validTags(this.tags) &&
+    this.validDeviceID(this.device_id) &&
+    this.validParents(this.parents);
+}
+
+Source.prototype.stringify = function() { return JSON.stringify(this); }
+Source.prototype.parse = function (json) {
+  if (json === null || json === undefined || arguments.length === 0 ||
+      typeof json !== 'string')
+    throw "Cannot parse JSON to a Versionned value because it is not a valid input.";
+  var parsed = JSON.parse(json);
+  return new Source(parsed.id, parsed.version, parsed.label, parsed.description,
+    parsed.format, parsed.caps, parsed.tags, parsed.device_id, parsed.parents);
+};
 
 module.exports = Source;
