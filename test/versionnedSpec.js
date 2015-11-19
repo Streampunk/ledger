@@ -41,7 +41,9 @@ test('Validity checking of id values', function (t) {
 
 test('Validity checking of version values', function (t) {
   t.ok(methods.validVersion('123456789:987654321'),
-    'matches a valid version.');
+    'matches a valid version all digits.');
+  t.ok(methods.validVersion('123:45'),
+    'matches a valid version short digits.');
   t.ok(methods.validVersion(methods.generateVersion()),
     'matches a generated version.');
   t.notOk(methods.validVersion(null),

@@ -64,7 +64,8 @@ Source.prototype.generateFormat = function (format) {
 
 Source.prototype.validCaps = function (caps) {
   if (arguments.length === 0) return this.validCaps(this.caps);
-  return Object.keys(caps).length === 0;
+  return typeof caps === 'object' && caps !== null &&
+    Array.isArray(caps) === false && Object.keys(caps).length === 0;
 }
 Source.prototype.generateCaps = function (caps) {
   if (arguments.length === 0 || caps === null || caps === undefined)
