@@ -23,6 +23,7 @@ function nanoSeconds(hrtime) {
 var loadHRTime = nanoSeconds(process.hrtime());
 var loadDate = Date.now();
 
+// Mixins for any class with an identifier, version and label.
 function Versionned(id, version, label) {
   this.id = this.generateID(id);
   this.version = this.generateVersion(version);
@@ -70,6 +71,17 @@ Versionned.prototype.validLabel = function (label) {
   if (arguments.length === 0) return this.validLabel(this.label);
   return label !== null && label !== undefined &&
     (label.constructor === String.prototype.constructor);
+}
+
+Versionned.prototype.validUUIDArray = function (a) {
+  if (!Array.isArray(a)) return false;
+  return a.every(Versionned.prototype.validID);
+}
+
+Versionned.prototype.generateUUIDArray = function (a) {
+  if (arguments.length === 0 || a === null || a === undefined)
+    return [];
+  else return a;
 }
 
 Versionned.prototype.valid = function() {
