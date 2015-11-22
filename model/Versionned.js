@@ -15,6 +15,7 @@
 
 var uuid = require('uuid');
 var immutable = require('seamless-immutable');
+var Capabilities = require('./Capabilities.js')
 
 function nanoSeconds(hrtime) {
   return hrtime[0] * 1e9 + hrtime[1];
@@ -78,10 +79,12 @@ Versionned.prototype.validCaps = function (caps) {
   return typeof caps === 'object' && caps !== null &&
     Array.isArray(caps) === false && Object.keys(caps).length === 0;
 }
+
 Versionned.prototype.generateCaps = function (caps) {
   if (arguments.length === 0 || caps === null || caps === undefined)
     return Capabilities;
   else return caps;
+}
 
 Versionned.prototype.validUUIDArray = function (a) {
   if (!Array.isArray(a)) return false;
