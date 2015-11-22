@@ -72,6 +72,17 @@ Versionned.prototype.validLabel = function (label) {
     (label.constructor === String.prototype.constructor);
 }
 
+Versionned.prototype.validCaps = function (caps) {
+  if (arguments.length === 0) return this.validCaps(this.caps);
+  return typeof caps === 'object' && caps !== null &&
+    Array.isArray(caps) === false && Object.keys(caps).length === 0;
+}
+Versionned.prototype.generateCaps = function (caps) {
+  if (arguments.length === 0 || caps === null || caps === undefined)
+    return Capabilities;
+  else return caps;
+}
+
 Versionned.prototype.valid = function() {
   return this.validID(this.id) && this.validVersion(this.version) &&
     this.validLabel(this.label);

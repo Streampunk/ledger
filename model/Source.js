@@ -62,16 +62,8 @@ Source.prototype.generateFormat = function (format) {
   else return format;
 }
 
-Source.prototype.validCaps = function (caps) {
-  if (arguments.length === 0) return this.validCaps(this.caps);
-  return typeof caps === 'object' && caps !== null &&
-    Array.isArray(caps) === false && Object.keys(caps).length === 0;
-}
-Source.prototype.generateCaps = function (caps) {
-  if (arguments.length === 0 || caps === null || caps === undefined)
-    return Capabilities;
-  else return caps;
-}
+Source.prototype.validCaps = Versionned.prototype.validCaps;
+Source.prototype.generateCaps = Versionned.prototype.generateCaps;
 
 Source.prototype.validTags = function (tags) {
   if (arguments.length === 0) return this.validTags(this.tags);
