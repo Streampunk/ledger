@@ -80,11 +80,11 @@ test('Validity checking of label values', function (t) {
 test('ID generation', function (t) {
   var testID = uuid.v4();
   t.equal(methods.generateID(testID), testID,
-    'passes through a valud ID.')
+    'passes through a valid ID.')
   t.equal(methods.generateID('streampunk'), 'streampunk',
     'passes through an arbitrary string (this is not a validation check).');
   t.equal(methods.generateID(42), 42,
-    'passes through an arbirary number (this is not a validation check).');
+    'passes through an arbitrary number (this is not a validation check).');
   t.ok(methods.validID(methods.generateID()),
     'generates a valid ID with no arguments.');
   t.ok(methods.validID(methods.generateID(null)),
@@ -132,7 +132,7 @@ test('Label generation', function (t) {
 test('Versionned objects', function (t) {
   for ( var x = 0 ; x < 10 ; x ++) {
     t.ok(new Versionned().valid(),
-      'are valid on default creation.');
+      'are valid on default creation ' + x + '.');
   }
   var v = new Versionned(null, null, 'streampunk');
   t.equal(v.label, 'streampunk',
@@ -146,7 +146,7 @@ test('Versionned objects', function (t) {
   t.deepEqual(w, { id: v.id, version: v.version, label: v.label},
     'convert to JSON object as expected.');
   t.deepEqual(Versionned.prototype.parse(
-      JSON.stringify({ "id": v.id, version: v.version, label: v.label})), w,
+      JSON.stringify({ id: v.id, version: v.version, label: v.label})), w,
     'convert from JSON object as expected.');
   t.notOk(new Versionned('wibble', 'wobble').valid(),
     'can be constructed as invalid.');
@@ -155,14 +155,14 @@ test('Versionned objects', function (t) {
 
 test('JSON parsing', function(t) {
   t.throws(function() { Versionned.prototype.parse('wibble'); },
-    'fails to parse a JSON syntex error string.');
+    'fails to parse a JSON syntax error string.');
   t.throws(function() { Versionned.prototype.parse(null); },
     'fails to parse a null value.');
   t.throws(function() { Versionned.prototype.parse(42); },
     'fails to parse a number value.');
-  t.throws(function() { Versionned.prototype.parse(undefined) },
+  t.throws(function() { Versionned.prototype.parse(undefined); },
     'fails to parse an undefined value.');
-  t.doesNotThrow(function() { Versionned.prototype.parse('{}') },
+  t.doesNotThrow(function() { Versionned.prototype.parse('{}'); },
     'parses an empty object "{}".');
   t.end();
 });

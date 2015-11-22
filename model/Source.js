@@ -18,6 +18,7 @@ var immutable = require('seamless-immutable');
 var Capabilities = require('./Capabilities.js')
 var Formats = require('./Formats.js');
 
+// Describes a source
 function Source(id, version, label, description,
     format, caps, tags, device_id, parents) {
 
@@ -87,15 +88,11 @@ Source.prototype.validDeviceID = Versionned.prototype.validID;
 Source.prototype.generateDeviceID = Versionned.prototype.generateID;
 
 Source.prototype.validParents = function (parents) {
-  if (arguments.length === 0) return this.validParents(this.parents);
-  if (!Array.isArray(parents)) return false;
-  return parents.every(Versionned.prototype.validID);
+  if (arguments.length === 0)
+    return Versionned.prototype.validUUIDArray(this.parents);
+  return Versionned.prototype.validUUIDArray(parents);
 }
-Source.prototype.generateParents = function (parents) {
-  if (arguments.length === 0 || parents === null || parents === undefined)
-    return [];
-  else return parents;
-}
+Source.prototype.generateParents = Versionned.prototype.generateUUIDArray;
 
 Source.prototype.valid = function () {
   return this.validID(this.id) &&
