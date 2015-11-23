@@ -83,7 +83,7 @@ Node.prototype.validServices = function (services) {
         s.hasProperty('href') &&
         s.hasProperty('type') &&
         typeof s.href === 'string' &&
-        typeof s.type ==== 'string' &&
+        typeof s.type === 'string' &&
         s.href.startsWith('http://');
     });
 }

@@ -49,8 +49,31 @@ Flow.prototype.generateLabel = Versionned.prototype.generateLabel;
 Flow.prototype.validDescription = Versionned.prototype.validLabel;
 Flow.prototype.generateDescription = Versionned.prototype.generateLabel;
 
+Flow.prototype.validFormat = Formats.validFormat;
+Flow.prototype.generateFormat = function (format) {
+  if (arguments.length === 0 || format === null || format === undefined)
+    return Formats.video;
+  else return format;
+}
+
 Flow.prototype.validSourceID = Versionned.prototype.validID;
 Flow.prototype.generateSourceID = Versionned.prototype.generateID;
+
+Flow.prototype.validParents = function (parents) {
+  if (arguments.length === 0) return this.validParents(this.parents);
+  return Versionned.prototype.validUUIDArray(parents);
+}
+Flow.prototype.generateParents = Versionned.prototype.generateParents;
+
+Flow.prototype.valid = function() {
+  return this.validID(this.id) &&
+    this.validVersion(this.version) &&
+    this.validLabel(this.label) &&
+    this.validDescription(this.description) &&
+    this.validFormat(this.format) &&
+    this.validSourceID(this.source_id) &&
+    this.validParents(this.parents);
+}
 
 Flow.prototype.stringify = function () { return JSON.stringify(this) };
 Flow.prototype.parse = function (json) {
@@ -58,7 +81,8 @@ Flow.prototype.parse = function (json) {
       typeof json !== 'string')
     throw "Cannot parse JSON to a Flow value because it is not a valid input.";
   var parsed = JSON.parse(json);
-
+  return new Flow(parsed.id, parsed.version, parsed.label, parsed.description,
+      parsed.format, parsed.source_id, parsed.parents);
 }
 
 module.exports = Flow;
