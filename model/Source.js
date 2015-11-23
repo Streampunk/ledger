@@ -110,7 +110,7 @@ Source.prototype.stringify = function() { return JSON.stringify(this); }
 Source.prototype.parse = function (json) {
   if (json === null || json === undefined || arguments.length === 0 ||
       typeof json !== 'string')
-    throw "Cannot parse JSON to a Versionned value because it is not a valid input.";
+    throw "Cannot parse JSON to a Source value because it is not a valid input.";
   var parsed = JSON.parse(json);
   return new Source(parsed.id, parsed.version, parsed.label, parsed.description,
     parsed.format, parsed.caps, parsed.tags, parsed.device_id, parsed.parents);

@@ -45,7 +45,26 @@ Node.prototype.generateVersion = Versionne.prototype.generateVersion;
 Node.prototype.validLabel = Versionned.prototype.validLabel;
 Node.prototype.generateLabel = Versionned.prototype.generateLabel;
 
-Node.prototype.validHostname = function (hostname) { }
+Node.prototype.validHref = function (href) {
+  if (arguments.length === 0) return this.validHref(this.href);
+  return typeof href === 'string' &&
+    href.startsWith('http://');
+}
+
+Node.prototype.generateHref = function (href) {
+  if (arguments.length === 0 || href === null || href === undefined)
+    return 'http://localhost/';
+  else return href;
+}
+
+// Consider a test to check that hostnames doesn't contain spaces
+Node.prototype.validHostname = function (hostname) {
+  if (arguments.length === 0) return this.validHostname(this.hostname);
+  if (hostname === undefined) return true;
+  return typeof hostname === 'string' &&
+    hostname.match(/^[^\s]+$/) !== null;
+}
+
 Node.prototype.generateHostname = function (hostname) {
   if (arguments.length === 0 || hostname === null || hostname === undefined)
     return undefined;
@@ -54,5 +73,45 @@ Node.prototype.generateHostname = function (hostname) {
 
 Node.prototype.validCaps = Versionned.prototype.validCaps;
 Node.prototype.generateCaps = Versionned.prototype.generateCaps;
+
+Node.prototype.validServices = function (services) {
+  if (arguments.length === 0) return this.validServices(this.services);
+  return Array.isArray(services) &&
+    services.every(function (s) {
+      return typeof s === 'object' &&
+        !Array.isArray(s) &&
+        s.hasProperty('href') &&
+        s.hasProperty('type') &&
+        typeof s.href === 'string' &&
+        typeof s.type ==== 'string' &&
+        s.href.startsWith('http://');
+    });
+}
+Node.prototype.generateServices = function (services) {
+  if (arguments.length === 0 || services === null || services === undefined)
+    return [];
+  else return services;
+}
+
+Node.prototype.valid = function () {
+  return this.validID(this.id) &&
+    this.validVersion(this.version) &&
+    this.validLabel(this.label) &&
+    this.validHref(this.href) &&
+    this.validHostname(this.hostName) &&
+    this.validCaps(this.caps) &&
+    this.validServices(this.services);
+}
+
+Node.prototype.stringify = function() { return JSON.stringify(this); }
+
+Node.prototype.parse = function (json) {
+  if (json === null || json === undefined || arguments.length === 0 ||
+      typeof json !== 'string')
+    throw "Cannot parse JSON to a Node value because it is not a valid input.";
+  var parsed = JSON.parse(json);
+  return new Node(parsed.id, parsed.version, parsed.label, parsed.href,
+    parsed.hostname, parsed.caps, parsed.services);
+}
 
 module.exports = Node;
