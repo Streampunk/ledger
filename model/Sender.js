@@ -15,11 +15,27 @@
 
 var Versionned = require('./Versionned.js');
 var immutable = require('seamless-immutable');
+var Transports = require('./Transports.js');
 
-function Sender(id, version, label) {
+function Sender(id, version, label, description,
+    flow_id, transport, device_id, manifest_href) {
+  // Globally unique identifier for the Sender.
   this.id = this.generateID(id);
+  // String formatted PTP timestamp (<seconds>:<nanoseconds>) indicating
+  // precisely when an attribute of the resource last changed.
   this.version = this.generateVersion(version);
+  // Freeform string label for the Sender
   this.label = this.generateLabel(label);
+  // Detailed description of the Sender
+  this.description = this.generateDescription(description);
+  // ID of the Flow currently passing via this Sender
+  this.flow_id = this.generateFlowID(flow_id);
+  // Transport type used by the Sender in URN format
+  this.transport = this.generateTransport(transport);
+  // Device ID which this Sender forms part of
+  this.device_id = this.generateDeviceID(device_id);
+  // HTTP URL to a file describing how to connect to the Sender (SDP for RTP).
+  this.manifest_href = this.generateManifestHREF(manifest_href);
   return immutable(this, { prototype : Sender.prototype });
 }
 
@@ -30,12 +46,52 @@ Sender.prototype.generateVersion = Versionned.prototype.gnerateVersion;
 Sender.prototype.validLabel = Versionned.prototype.validLabel;
 Sender.prototype.generateLabel = Versionned.prototype.generateLabel;
 
+Sender.prototype.validDescription = Versionned.prototype.validLabel;
+Sender.prototype.generateDescription = Versionned.prototype.generateLabel;
+
+Sender.prototype.validFlowID = Versionned.prototype.validID;
+Sender.prototype.generateFlowID = Versionned.prototype.generateID;
+
+Sender.prototype.validTransport = Transports.validTransport;
+Sender.prototype.generateTransport = function (t) {
+  if (arguments.length === 0 || t === null || t === undefined)
+    return Transports.rtp;
+  else return t;
+}
+
+Sender.prototype.validDeviceID = Versionned.prototype.validID;
+Sender.prototype.generateDeviceID = Versionned.prototype.generateID;
+
+Sender.prototype.validManifestHREF = function (href) {
+  if (arguments.length === 0) return this.validManifestHREF(this.manifest_href);
+  return typeof href === 'string' &&
+    href.startsWith('http://');
+}
+Sender.prototype.generateManifestHREF = function (href) {
+  if (arguments.length === 0 || href === null || href === undefined)
+    return 'http://';
+  else return href;
+}
+
 Sender.prototype.valid = function() {
   return this.validID(this.id) &&
     this.validVersion(this.version) &&
-    this.validLabel(this.label);
+    this.validLabel(this.label) &&
+    this.validDescription(this.description) &&
+    this.validFlowID(this.flow_id) &&
+    this.validTransport(this.transport) &&
+    this.validDeviceID(this.device_id) &&
+    this.validManifestHREF(this.manifest_href);
 }
 
 Sender.prototype.stringify = function() { return JSON.stringify(this); }
+Sender.prototype.parse = function(json) {
+  if (json === null || json === undefined || arguments.length === 0 ||
+      typeof json !== 'string')
+    throw "Cannot parse JSON to a Sender value because it is not a valid input.";
+  var parsed = JSON.parse(json);
+  return new Sender(parsed.id, parsed.version, parsed.label, parsed.description,
+    parsed.flow_id, parsed.transport, parsed.device_id, parsed.manifest_href);
+}
 
 module.exports = Sender;

@@ -13,15 +13,17 @@
   limitations under the License.
 */
 
-// Types of format
+// Types of transport
 
-var formats = Object.freeze({
-  video: "urn:x-ipstudio:format:video",
-  audio: "urn:x-ipstudio:format:audio",
-  event: "urn:x-ipstudio:format:video",
-  validFormat: function (f) {
-    return f === formats.video || f === formats.audio || f === formats.event;
+var transports = Object.freeze({
+  rtp: "urn:x-ipstudio:transport:rtp",
+  rtp_ucast: "urn:x-ipstudio:transport:rtp.ucast",
+  rtp_mcast: "urn:x-ipstudio:transport:rtp.mcast",
+  dash: "urn:x-ipstudio:transport:dash"
+  validTransport: function (t) {
+    return t === transports.rtp || t === transports.rtp_ucast ||
+      t === formats.rtp_mcast || t === transports.dash;
   }
 });
 
-module.exports = formats;
+module.exports = transports;

@@ -66,24 +66,6 @@ Source.prototype.generateFormat = function (format) {
 Source.prototype.validCaps = Versionned.prototype.validCaps;
 Source.prototype.generateCaps = Versionned.prototype.generateCaps;
 
-Source.prototype.validTags = function (tags) {
-  if (arguments.length === 0) return this.validTags(this.tags);
-  if (!(tags instanceof Object)) return false;
-  if (Array.isArray(tags)) return false;
-  return Object.keys(tags).every(function (k) {
-    var v = tags[k];
-    return Array.isArray(v) && v.every(function (s) {
-      return typeof s === 'string';
-    });
-  });
-}
-
-Source.prototype.generateTags = function (tags) {
-  if (arguments.length === 0 || tags === null || tags === undefined)
-    return {};
-  else return tags;
-}
-
 Source.prototype.validDeviceID = Versionned.prototype.validID;
 Source.prototype.generateDeviceID = Versionned.prototype.generateID;
 
@@ -93,6 +75,9 @@ Source.prototype.validParents = function (parents) {
   return Versionned.prototype.validUUIDArray(parents);
 }
 Source.prototype.generateParents = Versionned.prototype.generateUUIDArray;
+
+Source.prototype.validTags = Versionned.prototype.validTags;
+Source.prototype.generateTags = Versionned.prototype.generateTags;
 
 Source.prototype.valid = function () {
   return this.validID(this.id) &&

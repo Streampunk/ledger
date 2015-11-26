@@ -86,6 +86,24 @@ Versionned.prototype.generateCaps = function (caps) {
   else return caps;
 }
 
+Versionned.prototype.validTags = function (tags) {
+  if (arguments.length === 0) return this.validTags(this.tags);
+  if (!(tags instanceof Object)) return false;
+  if (Array.isArray(tags)) return false;
+  return Object.keys(tags).every(function (k) {
+    var v = tags[k];
+    return Array.isArray(v) && v.every(function (s) {
+      return typeof s === 'string';
+    });
+  });
+}
+
+Versionned.prototype.generateTags = function (tags) {
+  if (arguments.length === 0 || tags === null || tags === undefined)
+    return {};
+  else return tags;
+}
+
 Versionned.prototype.validUUIDArray = function (a) {
   if (!Array.isArray(a)) return false;
   return a.every(Versionned.prototype.validID);
