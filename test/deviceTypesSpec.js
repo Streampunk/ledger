@@ -16,11 +16,15 @@
 var DeviceTypes = require('../model/DeviceTypes.js');
 var test = require('tape');
 
-test('A valid format', function(t) {
+test('A valid device type', function(t) {
   t.ok(DeviceTypes.validDeviceType('urn:x-ipstudio:device:generic'),
-    'is urn:x-ipstudio:device:generic.');
+    'is "urn:x-ipstudio:device:generic".');
   t.ok(DeviceTypes.validDeviceType('urn:x-ipstudio:device:pipeline'),
-    'is urn:x-ipstudio:device:pipeline.');
+    'is "urn:x-ipstudio:device:pipeline".');
+  t.ok(DeviceTypes.validDeviceType(DeviceTypes.generic),
+    'is DeviceType.generic.');
+  t.ok(DeviceTypes.validDeviceType(DeviceTypes.pipeline),
+    'is DeviceType.pipeline.');
   t.notOk(DeviceTypes.validDeviceType('streampunk'),
     'is not an arbitrary string.');
   t.notOk(DeviceTypes.validDeviceType(),

@@ -15,7 +15,6 @@
 
 var Versionned = require('./Versionned.js');
 var immutable = require('seamless-immutable');
-var Transports = require('./Transports.js');
 
 function Sender(id, version, label, description,
     flow_id, transport, device_id, manifest_href) {
@@ -52,12 +51,8 @@ Sender.prototype.generateDescription = Versionned.prototype.generateLabel;
 Sender.prototype.validFlowID = Versionned.prototype.validID;
 Sender.prototype.generateFlowID = Versionned.prototype.generateID;
 
-Sender.prototype.validTransport = Transports.validTransport;
-Sender.prototype.generateTransport = function (t) {
-  if (arguments.length === 0 || t === null || t === undefined)
-    return Transports.rtp;
-  else return t;
-}
+Sender.prototype.validTransport = Versionned.prototype.validTransport;
+Sender.prototype.generateTransport = Versionned.prototype.generateTransport;
 
 Sender.prototype.validDeviceID = Versionned.prototype.validID;
 Sender.prototype.generateDeviceID = Versionned.prototype.generateID;

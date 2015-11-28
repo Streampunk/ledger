@@ -15,7 +15,6 @@
 
 var Versionned = require('./Versionned.js');
 var immutable = require('seamless-immutable');
-var Formats = require('./Formats.js');
 
 // Describes a Flow
 
@@ -49,12 +48,8 @@ Flow.prototype.generateLabel = Versionned.prototype.generateLabel;
 Flow.prototype.validDescription = Versionned.prototype.validLabel;
 Flow.prototype.generateDescription = Versionned.prototype.generateLabel;
 
-Flow.prototype.validFormat = Formats.validFormat;
-Flow.prototype.generateFormat = function (format) {
-  if (arguments.length === 0 || format === null || format === undefined)
-    return Formats.video;
-  else return format;
-}
+Flow.prototype.validFormat = Versionned.prototype.validFormat;
+Flow.prototype.generateFormat = Versionned.prototype.generateFormat;
 
 Flow.prototype.validSourceID = Versionned.prototype.validID;
 Flow.prototype.generateSourceID = Versionned.prototype.generateID;

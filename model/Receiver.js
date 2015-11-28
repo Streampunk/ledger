@@ -15,8 +15,6 @@
 
 var Versionned = require('./Versionned.js');
 var immutable = require('seamless-immutable');
-var Formats = require('./Formats.js');
-var Transports = require('./Transports.js');
 
 // Describes a receiver
 
@@ -58,12 +56,8 @@ Receiver.prototype.generateLabel = Versionned.prototype.generateLabel;
 Receiver.prototype.validDescription = Versionned.prototype.validLabel;
 Receiver.prototype.generateDescription = Versionned.prototype.generateLabel;
 
-Receiver.prototype.validFormat = Formats.validFormat;
-Receiver.prototype.generateFormat = function (format) {
-  if (arguments.length === 0 || format === null || format === undefined)
-    return Formats.video;
-  else return format;
-}
+Receiver.prototype.validFormat = Versionned.prototype.validFormat;
+Receiver.prototype.generateFormat = Versionned.prototype.generateFormat;
 
 Receiver.prototype.validCaps = Versionned.prototype.validCaps;
 Receiver.prototype.generateCaps = Versionned.prototype.generateCaps;
@@ -74,12 +68,8 @@ Receiver.prototype.generateTags = Versionned.prototype.generateTags;
 Receiver.prototype.validDeviceID = Versionned.prototype.validID;
 Receiver.prototype.generateDeviceID = Versionned.prototype.generateID;
 
-Receiver.prototype.validTransport = Transports.validTransport;
-Receiver.prototype.generateTransport = function (t) {
-  if (arguments.length === 0 || t === null || t === undefined)
-    return Transports.rtp;
-  else return t;
-}
+Receiver.prototype.validTransport = Versionned.prototype.validTransport;
+Receiver.prototype.generateTransport = Versionned.prototype.generateTransport;
 
 Receiver.prototype.validSubscription = function (s) {
   if (arguments.length === 0) return this.validSubscription(this.subscription);

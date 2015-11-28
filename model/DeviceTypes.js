@@ -13,7 +13,7 @@
   limitations under the License.
 */
 
-// Types of format
+// Types of format - v1.0
 
 var deviceTypes = Object.freeze({
   pipeline: "urn:x-ipstudio:device:pipeline",

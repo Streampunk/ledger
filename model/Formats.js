@@ -13,12 +13,14 @@
   limitations under the License.
 */
 
-// Types of format
+// Types of format - v1.0
+
+// A URN describing the data format of a video, audio or event flow.
 
 var formats = Object.freeze({
   video: "urn:x-ipstudio:format:video",
   audio: "urn:x-ipstudio:format:audio",
-  event: "urn:x-ipstudio:format:video",
+  event: "urn:x-ipstudio:format:event",
   validFormat: function (f) {
     return f === formats.video || f === formats.audio || f === formats.event;
   }

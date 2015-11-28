@@ -16,6 +16,9 @@
 var uuid = require('uuid');
 var immutable = require('seamless-immutable');
 var Capabilities = require('./Capabilities.js')
+var Transports = require('./Transports.js');
+var Formats = require('./Formats.js');
+var DeviceTypes = require('./DeviceTypes.js');
 
 function nanoSeconds(hrtime) {
   return hrtime[0] * 1e9 + hrtime[1];
@@ -96,6 +99,36 @@ Versionned.prototype.validTags = function (tags) {
       return typeof s === 'string';
     });
   });
+}
+
+Versionned.prototype.validTransport = function (t) {
+  if (arguments.length === 0) return this.validTransport(this.transport);
+  else return Transports.validTransport(t);
+}
+Versionned.prototype.generateTransport = function (t) {
+  if (arguments.length === 0 || t === null || t === undefined)
+    return Transports.rtp;
+  else return t;
+}
+
+Versionned.prototype.validFormat = function (f) {
+  if (arguments.length === 0) return this.validFormat(this.format);
+  else return Formats.validFormat(f);
+}
+Versionned.prototype.generateFormat = function (format) {
+  if (arguments.length === 0 || format === null || format === undefined)
+    return Formats.video;
+  else return format;
+}
+
+Versionned.prototype.validDeviceType = function (d) {
+  if (arguments.length === 0) return this.validDeviceType(this.deviceType);
+  else return DeviceTypes.validDeviceType(d);
+}
+Versionned.prototype.generateDeviceType = function (d) {
+  if (arguments.length === 0 || d === null || d === undefined)
+    return DeviceTypes.generic;
+  else return d;
 }
 
 Versionned.prototype.generateTags = function (tags) {

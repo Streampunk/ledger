@@ -17,8 +17,18 @@ var Formats = require('../model/Formats.js');
 var test = require('tape');
 
 test('A valid format', function(t) {
+  t.ok(Formats.validFormat('urn:x-ipstudio:format:video'),
+    'is "urn:x-ipstudio:format:video".');
+  t.ok(Formats.validFormat('urn:x-ipstudio:format:audio'),
+    'is "urn:x-ipstudio:format:audio".');
+  t.ok(Formats.validFormat('urn:x-ipstudio:format:event'),
+    'is "urn:x-ipstudio:format:event".');
   t.ok(Formats.validFormat(Formats.video),
-    'is ' + Formats.video + '.');
+    'is Formats.video.');
+  t.ok(Formats.validFormat(Formats.audio),
+    'is Formats.audio.');
+  t.ok(Formats.validFormat(Formats.event),
+    'is Formats.event.');
   t.notOk(Formats.validFormat('streampunk'),
     'is not an arbitrary string.');
   t.notOk(Formats.validFormat(),

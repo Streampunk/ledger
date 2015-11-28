@@ -13,16 +13,19 @@
   limitations under the License.
 */
 
-// Types of transport
+// Types of transport - v1.0
+
+// A URN describing the protocol used to send data (video, audio, events etc.)
+// over a network.
 
 var transports = Object.freeze({
   rtp: "urn:x-ipstudio:transport:rtp",
   rtp_ucast: "urn:x-ipstudio:transport:rtp.ucast",
   rtp_mcast: "urn:x-ipstudio:transport:rtp.mcast",
-  dash: "urn:x-ipstudio:transport:dash"
+  dash: "urn:x-ipstudio:transport:dash",
   validTransport: function (t) {
     return t === transports.rtp || t === transports.rtp_ucast ||
-      t === formats.rtp_mcast || t === transports.dash;
+      t === transports.rtp_mcast || t === transports.dash;
   }
 });
 

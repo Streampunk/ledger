@@ -16,7 +16,6 @@
 var Versionned = require('./Versionned.js');
 var immutable = require('seamless-immutable');
 var Capabilities = require('./Capabilities.js')
-var Formats = require('./Formats.js');
 
 // Describes a source
 function Source(id, version, label, description,
@@ -56,12 +55,8 @@ Source.prototype.generateLabel = Versionned.prototype.generateLabel;
 Source.prototype.validDescription = Versionned.prototype.validLabel;
 Source.prototype.generateDescription = Versionned.prototype.generateLabel;
 
-Source.prototype.validFormat = Formats.validFormat;
-Source.prototype.generateFormat = function (format) {
-  if (arguments.length === 0 || format === null || format === undefined)
-    return Formats.video;
-  else return format;
-}
+Source.prototype.validFormat = Versionned.prototype.validFormat;
+Source.prototype.generateFormat = Versionned.prototype.generateFormat;
 
 Source.prototype.validCaps = Versionned.prototype.validCaps;
 Source.prototype.generateCaps = Versionned.prototype.generateCaps;
