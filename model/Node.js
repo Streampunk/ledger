@@ -41,7 +41,7 @@ function Node(id, version, label, href, hostname, caps, services) {
 Node.prototype.validID = Versionned.prototype.validID;
 Node.prototype.generateID = Versionned.prototype.generateID;
 Node.prototype.validVersion = Versionned.prototype.validVersion;
-Node.prototype.generateVersion = Versionne.prototype.generateVersion;
+Node.prototype.generateVersion = Versionned.prototype.generateVersion;
 Node.prototype.validLabel = Versionned.prototype.validLabel;
 Node.prototype.generateLabel = Versionned.prototype.generateLabel;
 
@@ -68,7 +68,7 @@ Node.prototype.validHostname = function (hostname) {
 Node.prototype.generateHostname = function (hostname) {
   if (arguments.length === 0 || hostname === null || hostname === undefined)
     return undefined;
-  else return label;
+  else return hostname;
 }
 
 Node.prototype.validCaps = Versionned.prototype.validCaps;
@@ -80,8 +80,8 @@ Node.prototype.validServices = function (services) {
     services.every(function (s) {
       return typeof s === 'object' &&
         !Array.isArray(s) &&
-        s.hasProperty('href') &&
-        s.hasProperty('type') &&
+        s.hasOwnProperty('href') &&
+        s.hasOwnProperty('type') &&
         typeof s.href === 'string' &&
         typeof s.type === 'string' &&
         s.href.startsWith('http://');

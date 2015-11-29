@@ -15,7 +15,7 @@
 
 var Versionned = require('./Versionned.js');
 var immutable = require('seamless-immutable');
-var Capabilities = require('./Capabilities.js')
+var Capabilities = require('./Capabilities.js');
 
 // Describes a source
 function Source(id, version, label, description,

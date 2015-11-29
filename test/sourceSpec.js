@@ -22,13 +22,40 @@ var Capabilities = require('../model/Capabilities.js');
 
 var methods = Source.prototype;
 
+var bbcSourceJSON = `{
+    "description": "Capture Card Source Video",
+    "tags": {
+        "host": [
+            "ap-z220-0"
+        ]
+    },
+    "format": "urn:x-ipstudio:format:video",
+    "caps": {},
+    "version": "1441703336:902850419",
+    "parents": [],
+    "label": "CaptureCardSourceVideo",
+    "id": "4569cea2-ab63-4f97-8dd1-bad4669ea5e4",
+    "device_id": "9126cc2f-4c26-4c9b-a6cd-93c4381c9be5"
+}`;
+
+var bbcSource = new Source(
+  '4569cea2-ab63-4f97-8dd1-bad4669ea5e4',
+  '1441703336:902850419',
+  'CaptureCardSourceVideo',
+  'Capture Card Source Video',
+  Formats.video,
+  {}, // caps
+  { host : [ 'ap-z220-0'] },
+  '9126cc2f-4c26-4c9b-a6cd-93c4381c9be5',
+  [] );
+
 test('Validity checking of description values', function (t) {
   t.ok(methods.validDescription('streampunk'),
     'matches a valid label.');
   t.ok(methods.validDescription(''),
     'matches an empty string.');
   t.ok(methods.validDescription(methods.generateDescription()),
-    'matches a generated label.');
+    'matches a generated description.');
   t.notOk(methods.validDescription(null),
     'fails for a null.');
   t.notOk(methods.validDescription(undefined),
@@ -47,6 +74,8 @@ test('Validity checking of format values', function (t) {
     'matches audio.');
   t.ok(methods.validFormat(Formats.event),
     'matches event.');
+  t.ok(bbcSource.validFormat(),
+    'parses internal value.');
   t.notOk(methods.validFormat('streampunk'),
     'does not match arbitrary string.');
   t.notOk(methods.validFormat(null),
@@ -254,7 +283,7 @@ test('Source objects', function (t) {
     null, null, realTags, null, [ uuid.v4(), uuid.v4() ]);
   t.equal(s.description, 'junking tedious nonsense',
     'description gets set by constructor.');
-  t.deepEqual(Source.prototype.parse(s.stringify()), s,
+  t.deepEqual(methods.parse(s.stringify()), s,
     'survives a JSON roundtrip.');
   s.description = "media's riotous awakening";
   t.equals(s.description, 'junking tedious nonsense',
@@ -266,7 +295,7 @@ test('Source objects', function (t) {
       description : s.description, format : s.format, caps : s.caps,
       tags : s.tags, device_id: s.device_id, parents : s.parents },
     'convert to a JSON object as expected.');
-  t.deepEqual(Source.prototype.parse(
+  t.deepEqual(methods.parse(
       JSON.stringify({id : s.id, version : s.version, label : s.label,
         description : s.description, format : s.format, caps : s.caps,
         tags : s.tags, device_id: s.device_id, parents : s.parents })), w,
@@ -275,17 +304,27 @@ test('Source objects', function (t) {
 });
 
 test('JSON parsing', function(t) {
-  t.throws(function() { Source.prototype.parse('wibble'); },
+  t.throws(function() { methods.parse('wibble'); },
     'fails to parse a JSON syntax error string.');
-  t.throws(function() { Source.prototype.parse(null); },
+  t.throws(function() { methods.parse(null); },
     'fails to parse a null value.');
-  t.throws(function() { Source.prototype.parse(42); },
+  t.throws(function() { methods.parse(42); },
     'fails to parse a number value.');
-  t.throws(function() { Source.prototype.parse(undefined); },
+  t.throws(function() { methods.parse(undefined); },
     'fails to parse an undefined value.');
-  t.doesNotThrow(function() { Source.prototype.parse('{}'); },
+  t.doesNotThrow(function() { methods.parse('{}'); },
     'parses an empty object "{}".');
-  t.notOk(Source.prototype.parse('{ "id" : "wibble" }').valid(),
+  t.notOk(methods.parse('{ "id" : "wibble" }').valid(),
     'parses invalid JSON.');
+  t.end();
+});
+
+test('Parsed BBC example', function (t) {
+  var parsedSource = methods.parse(bbcSourceJSON);
+  t.equal(parsedSource.constructor, methods.constructor,
+    'is a Source.');
+  t.deepEqual(parsedSource, bbcSource, 'matches local version.');
+  t.ok(parsedSource.valid(),
+    'is valid.')
   t.end();
 });
