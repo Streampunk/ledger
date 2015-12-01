@@ -13,21 +13,7 @@
   limitations under the License.
 */
 
-var Flow = require ('../model/Flow.js');
+var Device = require ('../model/Device.js');
 var test = require('tape');
 
-var methods = Flow.prototype;
-
-var bbcFlowJSON = `{
-    "description": "LCH Lab Capture Audio Proxy",
-    "format": "urn:x-ipstudio:format:audio",
-    "tags": {
-        "host": [
-            "ap-ch-z820-4.rd.bbc.co.uk"
-        ]
-    },
-    "label": "LCH Lab Capture Audio Proxy",
-    "version": "1441812152:154331951",
-    "source_id": "2aa143ac-0ab7-4d75-bc32-5c00c13d186f",
-    "id": "b3bb5be7-9fe9-4324-a5bb-4c70e1084449"
-}`;
+var methods = Device.prototype;
