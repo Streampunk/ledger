@@ -284,7 +284,7 @@ test('Source objects', function (t) {
   t.equal(s.description, 'junking tedious nonsense',
     'description gets set by constructor.');
   t.deepEqual(methods.parse(s.stringify()), s,
-    'survives a JSON roundtrip.');
+    'survive a JSON roundtrip.');
   s.description = "media's riotous awakening";
   t.equals(s.description, 'junking tedious nonsense',
     'are immutable.');
