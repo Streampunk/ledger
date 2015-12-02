@@ -41,7 +41,7 @@ function Sender(id, version, label, description,
 Sender.prototype.validID = Versionned.prototype.validID;
 Sender.prototype.generateID = Versionned.prototype.generateID;
 Sender.prototype.validVersion = Versionned.prototype.validVersion;
-Sender.prototype.generateVersion = Versionned.prototype.gnerateVersion;
+Sender.prototype.generateVersion = Versionned.prototype.generateVersion;
 Sender.prototype.validLabel = Versionned.prototype.validLabel;
 Sender.prototype.generateLabel = Versionned.prototype.generateLabel;
 

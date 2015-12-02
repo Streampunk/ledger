@@ -16,7 +16,7 @@
 var Source = require('../model/Source.js');
 var test = require('tape');
 var assert = require('assert');
-var uuid = require('uuid')
+var uuid = require('uuid');
 var Formats = require('../model/Formats.js');
 var Capabilities = require('../model/Capabilities.js');
 
@@ -68,14 +68,14 @@ test('Validity checking of description values', function (t) {
 });
 
 test('Validity checking of format values', function (t) {
-  t.ok(methods.validDescription(Formats.video),
+  t.ok(methods.validFormat(Formats.video),
     'matches video.');
   t.ok(methods.validFormat(Formats.audio),
     'matches audio.');
   t.ok(methods.validFormat(Formats.event),
     'matches event.');
   t.ok(bbcSource.validFormat(),
-    'parses internal value.');
+    'validates internal value.');
   t.notOk(methods.validFormat('streampunk'),
     'does not match arbitrary string.');
   t.notOk(methods.validFormat(null),
@@ -195,6 +195,8 @@ test('Generating a description', function (t) {
 });
 
 test('Generating a format', function (t) {
+  t.equals(methods.generateFormat(Formats.video), Formats.video,
+    'passes through Formats.video.');
   t.equals(methods.generateFormat('streampunk'), 'streampunk',
     'passes through an arbitrary format.');
   t.equals(methods.generateFormat(42), 42,
@@ -325,6 +327,6 @@ test('Parsed BBC example', function (t) {
     'is a Source.');
   t.deepEqual(parsedSource, bbcSource, 'matches local version.');
   t.ok(parsedSource.valid(),
-    'is valid.')
+    'is valid.');
   t.end();
 });
