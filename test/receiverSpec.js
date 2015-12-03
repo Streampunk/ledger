@@ -46,7 +46,7 @@ var bbcReceiver = new Receiver(
   'ap-z800-4 quad rtp receiver 4',
   'urn:x-ipstudio:format:video',
   {}, // caps
-  { Location : [ 'MCUK' ]},
+  { Location : [ 'MCUK' ] },
   '0d0cb97e-b96a-4a39-887f-d491492d9081',
   'urn:x-ipstudio:transport:rtp',
   { sender_id : 'urn:x-ipstudio:transport:rtp' }
