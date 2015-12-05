@@ -146,7 +146,9 @@ test('Validity checking of device ID', function (t) {
       'matches valid UUIDs.');
   }
   t.ok(methods.validDeviceID(methods.generateID()),
-    'matches a generated ID.');
+    'matches a generated ID.')
+  t.ok(bbcSource.validDeviceID(),
+    'validates an internal device ID with no arguments.');
   t.notOk(methods.validDeviceID(null),
     'fails for a null.');
   t.notOk(methods.validDeviceID(42),

@@ -74,8 +74,9 @@ Receiver.prototype.generateTransport = Versionned.prototype.generateTransport;
 Receiver.prototype.validSubscription = function (s) {
   if (arguments.length === 0) return this.validSubscription(this.subscription);
   return typeof s === 'object' &&
-    s.hasProperty('sender_id') &&
-    (s === null || this.validID(s));
+    s !== null &&
+    s.hasOwnProperty('sender_id') &&
+    (s.sender_id === null || this.validID(s.sender_id));
 }
 Receiver.prototype.generateSubscription = function (s) {
   if (arguments.length === 0 || s === null || s === undefined)
