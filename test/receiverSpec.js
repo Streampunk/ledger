@@ -202,7 +202,152 @@ test('Validity checking of subscriptions', function (t) {
   t.end();
 });
 
+test('Generating a description', function (t) {
+  t.equals(methods.generateDescription('streampunk'), 'streampunk',
+    'passes through an arbitrary description');
+  t.equals(methods.generateDescription(42), 42,
+    'passes through a number (this is not a validity check).');
+  t.equals(methods.generateDescription(), '',
+    'returns an empty string for no arguments.');
+  t.equals(methods.generateDescription(null), '',
+    'returns an empty string for a null value.');
+  t.equals(methods.generateDescription(undefined), '',
+    'returns an empty string for an undefined value.');
+  t.end();
+});
 
+test('Generating a format', function (t) {
+  t.equals(methods.generateFormat(Formats.video), Formats.video,
+    'passes through Formats.video.');
+  t.equals(methods.generateFormat('streampunk'), 'streampunk',
+    'passes through an arbitrary format.');
+  t.equals(methods.generateFormat(42), 42,
+    'passes through a number (this is not a validity check).');
+  t.equals(methods.generateFormat(), Formats.video,
+    'returns ' + Formats.video + ' for no arguments.');
+  t.equals(methods.generateFormat(null), Formats.video,
+    'returns ' + Formats.video + ' for a null value.');
+  t.equals(methods.generateFormat(undefined), Formats.video,
+    'returns ' + Formats.video + ' or an undefined value.');
+  t.end();
+});
+
+test('Generating capabilities', function (t) {
+  t.ok(methods.validCaps(methods.generateCaps(Capabilities)),
+    'passes through capabilities.');
+  t.equals(methods.generateCaps('streampunk'), 'streampunk',
+    'passes through an arbitrary string (this is not a validity test).');
+  t.ok(methods.validCaps(methods.generateCaps()),
+    'creates valid capabilities with no arguments.');
+  t.ok(methods.validCaps(methods.generateCaps(null)),
+    'creates valid capabilities for a null value.');
+  t.ok(methods.validCaps(methods.generateCaps(undefined)),
+    'creates valid capabilities for an undefined value.');
+  t.end();
+});
+
+test('Generating tags', function (t) {
+  t.equals(methods.generateTags(bbcReceiver.tags), bbcReceiver.tags,
+    'passes through real tags.');
+  t.deepEqual(methods.generateTags({ a : [ "b" ], c : [] }),
+    { a : [ "b" ], c : [] },
+    'passes through valid tags object.');
+  t.equals(methods.generateTags('streampunk tags'), 'streampunk tags',
+    'passes through an arbitrary string.');
+  t.equals(Object.keys(methods.generateTags()).length, 0,
+    'returns an empty object for no arguments.');
+  t.equals(Object.keys(methods.generateTags(null)).length, 0,
+    'returns an empty object for a null value.');
+  t.equals(Object.keys(methods.generateTags(undefined)).length, 0,
+    'returns an empty object for an undefined value.');
+  t.end();
+});
+
+test('Generating device IDs', function (t) {
+  var testID = uuid.v4();
+  t.equal(methods.generateDeviceID(testID), testID,
+    'passes through a valid UUID.')
+  t.equal(methods.generateDeviceID('streampunk'), 'streampunk',
+    'passes through an arbitrary string (this is not a validation check).');
+  t.equal(methods.generateDeviceID(42), 42,
+    'passes through an arbitrary number (this is not a validation check).');
+  t.ok(methods.validDeviceID(methods.generateDeviceID()),
+    'generates a valid UUID with no arguments.');
+  t.ok(methods.validDeviceID(methods.generateDeviceID(null)),
+    'generates a valid UUID with a null argument.');
+  t.ok(methods.validDeviceID(methods.generateDeviceID(undefined)),
+    'generates a valid UUID with an undefined argument.');
+  t.end();
+});
+
+test('Generating a subscription', function (t) {
+  t.deepEqual(methods.generateSubscription({ sender_id : null}),
+    { sender_id : null}, 'passes through an initial subscription.');
+  t.deepEqual(methods.generateSubscription(bbcReceiver.subscription),
+    { sender_id : '55311762-8003-48fa-a645-0a0c7621ce45' },
+    'passes through the example subscription.');
+  t.ok(methods.validSubscription(methods.generateSubscription()),
+    'creates valid values.');
+  t.equal(methods.generateSubscription('streampunk'), 'streampunk',
+    'passes through an arbitrary string (this is not a validity check).');
+  t.equal(methods.generateSubscription(42), 42,
+    'passes through a number (this is not a validity check).')
+  t.deepEqual(methods.generateSubscription(), { sender_id : null },
+    'creates an initial subscription for no arguments.');
+  t.deepEqual(methods.generateSubscription(null), { sender_id : null},
+    'creates an initial subscription for a null value.');
+  t.deepEqual(methods.generateSubscription(undefined), { sender_id : null},
+    'creaetes an initial subscription for an undefined value.');
+  t.end();
+});
+
+test('Generating a transport', function (t) {
+  t.equals(methods.generateTransport(Transports.rtp), Transports.rtp,
+    'passes through Transports.rtp.');
+  t.equals(methods.generateTransport('streampunk'), 'streampunk',
+    'passes through an arbitrary transport.');
+  t.equals(methods.generateTransport(42), 42,
+    'passes through a number.');
+  t.equals(methods.generateTransport(), Transports.rtp,
+    'creates Transports.rtp for no arguments.');
+  t.equals(methods.generateTransport(null), Transports.rtp,
+    'creates Transports.rtp for a null value.');
+  t.equals(methods.generateTransport(undefined), Transports.rtp,
+    'creates Transports.rtp for an undefined value.');
+  t.end();
+});
+
+test('Receiver objects', function (t) {
+  for ( var x = 0 ; x < 10 ; x++ ) {
+    t.ok(new Receiver().valid(),
+      'are valid on default creation ' + x + '.');
+  }
+  var r = new Receiver(null, null, 'streampunk', 'junking tedious nonsense',
+    Formats.audio, {}, {}, null, Transports.dash, null);
+  t.ok(r.valid(), 'are valid on mixed construction.');
+  t.equal(r.description, 'junking tedious nonsense',
+    'description is set by constructor.');
+  t.deepEqual(methods.parse(r.stringify()), r,
+    'survices JSON roundtrip.');
+  r.description = "media's riotous awakening";
+  t.equal(r.description, 'junking tedious nonsense',
+    'are immutable.');
+  t.notOk(new Receiver('wibble').valid(),
+    'can be constructed as invalid.');
+  var j = JSON.parse(r.stringify());
+  t.deepEqual(j, { id : r.id, version : r.version, label : r.label,
+      description : r.description, format : r.format, caps : r.caps,
+      tags : r.tags, device_id : r.device_id, transport : r.transport,
+      subscription : r.subscription },
+    'convert to a JSON object as expected.');
+  t.deepEquals(methods.parse(
+      JSON.stringify({ id : r.id, version : r.version, label : r.label,
+        description : r.description, format : r.format, caps : r.caps,
+        tags : r.tags, device_id : r.device_id, transport : r.transport,
+        subscription : r.subscription })), j,
+    'convert from a JSON object as expected.');
+  t.end();
+});
 
 test('Example BBC receiver', function (t) {
   var parsed = methods.parse(bbcReceiverJSON);

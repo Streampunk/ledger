@@ -229,8 +229,8 @@ test('Generating capabilities', function (t) {
 test('Generating tags', function (t) {
   t.equals(methods.generateTags(realTags), realTags,
     'passes through real tags.');
-  t.doesNotThrow(function () { assert.deepStrictEqual(
-      methods.generateTags({ a : [ "b" ], c : [] }), { a : [ "b" ], c : [] }) },
+  t.deepEqual(methods.generateTags({ a : [ "b" ], c : [] }),
+    { a : [ "b" ], c : [] },
     'passes through valid tags object.');
   t.equals(methods.generateTags('streampunk tags'), 'streampunk tags',
     'passes through an arbitrary string.');
