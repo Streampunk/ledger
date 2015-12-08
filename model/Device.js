@@ -15,6 +15,7 @@
 
 var Versionned = require('./Versionned.js');
 var immutable = require('seamless-immutable');
+var DeviceTypes = require('./DeviceTypes.js');
 
 // Describes a device
 function Device(id, version, label, type, node_id, senders, receivers) {
@@ -25,6 +26,7 @@ function Device(id, version, label, type, node_id, senders, receivers) {
   this.version = this.generateVersion(version);
   // Freeform string label for the Device.
   this.label = this.generateLabel(label);
+  // Device type URN
   this.type = this.generateType(type);
   // Globally unique identifier for the Node which initially created the Device
   this.node_id = this.generateNodeID(node_id);
@@ -42,5 +44,45 @@ Device.prototype.generateVersion = Versionned.prototype.generateVersion;
 Device.prototype.validLabel = Versionned.prototype.validLabel;
 Device.prototype.generateLabel = Versionned.prototype.generateLabel;
 
+Device.prototype.validType = function (t) {
+  if (arguments.length === 0) return this.validType(this.type);
+  else return Versionned.prototype.validDeviceType(t);
+}
+Device.prototype.generateType = Versionned.prototype.generateDeviceType;
+
+Device.prototype.validNodeID = Versionned.prototype.validID;
+Device.prototype.generateNodeID = Versionned.prototype.generateID;
+
+Device.prototype.validSenders = function(s) {
+  if (arguments.length === 0) return this.validSenders(this.senders);
+  else return Versionned.prototype.validUUIDArray(s);
+}
+Device.prototype.generateSenders = Versionned.prototype.generateUUIDArray;
+
+Device.prototype.validReceivers = function (r) {
+  if (arguments.length === 0) return this.validReceivers(this.receivers);
+  else return Versionned.prototype.validUUIDArray(r);
+}
+Device.prototype.generateReceivers = Versionned.prototype.generateUUIDArray;
+
+Device.prototype.valid = function () {
+  return this.validID(this.id) &&
+    this.validVersion(this.version) &&
+    this.validLabel(this.label) &&
+    this.validType(this.type) &&
+    this.validNodeID(this.node_id) &&
+    this.validSenders(this.senders) &&
+    this.validReceivers(this.receivers);
+};
+
+Device.prototype.stringify = function() { return JSON.stringify(this); }
+Device.prototype.parse = function(json) {
+  if (json === null || json === undefined || arguments.length === 0 ||
+      typeof json !== 'string')
+    throw "Cannot parse JSON to a Device value because it is not a valid input.";
+  var parsed = JSON.parse(json);
+  return new Device(parsed.id, parsed.version, parsed.label, parsed.type,
+    parsed.node_id, parsed.senders, parsed.receivers);
+};
 
 module.exports = Device;

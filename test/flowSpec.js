@@ -31,3 +31,13 @@ var bbcFlowJSON = `{
     "source_id": "2aa143ac-0ab7-4d75-bc32-5c00c13d186f",
     "id": "b3bb5be7-9fe9-4324-a5bb-4c70e1084449"
 }`;
+
+var bbcFlow = new Flow(
+  'b3bb5be7-9fe9-4324-a5bb-4c70e1084449',
+  '1441812152:154331951',
+  'LCH Lab Capture Audio Proxy',
+  'LCH Lab Capture Audio Proxy',
+  'urn:x-ipstudio:format:audio',
+  '2aa143ac-0ab7-4d75-bc32-5c00c13d186f',
+  []
+);
