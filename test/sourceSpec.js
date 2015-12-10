@@ -264,7 +264,8 @@ test('Generating parents', function (t) {
   var testParents = [ uuid.v4, uuid.v4 ];
   t.equal(methods.generateParents(testParents), testParents,
     'passes through valid parent array.');
-  t.equal(methods.generateDeviceID(42), 42,
+  t.equal(methods.generateParents
+    (42), 42,
     'passes through an arbitrary number (this is not a validation check).');
   var generatedParents = methods.generateParents();
   t.ok(methods.validParents(generatedParents),

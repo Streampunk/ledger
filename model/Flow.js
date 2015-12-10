@@ -18,7 +18,8 @@ var immutable = require('seamless-immutable');
 
 // Describes a Flow
 
-function Flow(id, version, label, description, format, source_id, parents) {
+function Flow(id, version, label, description, format,
+    tags, source_id, parents) {
   // Globally unique identifier for the Flow
   this.id = this.generateID(id);
   // String formatted PTP timestamp (<seconds>:<nanoseconds>) indicating
@@ -30,6 +31,9 @@ function Flow(id, version, label, description, format, source_id, parents) {
   this.description = this.generateDescription(description);
   // Format of the data coming from the Flow as a URN
   this.format = this.generateFormat(format);
+  // Key value set of freeform string tags to aid in filtering Flows. Values
+  // should be represented as an array of strings. Can be empty.
+  this.tags = this.generateTags(tags); // Treating as a required property
   // Globally unique identifier for the Flow which initially created the Flow
   this.source_id = this.generateSourceID(source_id);
   // Array of UUIDs representing the Flow IDs of Grains which came together to
@@ -51,6 +55,9 @@ Flow.prototype.generateDescription = Versionned.prototype.generateLabel;
 Flow.prototype.validFormat = Versionned.prototype.validFormat;
 Flow.prototype.generateFormat = Versionned.prototype.generateFormat;
 
+Flow.prototype.validTags = Versionned.prototype.validTags;
+Flow.prototype.generateTags = Versionned.prototype.generateTags;
+
 Flow.prototype.validSourceID = Versionned.prototype.validID;
 Flow.prototype.generateSourceID = Versionned.prototype.generateID;
 
@@ -58,7 +65,7 @@ Flow.prototype.validParents = function (parents) {
   if (arguments.length === 0) return this.validParents(this.parents);
   return Versionned.prototype.validUUIDArray(parents);
 }
-Flow.prototype.generateParents = Versionned.prototype.generateParents;
+Flow.prototype.generateParents = Versionned.prototype.generateUUIDArray;
 
 Flow.prototype.valid = function() {
   return this.validID(this.id) &&
@@ -66,6 +73,7 @@ Flow.prototype.valid = function() {
     this.validLabel(this.label) &&
     this.validDescription(this.description) &&
     this.validFormat(this.format) &&
+    this.validTags(this.tags) &&
     this.validSourceID(this.source_id) &&
     this.validParents(this.parents);
 }
@@ -77,7 +85,7 @@ Flow.prototype.parse = function (json) {
     throw "Cannot parse JSON to a Flow value because it is not a valid input.";
   var parsed = JSON.parse(json);
   return new Flow(parsed.id, parsed.version, parsed.label, parsed.description,
-      parsed.format, parsed.source_id, parsed.parents);
+      parsed.format, parsed.tags, parsed.source_id, parsed.parents);
 }
 
 module.exports = Flow;
