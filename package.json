@@ -1,0 +1,36 @@
+{
+  "name": "ledger",
+  "version": "1.0.0",
+  "description": "0.0.1",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "express": "^4.13.3",
+    "seamless-immutable": "^4.0.2",
+    "tape": "^4.2.2",
+    "uuid": "^2.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Streampunk/ledger.git"
+  },
+  "keywords": [
+    "AMWA",
+    "incubator",
+    "registration",
+    "discovery",
+    "JT-NM"
+  ],
+  "author": "Christine S. MacNeill",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Streampunk/ledger/issues"
+  },
+  "homepage": "https://github.com/Streampunk/ledger#readme"
+}
