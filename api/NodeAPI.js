@@ -24,92 +24,133 @@ var Flow = require('../model/Flow.js');
 var Sender = require('../model/Sender.js');
 var Receiver = require('../model/Receiver.js');
 
-function NodeAPI (port, self, device, sources, flows,
-    senders, receivers, app, server) {
-  this.port = port;
+function NodeState(self) {
   this.self = self;
-  this.devices = [ device ];
+  this.devices = [];
   this.sources = [];
   this.flows = [];
   this.senders = [];
   this.receivers = [];
-  this.app = express();
-  this.server = null;
-  return this;
-  // return immutable(this, { prototype : NodeAPI.prototype });
+  return immutable(this, { prototype : NodeState.prototype });
 }
 
-NodeAPI.prototype.addFlow = function (f) {
-  return this.merge({flows : [ f ]});
-}
-
-NodeAPI.prototype.init = function () {
-  this.app.get('/', function (req, res) {
-    res.send(`[
-        "self/",
-        "sources/",
-        "flows/",
-        "devices/",
-        "senders/",
-        "receivers/"
-    ]`);
+NodeState.prototype.addDevice = function (device) {
+  return this.merge({
+    devices : this.devices.concat([device]),
+    self : this.self.merge({ services : this.self.services.concat([device.id]) })
   });
+}
 
-  this.app.get('/self/', function (req, res) {
-    res.json(this.self);
-  }.bind(this));
+function NodeAPI (port, self) {
+  var state = new NodeState(self);
+  var app = express();
+  var server = null;
 
-  // List sources
-  this.app.get('/sources/', function (req, res) {
-    res.json(this.sources);
-  }.bind(this));
+  this.addDevice = function(device) {
+    state = state.addDevice(device);
+  }
 
-  // Get a single source
-  this.app.get('/sources/:id', function (req, res, next) {
-    var source = this.sources.find(x => { return x.id === req.param.id });
-    if (source) res.json(source);
-    else next();
-  }.bind(this));
+  this.init = function() {
+    app.get('/', function (req, res) {
+      res.json([
+          "self/",
+          "sources/",
+          "flows/",
+          "devices/",
+          "senders/",
+          "receivers/"
+      ]);
+    });
 
-  this.app.get('/flows/', function (req, res) {
-    res.json(this.flows);
-  }.bind(this));
+    app.get('/self/', function (req, res) {
+      res.json(state.self);
+    });
 
-  // List devices
-  this.app.get('/devices/', function (req, res) {
-    res.json(this.devices);
-  }.bind(this));
+    // List sources
+    app.get('/sources/', function (req, res) {
+      res.json(state.sources);
+    });
 
-  this.app.get('/devices/:id', function (req, res, next) {
-    var device = this.devices.find(x => { return x.id == req.params.id });
-    if (device) res.json(device);
-    else next();
-  }.bind(this));
+    // Get a single source
+    app.get('/sources/:id', function (req, res, next) {
+      var source = state.sources.find(x => { return x.id === req.param.id });
+      if (source) res.json(source);
+      else next();
+    });
 
-  this.app.get('/senders/', function (req, res) {
-    res.json(this.senders);
-  }.bind(this));
+    // List flows
+    app.get('/flows/', function (req, res) {
+      res.json(state.flows);
+    });
 
-  this.app.get('/receivers/', function (req, res) {
-    res.json(this.receivers);
-  }.bind(this));
+    // Get a single flow
+    app.get('/flows/:id', function (req, res, next) {
+      var flow = state.flows.find(x => { return x.id == req.params.id });
+      if (flow) res.json(flow);
+      else next();
+    });
 
-  return this;
-};
+    // List devices
+    app.get('/devices/', function (req, res) {
+      res.json(state.devices);
+    });
 
-NodeAPI.prototype.start = function(e) {
-  this.server = this.app.listen(this.port, function (e) {
-    var host = this.server.address().address;
-    var port = this.server.address().port;
-    if (e && e.code == 'EADDRINUSE') {
-      console.log('Address  http://%s:%s in use, retrying...', host, port);
-      setTimeout(function () {
-        this.server.close();
-        this.app.listen(port);
-      }.bnextind(this), 1000);
-    }
-    console.log('Streampunk media ledger service running at http://%s:%s', host, port);
-  }.bind(this));
-};
+    // Get a single device
+    app.get('/devices/:id', function (req, res, next) {
+      var device = state.devices.find(x => { return x.id == req.params.id });
+      if (device) res.json(device);
+      else next();
+    });
+
+    // List senders
+    app.get('/senders/', function (req, res) {
+      res.json(state.senders);
+    });
+
+    app.get('/senders/:id', function (req, res, next) {
+      var sender = state.senders.find(x => { return x.id == req.params.id });
+      if (sender) res.json(sender);
+      else next();
+    });
+
+    app.get('/receivers/', function (req, res) {
+      res.json(state.receivers);
+    });
+
+    app.get('/receivers/:id', function (req, res) {
+      var receiver = state.receivers.find(x => { return x.id == req.params.id });
+      if (receiver) res.json(receiver);
+      else next();
+    });
+
+    app.use(function (req, res) {
+      res.status(404).json({
+        status : 404,
+        message : 'Could not find the requested resource.',
+        path : req.path
+      });
+    });
+
+    return this;
+  }
+
+  this.start = function () {
+    server = app.listen(port, function (e) {
+      var host = server.address().address;
+      var port = server.address().port;
+      if (e && e.code == 'EADDRINUSE') {
+        console.log('Address  http://%s:%s in use, retrying...', host, port);
+        setTimeout(function () {
+          server.close();
+          app.listen(port);
+        }, 1000);
+      }
+      else console.log('Streampunk media ledger service running at http://%s:%s',
+          host, port);
+    });
+  }
+
+  return immutable(this, { prototype : NodeAPI.prototype });
+}
 
 module.exports = NodeAPI;

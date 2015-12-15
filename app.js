@@ -20,7 +20,8 @@ var Node = require('./model/Node.js');
 var Device = require('./model/Device.js');
 var Flow = require('./model/Flow.js');
 
-var nodeAPI = new NodeAPI(3000, new Node(), new Device());
+var nodeAPI = new NodeAPI(3000, new Node());
 
 nodeAPI.init().start();
+nodeAPI.addDevice(new Device());
 // nodeAPI.addFlow(new Flow());
