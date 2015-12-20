@@ -13,14 +13,23 @@
   limitations under the License.
 */
 
-// Types of format - v1.0
+// Types of device - v1.0
 
-var deviceTypes = Object.freeze({
+/**
+ * Types of [device]{@link Device}.
+ * @readonly
+ * @enum {string}
+ */
+var deviceTypes = {
+  /** Value <code>urn:x-ipstudio:device:pipeline</code>. */
   pipeline: "urn:x-ipstudio:device:pipeline",
-  generic: "urn:x-ipstudio:device:generic",
-  validDeviceType: function (f) {
-    return f === deviceTypes.generic || f === deviceTypes.pipeline;
-  }
-});
+  /** Value <code>urn:x-ipstudio:device:generic</code>. */
+  generic: "urn:x-ipstudio:device:generic"
+};
 
-module.exports = deviceTypes;
+/** Check if a value is a valid device type. */
+deviceTypes.validDeviceType = function (f) {
+  return f === deviceTypes.generic || f === deviceTypes.pipeline;
+};
+
+module.exports = Object.freeze(deviceTypes);

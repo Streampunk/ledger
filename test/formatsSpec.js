@@ -23,6 +23,8 @@ test('A valid format', function(t) {
     'is "urn:x-ipstudio:format:audio".');
   t.ok(Formats.validFormat('urn:x-ipstudio:format:event'),
     'is "urn:x-ipstudio:format:event".');
+  t.ok(Formats.validFormat('urn:x-ipstudio:format:video.raw'),
+    'is a format with a sub-type such as "urn:x-ipstudio:format:video.raw".');
   t.ok(Formats.validFormat(Formats.video),
     'is Formats.video.');
   t.ok(Formats.validFormat(Formats.audio),

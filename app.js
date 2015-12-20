@@ -19,9 +19,10 @@ var NodeAPI = require('./api/NodeAPI.js');
 var Node = require('./model/Node.js');
 var Device = require('./model/Device.js');
 var Flow = require('./model/Flow.js');
+var NodeState = require('./api/NodeState.js');
 
 var nodeAPI = new NodeAPI(3000, new Node());
 
 nodeAPI.init().start();
-nodeAPI.addDevice(new Device());
+nodeAPI.updateState(NodeState.prototype.addDevice, [new Device()]);
 // nodeAPI.addFlow(new Flow());

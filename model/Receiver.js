@@ -41,7 +41,7 @@ function Receiver(id, version, label, description,
   // Transport type accepted by the Receiver in URN format
   this.transport = this.generateTransport(transport);
   // Object containing the 'sender_id' currently subscribed to. Sender_id
-  // should be null on initialisation.",
+  // should be null on initialisation.
   this.subscription = this.generateSubscription(subscription);
   return immutable(this, { prototype : Receiver.prototype });
 }

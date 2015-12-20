@@ -15,15 +15,30 @@
 
 // Types of format - v1.0
 
-// A URN describing the data format of a video, audio or event flow.
-
-var formats = Object.freeze({
+/**
+ * A URN describing the data format of a video, audio or event
+ * [flow]{@link Flow
+ *
+ * <p>Sub-classifications of these core URNs may also be encountered within this
+ * API version (such as urn:x-ipstudio:format:video.raw), and should still be
+ * interpreted correctly by consumers up to the boundaries above.</p>
+ * @enum {string}
+ * @readonly
+ */
+var formats = {
+  /** Value <code>urn:x-ipstudio:format:video</code>. */
   video: "urn:x-ipstudio:format:video",
+  /** Value <code>urn:x-ipstudio:format:audio</code>. */
   audio: "urn:x-ipstudio:format:audio",
-  event: "urn:x-ipstudio:format:event",
-  validFormat: function (f) {
-    return f === formats.video || f === formats.audio || f === formats.event;
-  }
-});
+  /** Value <code>urn:x-ipstudio:format:event</code>. */
+  event: "urn:x-ipstudio:format:event"
+};
 
-module.exports = formats;
+formats.validFormat =function (f) {
+  return typeof f === 'string' &&
+    (f.startsWith(formats.video) ||
+      f.startsWith(formats.audio) ||
+      f.startsWith(formats.event) );
+};
+
+module.exports = Object.freeze(formats);

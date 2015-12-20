@@ -15,18 +15,31 @@
 
 // Types of transport - v1.0
 
-// A URN describing the protocol used to send data (video, audio, events etc.)
-// over a network.
-
-var transports = Object.freeze({
+/**
+ * A URN describing the protocol used to send data (video, audio, events etc.)
+ * over a network.
+ *
+ * <p>For example, an RTP Transmitter sending to a multicast group should use the
+ * transport 'urn:x-ipstudio:transport:rtp.mcast', but a receiver supporting
+ * both unicast and multicast should present the transport
+ * 'urn:x-ipstudio:transport:rtp' to indicate its less restrictive state.</p>
+ * @readonly
+ * @enum {string}
+ */
+var transports = {
+  /** Value <code>urn:x-ipstudio:transport:rtp</code>. */
   rtp: "urn:x-ipstudio:transport:rtp",
+  /** Value <code>urn:x-ipstudio:transport:rtp.ucast</code>. */
   rtp_ucast: "urn:x-ipstudio:transport:rtp.ucast",
+  /** Value <code>urn:x-ipstudio:transport:rtp.mcast</code>. */
   rtp_mcast: "urn:x-ipstudio:transport:rtp.mcast",
-  dash: "urn:x-ipstudio:transport:dash",
-  validTransport: function (t) {
-    return t === transports.rtp || t === transports.rtp_ucast ||
-      t === transports.rtp_mcast || t === transports.dash;
-  }
-});
+  /** Value <code>urn:x-ipstudio:transport:dash</code>. */
+  dash: "urn:x-ipstudio:transport:dash"
+};
 
-module.exports = transports;
+transports.validTransport = function (t) {
+  return t === transports.rtp || t === transports.rtp_ucast ||
+    t === transports.rtp_mcast || t === transports.dash;
+};
+
+module.exports = Object.freeze(transports);
