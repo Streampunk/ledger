@@ -57,7 +57,7 @@ function NodeAPI (port, store) {
   var app = express();
   var server = null;
 
-  function setPagingHeaders(res, pageOf, size, pages, total) {
+  function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
     if (size) res.set('X-Streampunk-Ledger-Size', size.toString());
     if (pages) res.set('X-Streampunk-Ledger-Pages', pages.toString());
@@ -120,9 +120,9 @@ function NodeAPI (port, store) {
     // List devices
     app.get('/devices/', function (req, res, next) {
       store.getDevices(req.query.skip, req.query.limit,
-          function (err, devices, pageOf, size, pages, total) {
+          function (err, devices, total, pageOf, pages, size) {
         if (err) next(err);
-        else setPagingHeaders(res, pageOf, size, pages, total).json(devices);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(devices);
       });
     });
 
@@ -137,9 +137,9 @@ function NodeAPI (port, store) {
     // List sources
     app.get('/sources/', function (req, res, next) {
       store.getSources(req.query.skip, req.query.limit,
-          function(err, sources, pageOf, size, pages, total) {
+          function(err, sources, total, pageOf, pages, size) {
         if (err) next(err);
-        else setPagingHeaders(res, pageOf, size, pages, total).json(sources);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(sources);
       });
     });
 
@@ -154,9 +154,9 @@ function NodeAPI (port, store) {
     // List flows
     app.get('/flows/', function (req, res, next) {
       store.getFlows(req.query.skip, req.query.limit,
-          function (err, flows, pageOf, size, pages, total) {
+          function (err, flows, total, pageOf, pages, size) {
         if (err) next(err);
-        else setPagingHeaders(res, pageOf, size, pages, total).json(flows);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(flows);
       });
     });
 
@@ -173,7 +173,7 @@ function NodeAPI (port, store) {
       store.getSenders(req.query.skip, req.query.limit,
          function(err, senders, pageOf, size, page, total) {
         if (err) next(err);
-        else setPagingHeaders(res, pageOf, size, pages, total).json(senders);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(senders);
       });
     });
 
@@ -186,16 +186,16 @@ function NodeAPI (port, store) {
     });
 
     // List receivers
-    app.get('/receivers/', function (req, res) {
+    app.get('/receivers/', function (req, res, next) {
       store.getReceivers(req.query.skip, req.query.limit,
-          function(err, receivers, pageOf, size, pages, total) {
+          function(err, receivers, total, pageOf, pages, size) {
         if (err) next(err);
-        else setPagingHeaders(res, pageOf, size, pages, total).json(receivers);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(receivers);
       });
     });
 
     // Get a single receiver
-    app.get('/receivers/:id', function (req, res) {
+    app.get('/receivers/:id', function (req, res, next) {
       store.getReceiver(req.param.id, function(err, receiver) {
         if (err) next(err);
         else res.json(receiver);
@@ -207,15 +207,15 @@ function NodeAPI (port, store) {
         var status = err.status ? err.status : 404;
         res.status(status).json({
           status: status,
-          message: err.message,
-          path: req.path
+          error: err.message,
+          debug: err.stack
         });
       }
       else {
         res.status(404).json({
           status : 404,
-          message : 'Could not find the requested resource.',
-          path : req.path
+          error : 'Could not find the requested resource.',
+          debug : req.path
         });
       }
     });
@@ -315,13 +315,13 @@ module.exports = NodeAPI;
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Device.html">Device</a></li><li><a href="NodeAPI.html">NodeAPI</a></li><li><a href="NodeRAMStore.html">NodeRAMStore</a></li></ul><h3>Interfaces</h3><ul><li><a href="NodeStore.html">NodeStore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#deviceTypes">deviceTypes</a></li><li><a href="global.html#formats">formats</a></li><li><a href="global.html#statusError">statusError</a></li><li><a href="global.html#transports">transports</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Device.html">Device</a></li><li><a href="Flow.html">Flow</a></li><li><a href="Node.html">Node</a></li><li><a href="NodeAPI.html">NodeAPI</a></li><li><a href="NodeRAMStore.html">NodeRAMStore</a></li><li><a href="Versionned.html">Versionned</a></li></ul><h3>Interfaces</h3><ul><li><a href="NodeStore.html">NodeStore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#capabilities">capabilities</a></li><li><a href="global.html#deviceTypes">deviceTypes</a></li><li><a href="global.html#formats">formats</a></li><li><a href="global.html#statusError">statusError</a></li><li><a href="global.html#transports">transports</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Sun Dec 20 2015 23:27:39 GMT+0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Mon Dec 21 2015 17:19:49 GMT+0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

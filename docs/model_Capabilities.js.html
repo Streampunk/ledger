@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: model/DeviceTypes.js</title>
+    <title>JSDoc: Source: model/Capabilities.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: model/DeviceTypes.js</h1>
+    <h1 class="page-title">Source: model/Capabilities.js</h1>
 
     
 
@@ -41,26 +41,17 @@
   limitations under the License.
 */
 
-// Types of device - v1.0
+// Not yet defined. To be further worked on.
+
+var immutable = require('seamless-immutable');
 
 /**
- * Types of [device]{@link Device}.
- * @readonly
- * @enum {string}
+ * Representation of a capability, a concept to be developed in future versions.
+ * @constant
  */
-var deviceTypes = {
-  /** Value &lt;code>urn:x-ipstudio:device:pipeline&lt;/code>. */
-  pipeline: "urn:x-ipstudio:device:pipeline",
-  /** Value &lt;code>urn:x-ipstudio:device:generic&lt;/code>. */
-  generic: "urn:x-ipstudio:device:generic"
-};
+var capabilities = immutable({});
 
-/** Check if a value is a valid device type. */
-deviceTypes.validDeviceType = function (f) {
-  return f === deviceTypes.generic || f === deviceTypes.pipeline;
-};
-
-module.exports = Object.freeze(deviceTypes);
+module.exports = cap;
 </code></pre>
         </article>
     </section>

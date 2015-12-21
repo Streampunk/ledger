@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: Device</title>
+    <title>JSDoc: Class: Node</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: Device</h1>
+    <h1 class="page-title">Class: Node</h1>
 
     
 
@@ -28,7 +28,7 @@
 
 <header>
     
-        <h2>Device</h2>
+        <h2>Node</h2>
         
     
 </header>
@@ -40,14 +40,14 @@
 
     
 
-    <h4 class="name" id="Device"><span class="type-signature"></span>new Device<span class="signature">(id, version, label, type, node_id, senders, receivers)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="Node"><span class="type-signature"></span>new Node<span class="signature">(id, version, label, href, hostname, caps, services)</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    Describes a Device. Immutable value.
+    Describes a Node. Immutable value.
 </div>
 
 
@@ -89,7 +89,7 @@
             <td class="type">
             
                 
-<span class="param-type">String</span>
+<span class="param-type">string</span>
 
 
             
@@ -99,7 +99,7 @@
 
             
 
-            <td class="description last">Globally unique UUID identifier for the Device.</td>
+            <td class="description last">Globally unique UUID identifier for the Node.</td>
         </tr>
 
     
@@ -122,10 +122,7 @@
 
             
 
-            <td class="description last">String formatted PTP timestamp
-                            (&lt;<em>seconds</em>&gt;:&lt;<em>nanoseconds</em>&gt;)
-                            indicating precisely when an attribute of the resource
-                            last changed.</td>
+            <td class="description last">String formatted PTP timestamp                         (&lt;<em>seconds</em>&gt;:&lt;<em>nanoseconds</em>&gt;)                         indicating precisely when an attribute of the resource                         last changed.</td>
         </tr>
 
     
@@ -148,14 +145,14 @@
 
             
 
-            <td class="description last">Freeform string label for the Device.</td>
+            <td class="description last">Freeform string label for the Node.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>type</code></td>
+                <td class="name"><code>href</code></td>
             
 
             <td class="type">
@@ -171,14 +168,14 @@
 
             
 
-            <td class="description last"><a href="global.html#deviceTypes">Device type</a> URN.</td>
+            <td class="description last">HTTP access href for the Node's API.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>node_id</code></td>
+                <td class="name"><code>hostname</code></td>
             
 
             <td class="type">
@@ -194,21 +191,20 @@
 
             
 
-            <td class="description last">Globally unique UUID identifier for the <a href="Node.html">Node</a>
-                            which initially created the Device.</td>
+            <td class="description last">Node hostname - set to null when not present.</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>senders</code></td>
+                <td class="name"><code>caps</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;string></span>
+<span class="param-type">Object</span>
 
 
             
@@ -218,20 +214,20 @@
 
             
 
-            <td class="description last">UUIDs of Senders attached to the Device.</td>
+            <td class="description last"><a href="global.html#capabilities">Capabilities</a> (not yet defined).</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>receivers</code></td>
+                <td class="name"><code>services</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;string></span>
+<span class="param-type">Array.&lt;Object></span>
 
 
             
@@ -241,7 +237,7 @@
 
             
 
-            <td class="description last">UUIDs of Receivers attached to the Device</td>
+            <td class="description last">Array of objects containing a URN format type and href.</td>
         </tr>
 
     
@@ -282,7 +278,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="model_Device.js.html">model/Device.js</a>, <a href="model_Device.js.html#line36">line 36</a>
+        <a href="model_Node.js.html">model/Node.js</a>, <a href="model_Node.js.html#line37">line 37</a>
     </li></ul></dd>
     
 
@@ -334,6 +330,222 @@
 
     
         <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="caps"><span class="type-signature">(readonly) </span>caps<span class="type-signature"> :Object</span></h4>
+
+
+
+
+<div class="description">
+    <a href="global.html#capabilities">Capabilities</a> (not yet defined).
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="model_Node.js.html">model/Node.js</a>, <a href="model_Node.js.html#line58">line 58</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="hostname"><span class="type-signature">(readonly) </span>hostname<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    Node hostname - set to null when not present.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="model_Node.js.html">model/Node.js</a>, <a href="model_Node.js.html#line52">line 52</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="href"><span class="type-signature">(readonly) </span>href<span class="type-signature"> :string</span></h4>
+
+
+
+
+<div class="description">
+    HTTP access href for the Node's API.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">string</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="model_Node.js.html">model/Node.js</a>, <a href="model_Node.js.html#line46">line 46</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
 
         
             
@@ -491,14 +703,13 @@
 
         
             
-<h4 class="name" id="node_id"><span class="type-signature">(readonly) </span>node_id<span class="type-signature"> :string</span></h4>
+<h4 class="name" id="services"><span class="type-signature">(readonly) </span>services<span class="type-signature"> :Array.&lt;Object></span></h4>
 
 
 
 
 <div class="description">
-    Globally unique UUID identifier for the <a href="Node.html">Node</a> which initially created
-the Device.
+    Array of objects containing a URN format type and href.
 </div>
 
 
@@ -507,7 +718,7 @@ the Device.
     <ul>
         <li>
             
-<span class="param-type">string</span>
+<span class="param-type">Array.&lt;Object></span>
 
 
         </li>
@@ -546,223 +757,7 @@ the Device.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="model_Device.js.html">model/Device.js</a>, <a href="model_Device.js.html#line52">line 52</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="receivers"><span class="type-signature">(readonly) </span>receivers<span class="type-signature"> :Array.&lt;string></span></h4>
-
-
-
-
-<div class="description">
-    UUIDs of Receivers attached to the Device.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">Array.&lt;string></span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="model_Device.js.html">model/Device.js</a>, <a href="model_Device.js.html#line64">line 64</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="senders"><span class="type-signature">(readonly) </span>senders<span class="type-signature"> :Array.&lt;string></span></h4>
-
-
-
-
-<div class="description">
-    UUIDs of Senders attached to the Device.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">Array.&lt;string></span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="model_Device.js.html">model/Device.js</a>, <a href="model_Device.js.html#line58">line 58</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="type"><span class="type-signature">(readonly) </span>type<span class="type-signature"> :string</span></h4>
-
-
-
-
-<div class="description">
-    <a href="global.html#deviceTypes">Device type</a> URN.
-</div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">string</span>
-
-
-        </li>
-    </ul>
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="model_Device.js.html">model/Device.js</a>, <a href="model_Device.js.html#line45">line 45</a>
+        <a href="model_Node.js.html">model/Node.js</a>, <a href="model_Node.js.html#line64">line 64</a>
     </li></ul></dd>
     
 
@@ -1518,7 +1513,7 @@ checked. Valid includes:
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Mon Dec 21 2015 17:19:49 GMT+0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Mon Dec 21 2015 17:19:50 GMT+0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -37,7 +37,7 @@
     <div class="container-overview">
     
         
-            <div class="description">Generic store providing access to the current state of a node.</div>
+            <div class="description">Generic store providing access to the current state of a <a href="Node.html">node</a>.</div>
         
 
         
@@ -72,7 +72,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line32">line 32</a>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line41">line 41</a>
     </li></ul></dd>
     
 
@@ -98,6 +98,72 @@
 
     
 
+    
+        <h3 class="subsection-title">Members</h3>
+
+        
+            
+<h4 class="name" id="statusError"><span class="type-signature"></span>statusError<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    Add a status code to an error object.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line35">line 35</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
     
 
     
@@ -231,7 +297,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line75">line 75</a>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line101">line 101</a>
     </li></ul></dd>
     
 
@@ -269,7 +335,7 @@
 
 
 <div class="description">
-    Get all the devices available at this node.
+    Get all the devices available at this <a href="Node.html">node</a>.
 </div>
 
 
@@ -438,7 +504,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line55">line 55</a>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line81">line 81</a>
     </li></ul></dd>
     
 
@@ -569,7 +635,335 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line38">line 38</a>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line47">line 47</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="putDevice"><span class="type-signature"></span>putDevice<span class="signature">(device, cb)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Add or update a <a href="Device.html">device</a> on this <a href="Node.html">node</a>. The
+following conditions are checked:
+<ul>
+ <li>If the device already exists, the <a href="Device.html#version">version number</a>
+  must be more up-to-date. If null/undefined, a new version number will
+  be generated.</li>
+ <li>The <a href="Device.html#node_id">node_id</a> property is set to the identifier
+  of this node. If it is null/undefined, it will be set.</li>
+ <li>All referenced senders must exist in this store.</li>
+ <li>All referenced receivers must exist in this store.</li>
+ <li>The device is <a href="Device.html#valid">valid</a>.</li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[description]</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>cb</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="NodeStore.html#~deviceCallback">NodeStore~deviceCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">[description]</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line128">line 128</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="putSelf"><span class="type-signature"></span>putSelf<span class="signature">(node, cb)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Update the defails of the <a href="Node.html">node</a> represented by this store. The
+following conditions are checked:
+<ul>
+ <li>The <a href="Node.html#version">version number</a> is more up-to-date than the
+  stored self.</li>
+ <li>All service references are to known <a href="Device.html">devices</a>.</li>
+ <li>The identifier of the passed node is the same as the one that is stored.</li>
+ <li>The node is <a href="Node.html#valid">valid</a>.</li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>node</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Node.html">Node</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Node value to replace the current one.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>cb</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="NodeStore.html#~nodeCallback">NodeStore~nodeCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Callback with the updated node or details
+                                      of update issues.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line65">line 65</a>
     </li></ul></dd>
     
 
@@ -729,7 +1123,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line79">line 79</a>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line105">line 105</a>
     </li></ul></dd>
     
 
@@ -760,7 +1154,7 @@
 
     
 
-    <h4 class="name" id="~devicesCallback"><span class="type-signature"></span>devicesCallback<span class="signature">(err, result, total<span class="signature-attributes">opt</span>, pageOf<span class="signature-attributes">opt</span>, size<span class="signature-attributes">opt</span>, pages<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~devicesCallback"><span class="type-signature"></span>devicesCallback<span class="signature">(err, result, total<span class="signature-attributes">opt</span>, pageOf<span class="signature-attributes">opt</span>, pages<span class="signature-attributes">opt</span>, size<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
     
 
@@ -926,40 +1320,7 @@
 
             
 
-            <td class="description last">Current page number.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>size</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-
-            <td class="description last">Number of items per page. Up to the provided limit.</td>
+            <td class="description last">Current page number, starting from 1.</td>
         </tr>
 
     
@@ -993,6 +1354,39 @@
             
 
             <td class="description last">Total number of pages.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>size</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Number of items on this page. Up to the provided limit.</td>
         </tr>
 
     
@@ -1033,7 +1427,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line59">line 59</a>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line85">line 85</a>
     </li></ul></dd>
     
 
@@ -1136,7 +1530,7 @@
             <td class="type">
             
                 
-<span class="param-type">Node</span>
+<span class="param-type"><a href="Node.html">Node</a></span>
 
 
             
@@ -1187,7 +1581,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line42">line 42</a>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line68">line 68</a>
     </li></ul></dd>
     
 
@@ -1227,13 +1621,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Device.html">Device</a></li><li><a href="NodeAPI.html">NodeAPI</a></li><li><a href="NodeRAMStore.html">NodeRAMStore</a></li></ul><h3>Interfaces</h3><ul><li><a href="NodeStore.html">NodeStore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#deviceTypes">deviceTypes</a></li><li><a href="global.html#formats">formats</a></li><li><a href="global.html#statusError">statusError</a></li><li><a href="global.html#transports">transports</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Device.html">Device</a></li><li><a href="Flow.html">Flow</a></li><li><a href="Node.html">Node</a></li><li><a href="NodeAPI.html">NodeAPI</a></li><li><a href="NodeRAMStore.html">NodeRAMStore</a></li><li><a href="Versionned.html">Versionned</a></li></ul><h3>Interfaces</h3><ul><li><a href="NodeStore.html">NodeStore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#capabilities">capabilities</a></li><li><a href="global.html#deviceTypes">deviceTypes</a></li><li><a href="global.html#formats">formats</a></li><li><a href="global.html#statusError">statusError</a></li><li><a href="global.html#transports">transports</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Sun Dec 20 2015 23:27:39 GMT+0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Mon Dec 21 2015 17:19:50 GMT+0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

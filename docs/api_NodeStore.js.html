@@ -41,6 +41,7 @@
   limitations under the License.
 */
 
+
 /**
  * Add a status code to an error object.
  * @param  {Number} status  Status code for the error.
@@ -54,7 +55,15 @@ function statusError(status, message) {
 }
 
 /**
- * Generic store providing access to the current state of a node.
+ * Add a status code to an error object.
+ * @param  {Number} status  Status code for the error.
+ * @param  {string} message Error message describing the error.
+ * @return {Error}          The newly created error with status set.
+ */
+NodeStore.prototype.statusError = statusError;
+
+/**
+ * Generic store providing access to the current state of a [node]{@link Node}.
  * @interface
  */
 function NodeStore() {}
@@ -64,9 +73,26 @@ function NodeStore() {}
  * @param  {NodeStore~nodeCallback} cb Callback with the node result.
  */
 NodeStore.prototype.getSelf = function(cb) {
-  cb(statusError(500, 'Method getSelf must be implemented by extending NodeStore.'));
+  cb(this.statusError(500, 'Method getSelf must be implemented by extending NodeStore.'));
 }
 
+/**
+ * Update the defails of the [node]{@link Node} represented by this store. The
+ * following conditions are checked:
+ * &lt;ul>
+ *  &lt;li>The [version number]{@link Node#version} is more up-to-date than the
+ *   stored self.&lt;/li>
+ *  &lt;li>All service references are to known [devices]{@link Device}.&lt;/li>
+ *  &lt;li>The identifier of the passed node is the same as the one that is stored.&lt;/li>
+ *  &lt;li>The node is [valid]{@link Node#valid}.&lt;/li>
+ * &lt;/ul>
+ * @param  {Node}     node Node value to replace the current one.
+ * @param  {NodeStore~nodeCallback} cb   Callback with the updated node or details
+ *                                       of update issues.
+ */
+NodeStore.prototype.putSelf = function (node, cb) {
+  cb(this.statusError(500, 'Method putSelf must be implemented by extending NodeStore.'));
+}
 /**
  * Callback containing a single node result.
  * @callback NodeStore~nodeCallback
@@ -75,7 +101,7 @@ NodeStore.prototype.getSelf = function(cb) {
  */
 
 /**
- * Get all the devices available at this node.
+ * Get all the devices available at this [node]{@link Node}.
  * @param  {number=}   skip  Number of devices to skip before starting the listing.
  * @param  {number=}   limit Limit the number of values returned.
  * @param  {NodeStore~devicesCallback} cb    Callback providing the list of devlices.
@@ -90,9 +116,9 @@ NodeStore.prototype.getDevices = function (skip, limit, cb) {
  * @param {Error}    err     Error retrieving the list of devices.
  * @param {Device[]} result  List of devices.
  * @param {number=}  total   Total number of devices.
- * @param {number=}  pageOf  Current page number.
- * @param {number=}  size    Number of items per page. Up to the provided limit.
+ * @param {number=}  pageOf  Current page number, starting from 1.
  * @param {number=}  pages   Total number of pages.
+ * @param {number=}  size    Number of items on this page. Up to the provided limit.
  */
 
 /**
@@ -110,6 +136,30 @@ NodeStore.prototype.getDevice = function (id, cb) {
  * @param {Error}   err    Error retrieving the device's details.
  * @param {Device}  result Single requested device.
  */
+
+/**
+ * Add or update a [device]{@link Device} on this [node]{@link Node}. The
+ * following conditions are checked:
+ * &lt;ul>
+ *  &lt;li>If the device already exists, the [version number]{@link Device#version}
+ *   must be more up-to-date. If null/undefined, a new version number will
+ *   be generated.&lt;/li>
+ *  &lt;li>The [node_id]{@linkplain Device#node_id} property is set to the identifier
+ *   of this node. If it is null/undefined, it will be set.&lt;/li>
+ *  &lt;li>All referenced [senders]{@link Sender} must exist in this store.&lt;/li>
+ *  &lt;li>All referenced [receivers]{@link Receiver} must exist in this store.&lt;/li>
+ *  &lt;li>The device is [valid]{@link Device#valid}.&lt;/li>
+ * &lt;/ul>
+ * @param  {Device}   device [description]
+ * @param  {NodeStore~deviceCallback} cb     [description]
+ */
+NodeStore.prototype.putDevice = function (device, cb) {
+  cb(statusError(500, 'Method putDevice must be implemented by extending NodeStore.'));
+}
+
+NodeStore.prototype.deleteDevice = function (id, cb) {
+  cb(statusError(500, 'Method deleteDevice must be implemented by extending NodeStore.'));
+}
 
 NodeStore.prototype.getSources = function (skip, limit, cb) {
   cb(statusError(500, 'Method getSources must be implemented by extending NodeStore.'));
@@ -143,6 +193,38 @@ NodeStore.prototype.getFlow = function (id, cb) {
   cb(statusError(500, 'Method getFlow must be implemented by extending NodeStore.'));
 }
 
+NodeStore.prototype.putSender = function (sender, cb) {
+  cb(statusError(500, 'Method putSender must be implemented by extending NodeStore.'));
+}
+
+NodeStore.prototype.deleteSender = function (id, cb) {
+  cb(statusError(500, 'Method deleteSender must be implemented by extending NodeStore.'));
+}
+
+NodeStore.prototype.putReceiver = function (receiver, cb) {
+  cb(statusError(500, 'Method putReceiver must be implemented by extending NodeStore.'));
+}
+
+NodeStore.prototype.deleteReceiver = function (id, cb) {
+  cb(statusError(500, 'Method deleteReceiver must be implemented by extending NodeStore.'));
+}
+
+NodeStore.prototype.putSource = function (source, cb) {
+  cb(statusError(500, 'Method putSource must be implemented by extending NodeStore.'));
+}
+
+NodeStore.prototype.deleteSource = function (id, cb) {
+  cb(statusError(500, 'Method deleteSource must be implemented by extending NodeStore.'));
+}
+
+NodeStore.prototype.putFlow = function (flow, cb) {
+  cb(statusError(500, 'Method putFlow must be implemented by extending NodeStore.'));
+}
+
+NodeStore.prototype.deleteFlow = function (id, cb) {
+  cb(statusError(500, 'Method deleteFlow must be implemented by extending NodeStore.'));
+}
+
 module.exports = NodeStore;
 </code></pre>
         </article>
@@ -154,13 +236,13 @@ module.exports = NodeStore;
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Device.html">Device</a></li><li><a href="NodeAPI.html">NodeAPI</a></li><li><a href="NodeRAMStore.html">NodeRAMStore</a></li></ul><h3>Interfaces</h3><ul><li><a href="NodeStore.html">NodeStore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#deviceTypes">deviceTypes</a></li><li><a href="global.html#formats">formats</a></li><li><a href="global.html#statusError">statusError</a></li><li><a href="global.html#transports">transports</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Device.html">Device</a></li><li><a href="Flow.html">Flow</a></li><li><a href="Node.html">Node</a></li><li><a href="NodeAPI.html">NodeAPI</a></li><li><a href="NodeRAMStore.html">NodeRAMStore</a></li><li><a href="Versionned.html">Versionned</a></li></ul><h3>Interfaces</h3><ul><li><a href="NodeStore.html">NodeStore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#capabilities">capabilities</a></li><li><a href="global.html#deviceTypes">deviceTypes</a></li><li><a href="global.html#formats">formats</a></li><li><a href="global.html#statusError">statusError</a></li><li><a href="global.html#transports">transports</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Sun Dec 20 2015 23:27:39 GMT+0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Mon Dec 21 2015 17:19:49 GMT+0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

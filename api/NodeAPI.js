@@ -29,7 +29,7 @@ function NodeAPI (port, store) {
   var app = express();
   var server = null;
 
-  function setPagingHeaders(res, pageOf, size, pages, total) {
+  function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
     if (size) res.set('X-Streampunk-Ledger-Size', size.toString());
     if (pages) res.set('X-Streampunk-Ledger-Pages', pages.toString());
@@ -71,6 +71,15 @@ function NodeAPI (port, store) {
    *                   ready to {@link NodeAPI#start}.
    */
   this.init = function() {
+    app.get('/x-ipstudio/node/', function (req, res) {
+      res.json([ "v1.0" ]);
+    });
+
+    // Mount all other methods at this base path
+    app.use('/x-ipstudio/node/v1.0/', function (req, res, next) {
+      next();
+    }
+
     app.get('/', function (req, res) {
       res.json([
           "self/",
@@ -92,9 +101,9 @@ function NodeAPI (port, store) {
     // List devices
     app.get('/devices/', function (req, res, next) {
       store.getDevices(req.query.skip, req.query.limit,
-          function (err, devices, pageOf, size, pages, total) {
+          function (err, devices, total, pageOf, pages, size) {
         if (err) next(err);
-        else setPagingHeaders(res, pageOf, size, pages, total).json(devices);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(devices);
       });
     });
 
@@ -109,9 +118,9 @@ function NodeAPI (port, store) {
     // List sources
     app.get('/sources/', function (req, res, next) {
       store.getSources(req.query.skip, req.query.limit,
-          function(err, sources, pageOf, size, pages, total) {
+          function(err, sources, total, pageOf, pages, size) {
         if (err) next(err);
-        else setPagingHeaders(res, pageOf, size, pages, total).json(sources);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(sources);
       });
     });
 
@@ -126,9 +135,9 @@ function NodeAPI (port, store) {
     // List flows
     app.get('/flows/', function (req, res, next) {
       store.getFlows(req.query.skip, req.query.limit,
-          function (err, flows, pageOf, size, pages, total) {
+          function (err, flows, total, pageOf, pages, size) {
         if (err) next(err);
-        else setPagingHeaders(res, pageOf, size, pages, total).json(flows);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(flows);
       });
     });
 
@@ -145,7 +154,7 @@ function NodeAPI (port, store) {
       store.getSenders(req.query.skip, req.query.limit,
          function(err, senders, pageOf, size, page, total) {
         if (err) next(err);
-        else setPagingHeaders(res, pageOf, size, pages, total).json(senders);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(senders);
       });
     });
 
@@ -158,16 +167,16 @@ function NodeAPI (port, store) {
     });
 
     // List receivers
-    app.get('/receivers/', function (req, res) {
+    app.get('/receivers/', function (req, res, next) {
       store.getReceivers(req.query.skip, req.query.limit,
-          function(err, receivers, pageOf, size, pages, total) {
+          function(err, receivers, total, pageOf, pages, size) {
         if (err) next(err);
-        else setPagingHeaders(res, pageOf, size, pages, total).json(receivers);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(receivers);
       });
     });
 
     // Get a single receiver
-    app.get('/receivers/:id', function (req, res) {
+    app.get('/receivers/:id', function (req, res, next) {
       store.getReceiver(req.param.id, function(err, receiver) {
         if (err) next(err);
         else res.json(receiver);

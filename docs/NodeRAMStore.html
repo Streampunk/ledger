@@ -47,7 +47,7 @@
 
 
 <div class="description">
-    In RAM store representing the state of a node.
+    In RAM store representing the state of a <a href="Node.html">node</a>. Immutable value.
 </div>
 
 
@@ -89,7 +89,7 @@
             <td class="type">
             
                 
-<span class="param-type">Node</span>
+<span class="param-type"><a href="Node.html">Node</a></span>
 
 
             
@@ -147,7 +147,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_NodeRAMStore.js.html">api/NodeRAMStore.js</a>, <a href="api_NodeRAMStore.js.html#line26">line 26</a>
+        <a href="api_NodeRAMStore.js.html">api/NodeRAMStore.js</a>, <a href="api_NodeRAMStore.js.html#line89">line 89</a>
     </li></ul></dd>
     
 
@@ -197,7 +197,7 @@
 
 
 <div class="description">
-    Hashmap of devices known to this node.
+    Map of devices available at this <a href="Node.html">node</a>. Keys are UUIDs.
 </div>
 
 
@@ -245,7 +245,295 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_NodeRAMStore.js.html">api/NodeRAMStore.js</a>, <a href="api_NodeRAMStore.js.html#line33">line 33</a>
+        <a href="api_NodeRAMStore.js.html">api/NodeRAMStore.js</a>, <a href="api_NodeRAMStore.js.html#line96">line 96</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="flows"><span class="type-signature">(readonly) </span>flows<span class="type-signature"> :Object.&lt;string, <a href="Flow.html">Flow</a>></span></h4>
+
+
+
+
+<div class="description">
+    Map of flows associated with this <a href="Node.html">node</a>. Keys are UUIDs.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object.&lt;string, <a href="Flow.html">Flow</a>></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="api_NodeRAMStore.js.html">api/NodeRAMStore.js</a>, <a href="api_NodeRAMStore.js.html#line108">line 108</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="receivers"><span class="type-signature">(readonly) </span>receivers<span class="type-signature"> :Object.&lt;string, Receiver></span></h4>
+
+
+
+
+<div class="description">
+    Map of receivers associated with this <a href="Node.html">node</a>. Keys are UUIDs.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object.&lt;string, Receiver></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="api_NodeRAMStore.js.html">api/NodeRAMStore.js</a>, <a href="api_NodeRAMStore.js.html#line120">line 120</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="senders"><span class="type-signature">(readonly) </span>senders<span class="type-signature"> :Object.&lt;string, Sender></span></h4>
+
+
+
+
+<div class="description">
+    Map of senders associated with this <a href="Node.html">node</a>. Keys are UUIDs.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object.&lt;string, Sender></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="api_NodeRAMStore.js.html">api/NodeRAMStore.js</a>, <a href="api_NodeRAMStore.js.html#line114">line 114</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="sources"><span class="type-signature">(readonly) </span>sources<span class="type-signature"> :Object.&lt;string, Source></span></h4>
+
+
+
+
+<div class="description">
+    Map of sources available at this <a href="Node.html">node</a>. Keys are UUIDs.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object.&lt;string, Source></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="api_NodeRAMStore.js.html">api/NodeRAMStore.js</a>, <a href="api_NodeRAMStore.js.html#line102">line 102</a>
     </li></ul></dd>
     
 
@@ -266,6 +554,381 @@
 
     
         <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="getDevice"><span class="type-signature"></span>getDevice<span class="signature">(id, cb)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Get the details of a specific device.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Identity of the device being queried. String as UUID.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>cb</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="NodeStore.html#~deviceCallback">NodeStore~deviceCallback</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Callback with the device result.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="implements">Implements:</dt>
+    <dd class="implements"><ul>
+        
+            <li><a href="NodeStore.html#getDevice">NodeStore#getDevice</a></li>
+        
+    </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line101">line 101</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="getDevices"><span class="type-signature"></span>getDevices<span class="signature">(skip<span class="signature-attributes">opt</span>, limit<span class="signature-attributes">opt</span>, cb)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Get all the devices available at this <a href="Node.html">node</a>.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>skip</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Number of devices to skip before starting the listing.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>limit</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Limit the number of values returned.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>cb</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="NodeStore.html#~devicesCallback">NodeStore~devicesCallback</a></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Callback providing the list of devlices.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="implements">Implements:</dt>
+    <dd class="implements"><ul>
+        
+            <li><a href="NodeStore.html#getDevices">NodeStore#getDevices</a></li>
+        
+    </ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line81">line 81</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         
             
@@ -379,7 +1042,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line38">line 38</a>
+        <a href="api_NodeStore.js.html">api/NodeStore.js</a>, <a href="api_NodeStore.js.html#line47">line 47</a>
     </li></ul></dd>
     
 
@@ -421,13 +1084,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Device.html">Device</a></li><li><a href="NodeAPI.html">NodeAPI</a></li><li><a href="NodeRAMStore.html">NodeRAMStore</a></li></ul><h3>Interfaces</h3><ul><li><a href="NodeStore.html">NodeStore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#deviceTypes">deviceTypes</a></li><li><a href="global.html#formats">formats</a></li><li><a href="global.html#statusError">statusError</a></li><li><a href="global.html#transports">transports</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Device.html">Device</a></li><li><a href="Flow.html">Flow</a></li><li><a href="Node.html">Node</a></li><li><a href="NodeAPI.html">NodeAPI</a></li><li><a href="NodeRAMStore.html">NodeRAMStore</a></li><li><a href="Versionned.html">Versionned</a></li></ul><h3>Interfaces</h3><ul><li><a href="NodeStore.html">NodeStore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#capabilities">capabilities</a></li><li><a href="global.html#deviceTypes">deviceTypes</a></li><li><a href="global.html#formats">formats</a></li><li><a href="global.html#statusError">statusError</a></li><li><a href="global.html#transports">transports</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Sun Dec 20 2015 23:27:39 GMT+0000 (GMT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Mon Dec 21 2015 17:19:50 GMT+0000 (GMT)
 </footer>
 
 <script> prettyPrint(); </script>

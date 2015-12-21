@@ -1,4 +1,32 @@
-/* Copyright 2015 Christine S. MacNeill
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: model/Versionned.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: model/Versionned.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* Copyright 2015 Christine S. MacNeill
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -33,7 +61,7 @@ var loadDate = Date.now();
  * @constructor
  * @param {string} id      Globally unique UUID identifier for the resource.
  * @param {string} version String formatted PTP timestamp
- *                         (&lt;<em>seconds</em>&gt;:&lt;<em>nanoseconds<em>&gt;)
+ *                         (&amp;lt;&lt;em>seconds&lt;/em>&amp;gt;:&amp;lt;&lt;em>nanoseconds&lt;em>&amp;gt;)
  *                         indicating precisely when an attribute of the resource
  *                         last changed.
  * @param {string} label   Freeform string label for the resource.
@@ -46,7 +74,7 @@ function Versionned(id, version, label) {
    */
   this.id = this.generateID(id);
   /**
-   * String formatted PTP timestamp (&lt;<em>seconds</em>&gt;:&lt;<em>nanoseconds</em>&gt;)
+   * String formatted PTP timestamp (&amp;lt;&lt;em>seconds&lt;/em>&amp;gt;:&amp;lt;&lt;em>nanoseconds&lt;/em>&amp;gt;)
    * indicating precisely when an attribute of the resource last changed.
    * @type {string}
    * @readonly
@@ -107,28 +135,28 @@ Versionned.prototype.generateLabel = function (label) {
 
 Versionned.prototype.validID = function (id) {
   if (arguments.length === 0) return this.validID(this.id);
-  return id !== null && id !== undefined &&
-    (id.constructor === String.prototype.constructor) &&
+  return id !== null &amp;&amp; id !== undefined &amp;&amp;
+    (id.constructor === String.prototype.constructor) &amp;&amp;
     (id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/) !== null);
 }
 
 Versionned.prototype.validVersion = function (version) {
   if (arguments.length === 0) return this.validVersion(this.version);
-  return version !== null && version !== undefined &&
-    (version.constructor === String.prototype.constructor) &&
+  return version !== null &amp;&amp; version !== undefined &amp;&amp;
+    (version.constructor === String.prototype.constructor) &amp;&amp;
     (version.match(/^[0-9]+:[0-9]+$/) !== null);
 }
 
 Versionned.prototype.validLabel = function (label) {
   if (arguments.length === 0) return this.validLabel(this.label);
-  return label !== null && label !== undefined &&
+  return label !== null &amp;&amp; label !== undefined &amp;&amp;
     (label.constructor === String.prototype.constructor);
 }
 
 Versionned.prototype.validCaps = function (caps) {
   if (arguments.length === 0) return this.validCaps(this.caps);
-  return typeof caps === 'object' && caps !== null &&
-    Array.isArray(caps) === false && Object.keys(caps).length === 0;
+  return typeof caps === 'object' &amp;&amp; caps !== null &amp;&amp;
+    Array.isArray(caps) === false &amp;&amp; Object.keys(caps).length === 0;
 }
 
 Versionned.prototype.generateCaps = function (caps) {
@@ -143,7 +171,7 @@ Versionned.prototype.validTags = function (tags) {
   if (Array.isArray(tags)) return false;
   return Object.keys(tags).every(function (k) {
     var v = tags[k];
-    return Array.isArray(v) && v.every(function (s) {
+    return Array.isArray(v) &amp;&amp; v.every(function (s) {
       return typeof s === 'string';
     });
   });
@@ -200,16 +228,16 @@ Versionned.prototype.generateUUIDArray = function (a) {
  * Checks that all the properties of this resource are valid. The is a syntactic
  * check and does not check semantics such as references to other objects can be
  * checked. Valid includes:
- * <ul>
- *  <li>Required properties are defined and not null.</li>
- *  <li>Identifiers a valid UUIDs.</li>
- *  <li>Enumerations are known values and/or match expected patterns.</li>
- *  <li>Values are of the expected type.</li>
- * </ul>
+ * &lt;ul>
+ *  &lt;li>Required properties are defined and not null.&lt;/li>
+ *  &lt;li>Identifiers a valid UUIDs.&lt;/li>
+ *  &lt;li>Enumerations are known values and/or match expected patterns.&lt;/li>
+ *  &lt;li>Values are of the expected type.&lt;/li>
+ * &lt;/ul>
  * @return {boolean} Is the resource valid?
  */
 Versionned.prototype.valid = function() {
-  return this.validID(this.id) && this.validVersion(this.version) &&
+  return this.validID(this.id) &amp;&amp; this.validVersion(this.version) &amp;&amp;
     this.validLabel(this.label);
 }
 
@@ -224,3 +252,26 @@ Versionned.prototype.parse = function (json) {
 }
 
 module.exports = Versionned;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Device.html">Device</a></li><li><a href="Flow.html">Flow</a></li><li><a href="Node.html">Node</a></li><li><a href="NodeAPI.html">NodeAPI</a></li><li><a href="NodeRAMStore.html">NodeRAMStore</a></li><li><a href="Versionned.html">Versionned</a></li></ul><h3>Interfaces</h3><ul><li><a href="NodeStore.html">NodeStore</a></li></ul><h3>Global</h3><ul><li><a href="global.html#capabilities">capabilities</a></li><li><a href="global.html#deviceTypes">deviceTypes</a></li><li><a href="global.html#formats">formats</a></li><li><a href="global.html#statusError">statusError</a></li><li><a href="global.html#transports">transports</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Mon Dec 21 2015 17:19:49 GMT+0000 (GMT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

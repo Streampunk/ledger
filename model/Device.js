@@ -18,16 +18,17 @@ var immutable = require('seamless-immutable');
 var DeviceTypes = require('./DeviceTypes.js');
 
 /**
- * Describes a device. Immutable value.
+ * Describes a Device. Immutable value.
  * @constructor
  * @augments Versionned
- * @param {String}   id        Globally unique identifier for the Device.
- * @param {string}   version   String formatted PTP timestamp (&lt;seconds&gt;:&lt;nanoseconds&gt;)
+ * @param {String}   id        Globally unique UUID identifier for the Device.
+ * @param {string}   version   String formatted PTP timestamp
+ *                             (&lt;<em>seconds</em>&gt;:&lt;<em>nanoseconds</em>&gt;)
  *                             indicating precisely when an attribute of the resource
  *                             last changed.
  * @param {string}   label     Freeform string label for the Device.
  * @param {string}   type      [Device type]{@link deviceTypes} URN.
- * @param {string}   node_id   Globally unique identifier for the {@link Node}
+ * @param {string}   node_id   Globally unique UUID identifier for the {@link Node}
  *                             which initially created the Device.
  * @param {string[]} senders   UUIDs of {@link Senders} attached to the Device.
  * @param {string[]} receivers UUIDs of Receivers attached to the Device
@@ -36,9 +37,30 @@ function Device(id, version, label, type, node_id, senders, receivers) {
   this.id = this.generateID(id);
   this.version = this.generateVersion(version);
   this.label = this.generateLabel(label);
+  /**
+   * [Device type]{@link deviceTypes} URN.
+   * @type {string}
+   * @readonly
+   */
   this.type = this.generateType(type);
+  /**
+   * Globally unique UUID identifier for the {@link Node} which initially created
+   * the Device.
+   * @type {string}
+   * @readonly
+   */
   this.node_id = this.generateNodeID(node_id);
+  /**
+   * UUIDs of [Senders]{@link Sender} attached to the Device.
+   * @type {string[]}
+   * @readonly
+   */
   this.senders = this.generateSenders(senders);
+  /**
+   * UUIDs of [Receivers]{@link Receiver} attached to the Device.
+   * @type {string[]}
+   * @readonly
+   */
   this.receivers = this.generateReceivers(receivers);
   return immutable(this, { prototype: Device.prototype });
 }

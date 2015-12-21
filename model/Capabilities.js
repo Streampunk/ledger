@@ -17,6 +17,10 @@
 
 var immutable = require('seamless-immutable');
 
-var cap = immutable({});
+/**
+ * Representation of a capability, a concept to be developed in future versions.
+ * @constant
+ */
+var capabilities = immutable({});
 
 module.exports = cap;
