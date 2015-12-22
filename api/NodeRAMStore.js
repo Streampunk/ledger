@@ -145,14 +145,10 @@ function NodeRAMStore(self) {
 }
 
 NodeRAMStore.prototype.getSelf = function (cb) {
-  // Convention is to use self, but this is confusing in this context.
-  var selfy = this;
-  setImmediate(function() { cb(null, selfy.self); });
+  setImmediate(function() { cb(null, this.self); }.bind(this) );
 }
 
 NodeRAMStore.prototype.putSelf = function (node, cb) {
-  // Convention is to use self, but this is confusing in this context.
-  var selfy = this;
   setImmediate(function () {
     if (!node || typeof Node !== 'object' ||
         node.constructor !== Node.prototype.constructor ) {
@@ -163,23 +159,23 @@ NodeRAMStore.prototype.putSelf = function (node, cb) {
       cb(statusError(400, "Given replacement node is not a valid value."));
       return;
     }
-    if (node.id !== selfy.self.id) {
+    if (node.id !== this.self.id) {
       cb(statusError(400, "A replacement node value must have the same identifier '" +
-        selfy.self.id + "' as this node this store represents."));
+        this.self.id + "' as this node this store represents."));
       return;
     }
-    if (node.version === selfy.self.version) {
+    if (node.version === this.self.version) {
       cb(statusError(409, "The replacement node cannot have the same version number."));
       return;
     }
-    if (compareVersions(selfy.self.version, node.version) !== -1) {
+    if (compareVersions(this.self.version, node.version) !== -1) {
       cb(statusError(409, "The replacement node must have a newer version number."));
       return;
     }
     // Not sure if services has to be checked.
 
-    cb(null, node, selfy.set('self', node));
-  }
+    cb(null, node, this.set('self', node));
+  }.bind(this); );
 }
 
 NodeRAMStore.prototype.getDevices = function (skip, limit, cb) {
@@ -221,7 +217,7 @@ NodeRAMStore.prototype.putDevice = function (device, cb) {
       return;
     }
     if (!device.receivers.every(function (r) {
-      return self.receivers.indexOf(r) >= 0; 
+      return self.receivers.indexOf(r) >= 0;
     })) {
       cb(statusError(400, "Receivers referenced from given device are not on this store."));
       return;

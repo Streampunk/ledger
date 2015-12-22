@@ -123,8 +123,8 @@ NodeStore.prototype.getDevice = function (id, cb) {
  *  <li>The device is [valid]{@link Device#valid}.</li>
  * </ul>
  * @param  {Device}   device Device to add or replace.
- * @param  {NodeStore~deviceCallback} cb     Callback containing the device and
- *                                           updated store, or an error.
+ * @param  {NodeStore~deviceCallback} cb Callback containing the device and
+ *                                       updated store, or an error.
  */
 NodeStore.prototype.putDevice = function (device, cb) {
   cb(statusError(500, 'Method putDevice must be implemented by extending NodeStore.'));
