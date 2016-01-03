@@ -141,4 +141,10 @@ Node.prototype.parse = function (json) {
     parsed.hostname, parsed.caps, parsed.services);
 }
 
+Node.isNode = function (x) {
+  return x !== null &&
+    typeof x === 'object' &&
+    x.constructor === Node.prototype.constructor;
+}
+
 module.exports = Node;

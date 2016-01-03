@@ -108,4 +108,10 @@ Receiver.prototype.parse = function (json) {
     parsed.device_id, parsed.transport, parsed.subscription);
 }
 
+Receiver.isReceiver = function (x) {
+  return x !== null &&
+    typeof x === 'object' &&
+    x.constructor === Receiver.prototype.constructor;
+}
+
 module.exports = Receiver;

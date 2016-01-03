@@ -113,4 +113,10 @@ Device.prototype.parse = function(json) {
     parsed.node_id, parsed.senders, parsed.receivers);
 };
 
+Device.isDevice = function (x) {
+  return x !== null &&
+    typeof x === 'object' &&
+    x.constructor === Device.prototype.constructor;
+}
+
 module.exports = Device;

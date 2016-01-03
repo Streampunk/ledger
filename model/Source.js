@@ -96,4 +96,10 @@ Source.prototype.parse = function (json) {
     parsed.format, parsed.caps, parsed.tags, parsed.device_id, parsed.parents);
 };
 
+Source.isSource = function (x) {
+  return x !== null &&
+    typeof x === 'object' &&
+    x.constructor === Source.prototype.constructor;
+}
+
 module.exports = Source;

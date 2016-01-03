@@ -89,4 +89,10 @@ Sender.prototype.parse = function(json) {
     parsed.flow_id, parsed.transport, parsed.device_id, parsed.manifest_href);
 }
 
+Sender.isSender = function (x) {
+  return x !== null &&
+    typeof x === 'object' &&
+    x.constructor === Sender.prototype.constructor;
+}
+
 module.exports = Sender;

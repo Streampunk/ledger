@@ -125,4 +125,10 @@ Flow.prototype.parse = function (json) {
       parsed.format, parsed.tags, parsed.source_id, parsed.parents);
 }
 
+Flow.isFlow = function (x) {
+  return x !== null &&
+    typeof x === 'object' &&
+    x.constructor === Flow.prototype.constructor;
+}
+
 module.exports = Flow;
