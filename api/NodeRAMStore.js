@@ -13,8 +13,20 @@
   limitations under the License.
 */
 
+/*
+ * Conflict resolution strategy is to check at the UI level if the most
+ * recent changes goes backwards for the node involved. If yes, through a
+ * conflict.
+ */
 var immutable = require('seamless-immutable');
 var NodeStore = require('./NodeStore');
+var util = require('./Util.js');
+var Node = require('../model/Node.js');
+var Device = require('../model/Device.js');
+var Source = require('../model/Source.js');
+var Receiver = require('../model/Receiver.js');
+var Sender = require('../model/Sender.js');
+var Flow = require('../model/Flow.js');
 
 var statusError = NodeStore.prototype.statusError;
 
@@ -77,27 +89,52 @@ function getItem(items, id, cb, argsLength, name) {
       cb(statusError(400, "Identifier must be a valid UUID."));
     } else {
       var item = items[id];
-      if (item) cb(null, device);
+      if (item) cb(null, item);
       else cb(statusError(404, "A " + name + " with identifier ''" + id +
         "' could not be found."));
     }
   });
 }
 
-function extractVersions(v) {
-  var m = v.match(/^([0-9]+):([0-9]+)$/)
-  return [+m[1], +m[2]];
+function deleteItem(items, id, cb, argsLength, name) {
+  setImmediate(function () {
+    if (argsLength !== 2) {
+      cb(statusError(400, "Identifier and callback functions must be provided."));
+    } else if (!id || typeof id != 'string') {
+      cb(statusError(400, "Identifier must be a string value."));
+    } else if ((id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/) == null)) {
+      cb(statusError(400, "Identifier must be a valid UUID."));
+    } else {
+      if (items.hasOwnProperty(id)) {
+        cb(null, id, this.setIn(name + 's', items.without(id)));
+      } else {
+        cb(statusError(404, "A " + name + " with identifier '" + id +
+          " could not be found on a delete request."));
+      }
+    }
+  }.bind(this));
 }
 
-function compareVersions(l, r) {
-  var lm = extractVersions(l);
-  var rm = extractVersions(r);
-  if (lm[0] < rm[0]) return -1;
-  if (lm[0] > rm[0]) return 1;
-  if (lm[1] < rm[1]) return -1;
-  if (lm[1] > rm[1]) return 1;
-  return 0;
+function checkValidAndForward(item, items, name, cb) {
+  if (!item.valid()) {
+    cb(statusError(400,
+      "Given new or replcement " + name + " is not valid."));
+    return false;
+  }
+  if (items[item.id]) { // Already stored
+    if (compareVersions(this.items[item.id].version, item.version) !== -1) {
+      cb(statusError(409,
+        "Cannot replace a " + name + " device with one with the same or " +
+        "an earler version."));
+      return false;
+    }
+  }
+  return true;
 }
+
+var extractVersions = util.extractVersions;
+var compareVersions = util.compareVersions;
+
 /**
  * In RAM store representing the state of a [node]{@link Node}. Immutable value.
  * @constructor
@@ -150,27 +187,26 @@ NodeRAMStore.prototype.getSelf = function (cb) {
 
 NodeRAMStore.prototype.putSelf = function (node, cb) {
   setImmediate(function () {
-    if (!node || typeof Node !== 'object' ||
-        node.constructor !== Node.prototype.constructor ) {
-      cb(statusError(400, "Value being used to put a node is not of Node type."));
-      return;
+    if (!Node.isNode(node)) {
+      return cb(statusError(400,
+        "Value being used to put a node is not of Node type."));
     }
     if (!node.valid()) {
-      cb(statusError(400, "Given replacement node is not a valid value."));
-      return;
+      return cb(statusError(400,
+        "Given replacement node is not a valid value."));
     }
     if (node.id !== this.self.id) {
-      cb(statusError(400, "A replacement node value must have the same identifier '" +
-        this.self.id + "' as this node this store represents."));
-      return;
+      return cb(statusError(400,
+        "A replacement node value must have the same identifier '" +
+        this.self.id + "' as this node this store represents.");
     }
     if (node.version === this.self.version) {
-      cb(statusError(409, "The replacement node cannot have the same version number."));
-      return;
+      return cb(statusError(409,
+        "The replacement node cannot have the same version number.");
     }
     if (compareVersions(this.self.version, node.version) !== -1) {
-      cb(statusError(409, "The replacement node must have a newer version number."));
-      return;
+      return cb(statusError(409,
+        "The replacement node must have a newer version number."));
     }
     // Not sure if services has to be checked.
 
@@ -187,44 +223,31 @@ NodeRAMStore.prototype.getDevice = function (id, cb) {
 }
 
 NodeRAMStore.prototype.putDevice = function (device, cb) {
-  var self = this;
   setImmediate(function() {
-    if (!device || typeof device !== 'object' ||
-        device.constructor !== Device.prototype.constructor) {
-      cb(statusError(400, "Value being used to put a device is not of Device type."));
-      return;
+    if (!Device.isDevice(device)) {
+      return cb(statusError(400,
+        "Value being used to put a device is not of Device type."));
     };
-    if (!device.valid()) {
-      cb(statusError(400, "Given new or replacement device is not valid."));
-      return;
-    };
-    if (device.node_id !== self.self.id) {
-      cb(statusError(400, "The given device does not have the node API '" +
-        self.self.id + "' of this store.'"));
-      return;
-    }
-    if (self.devices[device.id]) { // Already stored
-      if (compareVersions(self.devices[device.id].version, device.version) !== -1) {
-        cb(statusError(409, "Cannot replace a device with one with the same or " +
-          "an earler version."));
-        return;
-      }
-    }
+    if (!checkValidAndForward(device, this.devices, 'device', cb)) return;
     if (!device.senders.every(function (s) {
-      return self.senders.indexOf(s) >= 0;
+      return this.senders.hasOwnProperty(s);
     })) {
-      cb(statusError(400, "Senders referenced from given device are not on this store."));
-      return;
+      return cb(statusError(400,
+        "Senders referenced from given device are not on this store."));
     }
     if (!device.receivers.every(function (r) {
-      return self.receivers.indexOf(r) >= 0;
+      return this.receivers.hasOwnProperty(r);
     })) {
       cb(statusError(400, "Receivers referenced from given device are not on this store."));
       return;
     }
 
-    cb(null, device, self.setIn(['devices', device.id], device)));
-  });
+    cb(null, device, this.setIn(['devices', device.id], device)));
+  }.bind(this));
+}
+
+NodeRAMStore.prototype.deleteDevice = function (id, cb) {
+  deleteItem(this.devices, id, cb, arguments.length, 'device');
 }
 
 NodeRAMStore.prototype.getSources = function (skip, limit, cb) {
@@ -235,6 +258,25 @@ NodeRAMStore.prototype.getSource = function (id, cb) {
   getItem(this.sources, id, cb, arguments.length, 'source');
 }
 
+NodeRAMStore.prototype.putSource = function (source, cb) {
+  setImmediate(function() {
+    if (!Source.isSource(source)) {
+      return cb(statusError(400,
+        "Value being used to put a source is not of Source type."));
+    }
+    if (!checkValidAndForward(source, this.sources, 'source', cb)) return;
+    if (!this.devices.hasOwnProperty(source.device_id)) {
+      return cb(statusError(400,
+        "Referenced device '" + source.device_id + "' is not known on this node."));
+    }
+    cb(null, source, this.setIn(['sources', source.id], source)));
+  }.bind(this));
+}
+
+NodeRAMStore.prototype.deleteSource = function (id, cb) {
+  deleteItem(this.sources, id, cb, arguments.length, 'source');
+}
+
 NodeRAMStore.prototype.getSenders = function (skip, limit, cb) {
   getCollection(this.senders, skip, limit, cb, arguments.length);
 }
@@ -243,12 +285,53 @@ NodeRAMStore.prototype.getSender = function (id, cb) {
   getItem(this.senders, id, cb, arguments.length, 'sender');
 }
 
+NodeRAMStore.prototype.putSender = function (sender, cb) {
+  setImmediate(function () {
+    if (!Sender.isSender(sender)) {
+      return cb(statusError(400,
+        "Value being used to put a sender is not of Sender type."));
+    }
+    if (!checkValidAndForward(sender, this.senders, 'sender', cb));
+    if (!this.flows.hasOwnProperty(sender.flow_id)) {
+      return cb(statusError(400,
+        "Referenced flow '" + sender.flow_id + "' is not known on this node."));
+    }
+    if (!this.devices.hasOwnProperty(sender.device_id)) {
+      return cb(statusError(400,
+        "Referenced device '" + sender.device_id + "' is not known to this node."));
+    }
+    var deviceSenders = this.devices[sender.device_id].senders;
+    deviceSenders = (deviceSenders.indexOf(sender.id) < 0) ?
+      deviceSenders.asMutable().push(sender.id) : deviceSenders;
+    cb(null, sender, this.setIn(['senders', sender.id], sender))
+      .setIn(['devices', sender.id, senders], deviceSenders);
+  }.bind(this));
+}
+
+NodeRAMStore.prototype.deleteSender = function(id, cb) {
+  deleteItem(this.senders, id, cb, arguments.length, 'sender');
+}
 NodeRAMStore.prototype.getReceivers = function (skip, limit, cb) {
   getCollection(this.receivers, skip, limit, cb, arguments.length);
 }
 
 NodeRAMStore.prototype.getReceiver = function (id, cb) {
   getItem(this.receivers, id, cb, arguments.length, 'receiver');
+}
+
+NodeRAMStore.prototype.putReceiver = function (receiver, cb) {
+  setImmediate(function () {
+    if (!Receiver.isReceiver(receiver)) {
+      return cb(statusError(400,
+        "Value being used to put a receiver is not of Receiver type."));
+    }
+    if (!checkValidAndForward(receiver, this.receivers, 'receiver', cb)) return;
+    cb(null, receiver, this.setIn(['receivers', receiver.id], receiver)));
+  }.bind(this));
+}
+
+NodeRAMStore.prototype.deleteReceiver = function (id, cb) {
+  deleteItem(this.receivers, id, cb, arguments.length, 'receiver');
 }
 
 NodeRAMStore.prototype.getFlows = function (skip, limit, cb) {
@@ -259,11 +342,19 @@ NodeRAMStore.prototype.getFlow = function (id, cb) {
   getItem(this.flows, id, cb, arguments.length, 'flow');
 }
 
-NodeState.prototype.addDevice = function (device) {
-  return this.merge({
-    devices : this.devices.concat([device]),
-    self : this.self.merge({ services : this.self.services.concat([device.id]) })
-  });
+NodeRAMStore.prototype.putFlow = function (flow, cb) {
+  setImmediate(function (x) {
+    if (!Flow.isFlow(flow)) {
+      return cb(statusError(400,
+        "Value being used to put a flow is not of Flow type."));
+    }
+    if (!checkValidAndForward(flow, this.flows, 'flow', cb)) return;
+    cb(null, flow, this.setIn(['flows', flow.id], flow)));
+  }.bind(this));
 }
 
-module.exports = NodeState;
+NodeRAMStore.prototype.deleteFlow = function (id, cb) {
+  deleteItem(this.flows, id, cb, arguments.length, 'flow').bind(this);
+}
+
+module.exports = NodeRAMStore;
