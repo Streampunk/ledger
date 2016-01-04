@@ -23,4 +23,4 @@ var immutable = require('seamless-immutable');
  */
 var capabilities = immutable({});
 
-module.exports = cap;
+module.exports = capabilities;
