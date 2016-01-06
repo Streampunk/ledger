@@ -175,8 +175,8 @@ function NodeRAMStore(self) {
    * @readonly
    */
   this.receivers = {};
-  if (self.valid())
-    return immutable(this, { prototype : NodeState.prototype });
+  if (this.self.valid())
+    return immutable(this, { prototype : NodeRAMStore.prototype });
   else
     return new Error("Cannot set an invalid node as the node for this store.");
 }

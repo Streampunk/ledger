@@ -16,13 +16,11 @@
 // Run a demonstration node
 
 var NodeAPI = require('./api/NodeAPI.js');
+var NodeRAMStore = require('./api/NodeRAMStore.js');
 var Node = require('./model/Node.js');
-var Device = require('./model/Device.js');
-var Flow = require('./model/Flow.js');
-var NodeState = require('./api/NodeState.js');
 
-var nodeAPI = new NodeAPI(3000, new Node());
+var store = new NodeRAMStore(new Node());
+
+var nodeAPI = new NodeAPI(3000, store);
 
 nodeAPI.init().start();
-nodeAPI.updateState(NodeState.prototype.addDevice, [new Device()]);
-// nodeAPI.addFlow(new Flow());

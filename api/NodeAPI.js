@@ -78,7 +78,7 @@ function NodeAPI (port, store) {
     // Mount all other methods at this base path
     app.use('/x-ipstudio/node/v1.0/', function (req, res, next) {
       next();
-    }
+    });
 
     app.get('/', function (req, res) {
       res.json([
@@ -251,7 +251,7 @@ function NodeAPI (port, store) {
   // Check the validity of a port
   function validPort(port) {
     return port &&
-      Number(port) === port && 0
+      Number(port) === port &&
       port % 1 === 0 &&
       port > 0;
   }
