@@ -73,9 +73,9 @@ function getCollection(items, skip, limit, cb, argsLength) {
     var pageOf = Math.ceil(skip / limit) + 1;
     var itemArray = new Array();
     for ( var x = skip ; x < Math.max(skip + limit, sortedKeys.length) ; x++ ) {
-      deviceArray.push(devices[sortedKeys[x]]);
+      itemArray.push(items[sortedKeys[x]]);
     }
-    cb(null, deviceArray, sortedKeys.length, pageOf, pages, deviceArray.length);
+    cb(null, itemArray, sortedKeys.length, pageOf, pages, itemArray.length);
   });
 }
 
@@ -84,6 +84,7 @@ function getItem(items, id, cb, argsLength, name) {
     if (argsLength !== 2) {
       cb(statusError(400, "Identifier and callback function must be provided."));
     } else if (!id || typeof id !== 'string'){
+      console.log(id);
       cb(statusError(400, "Identifier must be a string value."));
     } else if (id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/) == null) {
       cb(statusError(400, "Identifier must be a valid UUID."));
@@ -219,7 +220,7 @@ NodeRAMStore.prototype.getDevices = function (skip, limit, cb) {
 }
 
 NodeRAMStore.prototype.getDevice = function (id, cb) {
-  getItem(this.deivces, id, cb, argsLength, 'device');
+  getItem(this.devices, id, cb, arguments.length, 'device');
 }
 
 NodeRAMStore.prototype.putDevice = function (device, cb) {
@@ -229,6 +230,10 @@ NodeRAMStore.prototype.putDevice = function (device, cb) {
         "Value being used to put a device is not of Device type."));
     };
     if (!checkValidAndForward(device, this.devices, 'device', cb)) return;
+    if (device.node_id !== this.self.id) {
+      return cb(statusError(400,
+        "Device node_id property must reference this node."));
+    }
     if (!device.senders.every(function (s) {
       return this.senders.hasOwnProperty(s);
     })) {

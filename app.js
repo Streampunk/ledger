@@ -18,9 +18,16 @@
 var NodeAPI = require('./api/NodeAPI.js');
 var NodeRAMStore = require('./api/NodeRAMStore.js');
 var Node = require('./model/Node.js');
+var Device = require('./model/Device.js');
 
-var store = new NodeRAMStore(new Node());
+var node = new Node();
+var store = new NodeRAMStore(node);
 
 var nodeAPI = new NodeAPI(3000, store);
 
 nodeAPI.init().start();
+
+store.putDevice(new Device(null, null, null, null, node.id), function (e, d, s) {
+  if (e) console.error(e);
+  else nodeAPI.setStore(s);
+});

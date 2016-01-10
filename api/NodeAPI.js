@@ -16,6 +16,7 @@
 var express = require('express');
 var immutable = require('seamless-immutable');
 var NodeStore = require('./NodeStore.js');
+var mdns = require('mdns');
 
 /**
  * Create an instance of the Node API.
@@ -71,16 +72,24 @@ function NodeAPI (port, store) {
    *                   ready to {@link NodeAPI#start}.
    */
   this.init = function() {
-    app.get('/x-ipstudio/node/', function (req, res) {
-      res.json([ "v1.0" ]);
-    });
-
-    // Mount all other methods at this base path
-    app.use('/x-ipstudio/node/v1.0/', function (req, res, next) {
-      next();
-    });
 
     app.get('/', function (req, res) {
+      res.json(['x-ipstudio/']);
+    });
+
+    app.get('/x-ipstudio/', function (req, res) {
+      res.json(['node/']);
+    });
+
+    app.get('/x-ipstudio/node/', function (req, res) {
+      res.json([ "v1.0/" ]);
+    });
+
+    var napi = express();
+    // Mount all other methods at this base path
+    app.use('/x-ipstudio/node/v1.0/', napi);
+
+    napi.get('/', function (req, res) {
       res.json([
           "self/",
           "sources/",
@@ -91,15 +100,15 @@ function NodeAPI (port, store) {
       ]);
     });
 
-    app.get('/self/', function (req, res, next) {
-      state.getSelf(function (err, self) {
+    napi.get('/self/', function (req, res, next) {
+      store.getSelf(function (err, self) {
         if (err) next(err);
         else res.json(self);
       });
     });
 
     // List devices
-    app.get('/devices/', function (req, res, next) {
+    napi.get('/devices/', function (req, res, next) {
       store.getDevices(req.query.skip, req.query.limit,
           function (err, devices, total, pageOf, pages, size) {
         if (err) next(err);
@@ -108,15 +117,15 @@ function NodeAPI (port, store) {
     });
 
     // Get a single device
-    app.get('/devices/:id', function (req, res, next) {
-      store.getDevice(req.param.id, function (err, device) {
+    napi.get('/devices/:id', function (req, res, next) {
+      store.getDevice(req.params.id, function (err, device) {
         if (err) next(err);
         else res.json(device);
       });
     });
 
     // List sources
-    app.get('/sources/', function (req, res, next) {
+    napi.get('/sources/', function (req, res, next) {
       store.getSources(req.query.skip, req.query.limit,
           function(err, sources, total, pageOf, pages, size) {
         if (err) next(err);
@@ -125,15 +134,15 @@ function NodeAPI (port, store) {
     });
 
     // Get a single source
-    app.get('/sources/:id', function (req, res, next) {
-      store.getSource(req.param.id, function (err, source) {
+    napi.get('/sources/:id', function (req, res, next) {
+      store.getSource(req.params.id, function (err, source) {
         if (err) next(err);
         else res.json(source);
       });
     });
 
     // List flows
-    app.get('/flows/', function (req, res, next) {
+    napi.get('/flows/', function (req, res, next) {
       store.getFlows(req.query.skip, req.query.limit,
           function (err, flows, total, pageOf, pages, size) {
         if (err) next(err);
@@ -142,32 +151,32 @@ function NodeAPI (port, store) {
     });
 
     // Get a single flow
-    app.get('/flows/:id', function (req, res, next) {
-      store.getFlow(req.param.id, function (err, flow) {
+    napi.get('/flows/:id', function (req, res, next) {
+      store.getFlow(req.params.id, function (err, flow) {
         if (err) next(err);
         else res.json(flow);
       });
     });
 
     // List senders
-    app.get('/senders/', function (req, res, next) {
+    napi.get('/senders/', function (req, res, next) {
       store.getSenders(req.query.skip, req.query.limit,
          function(err, senders, pageOf, size, page, total) {
         if (err) next(err);
-        else setPagingHeaders(res, total, pageOf, pages, size).json(senders);
+        else setPagingHeaders(res, total, pageOf, page, size).json(senders);
       });
     });
 
     // Get a single sender
-    app.get('/senders/:id', function (req, res, next) {
-      store.getSender(req.param.id, function (err, sender) {
+    napi.get('/senders/:id', function (req, res, next) {
+      store.getSender(req.params.id, function (err, sender) {
         if (err) next(err);
         else res.json(sender);
       });
     });
 
     // List receivers
-    app.get('/receivers/', function (req, res, next) {
+    napi.get('/receivers/', function (req, res, next) {
       store.getReceivers(req.query.skip, req.query.limit,
           function(err, receivers, total, pageOf, pages, size) {
         if (err) next(err);
@@ -176,8 +185,8 @@ function NodeAPI (port, store) {
     });
 
     // Get a single receiver
-    app.get('/receivers/:id', function (req, res, next) {
-      store.getReceiver(req.param.id, function(err, receiver) {
+    napi.get('/receivers/:id', function (req, res, next) {
+      store.getReceiver(req.params.id, function(err, receiver) {
         if (err) next(err);
         else res.json(receiver);
       });
@@ -229,8 +238,20 @@ function NodeAPI (port, store) {
       };
     });
 
+    // this.startMDNS();
+
     return this;
   }
+
+  // var browser = null;
+  // var registrationDetails = null;
+  // this.startMDNS = function () {
+  //   browser = mdns.createBrowser('_ips-registration._tcp');
+  //   browser.on('update', function (data) {
+  //     console.log(data);
+  //   });
+  //   browser.discover();
+  // }
 
   /**
    * Stop the server running the Node API.
