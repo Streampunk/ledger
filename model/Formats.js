@@ -34,7 +34,7 @@ var formats = {
   event: "urn:x-ipstudio:format:event"
 };
 
-formats.validFormat =function (f) {
+formats.validFormat = function (f) {
   return typeof f === 'string' &&
     (f.startsWith(formats.video) ||
       f.startsWith(formats.audio) ||

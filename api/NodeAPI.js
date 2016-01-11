@@ -16,7 +16,7 @@
 var express = require('express');
 var immutable = require('seamless-immutable');
 var NodeStore = require('./NodeStore.js');
-var mdns = require('mdns');
+var mdns = require('mdns-js');
 
 /**
  * Create an instance of the Node API.
@@ -238,20 +238,26 @@ function NodeAPI (port, store) {
       };
     });
 
-    // this.startMDNS();
+    this.startMDNS();
 
     return this;
   }
 
-  // var browser = null;
-  // var registrationDetails = null;
-  // this.startMDNS = function () {
-  //   browser = mdns.createBrowser('_ips-registration._tcp');
-  //   browser.on('update', function (data) {
-  //     console.log(data);
-  //   });
-  //   browser.discover();
-  // }
+  var browser = null;
+  var registrationDetails = null;
+  this.startMDNS = function () {
+    // mdns.excludeInterface('0.0.0.0');
+    browser = mdns.createBrowser('_ips-registration._tcp.local.');
+    browser.on('ready', function () {
+      console.log('ready for mdns');
+      browser.discover();
+    });
+    browser.on('update', function (data) {
+      if (data.query[0].startsWith('_ips-registration._tcp')) {
+        console.log(data.addresses[0], data.port, data.networkInterface);
+      }
+    });
+  }
 
   /**
    * Stop the server running the Node API.
