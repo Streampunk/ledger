@@ -17,6 +17,7 @@ var express = require('express');
 var immutable = require('seamless-immutable');
 var NodeStore = require('./NodeStore.js');
 var mdns = require('mdns-js');
+var http = require('http');
 
 /**
  * Create an instance of the Node API.
@@ -254,9 +255,71 @@ function NodeAPI (port, store) {
     });
     browser.on('update', function (data) {
       if (data.query[0].startsWith('_ips-registration._tcp')) {
-        console.log(data.addresses[0], data.port, data.networkInterface);
+        registerNode(data.addresses[0], data.port);
       }
     });
+  }
+
+  function pushResource(r) {
+    var resourceType = r.constructor.name;
+    var reqBody = new Buffer(JSON.stringify({
+      type : resourceType,
+      data : r
+    }));
+    var req = http.request({
+      hostname: regAddress,
+      port: regPort,
+      path: 'x-ipstudio/registration/v1.0/resource',
+      method: POST,
+      headers: {
+        'Content-Type' : 'application/json',
+        'Content-Length' : reqBody.length
+      }
+    }, function (res) {
+      if (res.statusCode >= 300) {
+        console.error('Received status code ' + res.statusCode +
+          ' when posting ' + resourceType + '.');
+      }
+      console.log('Posted ' + resourceType + ' with Location ' +
+        res.headers.Location + '.');
+      res.end();
+    });
+
+    req.on('error', (e) => {
+     console.error(`Problem with ${resourceType} request: ${e.message}`);
+    });
+
+    req.write(reqBody);
+    req.end();
+  }
+
+  function registerNode(regAddress, regPort) {
+    var snap = store;
+    registerResource(snap);
+    snap.devices.forEach(registerResource);
+    snap.sources.forEach(registerResource);
+    snap.flows.forEach(registerResource);
+    snap.senders.forEach(registerResource);
+    snap.receivers.forEach(registerResource);
+
+    function health() {
+      setTimeout(function () {
+        var req = http.request({
+          hostname : reqAddress,
+          port : reqPort,
+          path : 'x-ipstudio/registration/v1.0/resource/' + store.self.id,
+          method: 'POST',
+          headers: {
+            'Content-Type' : 'application/json'
+          }
+        }, function (res) {
+          console.log("Health check.");
+          res.end();
+        });
+        health();
+      },5000);
+    }
+    req.end();
   }
 
   /**
