@@ -126,6 +126,7 @@ function regVideoReceiver() {
     if (e) console.error(e);
     else nodeAPI.setStore(s);
     console.log('Demo registration complete.');
+    console.log(JSON.stringify(s));
   });
 }
 

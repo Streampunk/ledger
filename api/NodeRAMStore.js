@@ -310,7 +310,7 @@ NodeRAMStore.prototype.putSender = function (sender, cb) {
       deviceSenders.push(sender.id);
       // console.log(this.setIn(['senders', sender.id], sender));
       cb(null, sender, this.setIn(['senders', sender.id], sender)
-        .setIn(['devices', sender.id, 'senders'], deviceSenders));
+        .setIn(['devices', sender.device_id, 'senders'], deviceSenders));
     } else {
       cb(null, sender, this.setIn(['senders', sender.id], sender));
     }
@@ -342,11 +342,12 @@ NodeRAMStore.prototype.putReceiver = function (receiver, cb) {
     if (this.devices[receiver.device_id].receivers.indexOf(receiver.id) < 0) {
       var deviceReceivers = this.devices[receiver.device_id].receivers.asMutable();
       deviceReceivers.push(receiver.id);
-      console.log(deviceReceivers);
+      // console.log(deviceReceivers);
       cb(null, receiver, this.setIn(['receivers', receiver.id], receiver)
-          .setIn(['devices', receiver.id, 'receivers'], deviceReceivers));
+          .setIn(['devices', receiver.device_id, 'receivers'], deviceReceivers));
+    } else {
+      cb(null, receiver, this.setIn(['receivers', receiver.id], receiver));
     }
-    cb(null, receiver, this.setIn(['receivers', receiver.id], receiver));
   }.bind(this));
 }
 

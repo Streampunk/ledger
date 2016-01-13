@@ -239,7 +239,7 @@ function NodeAPI (port, store) {
       };
     });
 
-    this.startMDNS();
+  //  this.startMDNS();
 
     return this;
   }
