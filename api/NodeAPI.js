@@ -1,4 +1,4 @@
-/* Copyright 2015 Christine S. MacNeill
+/* Copyright 2016 Christine S. MacNeill
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -233,7 +233,7 @@ function NodeAPI (port, store) {
         };
         if (cb) cb(e);
       } else {
-        console.log('Streampunk media ledger service running at http://%s:%s',
+        console.log('Streampunk media ledger node service running at http://%s:%s',
           host, port);
         if (cb) cb();
       };
