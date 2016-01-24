@@ -23,7 +23,7 @@ function QueryAPI (port, store) {
   var server = null;
 
   /**
-   * Returns the port that this Node API is configured to use.
+   * Returns the port that this Query API is configured to use.
    * @return {Number} Port for this node API.
    */
   this.getPort = function () {
