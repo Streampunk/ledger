@@ -29,13 +29,13 @@ var bbcReceiverJSON = `{
             "MCUK"
         ]
     },
-    "format": "urn:x-ipstudio:format:video",
+    "format": "urn:x-nmos:format:video",
     "caps": {},
     "device_id": "0d0cb97e-b96a-4a39-887f-d491492d9081",
     "version": "1441895693:480000000",
     "label": "MCUK Gallery QuadView Right 4",
     "id": "3350d113-1593-4271-a7f5-f4974415bb8e",
-    "transport": "urn:x-ipstudio:transport:rtp",
+    "transport": "urn:x-nmos:transport:rtp",
     "subscription": {
         "sender_id": "55311762-8003-48fa-a645-0a0c7621ce45"
     }
@@ -46,11 +46,11 @@ var bbcReceiver = new Receiver(
   '1441895693:480000000',
   'MCUK Gallery QuadView Right 4',
   'ap-z800-4 quad rtp receiver 4',
-  'urn:x-ipstudio:format:video',
+  'urn:x-nmos:format:video',
   {}, // caps
   { Location : [ 'MCUK' ] },
   '0d0cb97e-b96a-4a39-887f-d491492d9081',
-  'urn:x-ipstudio:transport:rtp',
+  'urn:x-nmos:transport:rtp',
   { sender_id : '55311762-8003-48fa-a645-0a0c7621ce45' }
 );
 

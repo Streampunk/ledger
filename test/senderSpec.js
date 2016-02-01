@@ -23,11 +23,11 @@ var methods = Sender.prototype;
 var bbcSenderJSON = `{
     "description": "LCH Studio Cam 1 UHD",
     "label": "LCH Studio Cam 1 UHD",
-    "manifest_href": "http://172.29.176.146:12345/x-ipstudio/node/v1.0/self/pipelinemanager/run/pipeline/1/pipel/ipp_rtptxdfb1/misc/sdp/",
+    "manifest_href": "http://172.29.176.146:12345/x-nmos/node/v1.0/self/pipelinemanager/run/pipeline/1/pipel/ipp_rtptxdfb1/misc/sdp/",
     "version": "1441723958:235623703",
     "flow_id": "b25d445a-20dc-4937-a8a1-5cb3d5c613ee",
     "id": "171d5c80-7fff-4c23-9383-46503eb1c63e",
-    "transport": "urn:x-ipstudio:transport:rtp.mcast",
+    "transport": "urn:x-nmos:transport:rtp.mcast",
     "device_id": "c501ae64-f525-48b7-9816-c5e8931bc017"
 }`;
 
@@ -37,9 +37,9 @@ var bbcSender = new Sender(
   'LCH Studio Cam 1 UHD',
   'LCH Studio Cam 1 UHD',
   'b25d445a-20dc-4937-a8a1-5cb3d5c613ee',
-  'urn:x-ipstudio:transport:rtp.mcast',
+  'urn:x-nmos:transport:rtp.mcast',
   'c501ae64-f525-48b7-9816-c5e8931bc017',
-  'http://172.29.176.146:12345/x-ipstudio/node/v1.0/self/pipelinemanager/run/pipeline/1/pipel/ipp_rtptxdfb1/misc/sdp/'
+  'http://172.29.176.146:12345/x-nmos/node/v1.0/self/pipelinemanager/run/pipeline/1/pipel/ipp_rtptxdfb1/misc/sdp/'
 );
 
 test('Validity checking of description values', function (t) {

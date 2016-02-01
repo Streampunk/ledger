@@ -21,10 +21,10 @@
  * @enum {string}
  */
 var deviceTypes = {
-  /** Value <code>urn:x-ipstudio:device:pipeline</code>. */
-  pipeline: "urn:x-ipstudio:device:pipeline",
-  /** Value <code>urn:x-ipstudio:device:generic</code>. */
-  generic: "urn:x-ipstudio:device:generic"
+  /** Value <code>urn:x-nmos:device:pipeline</code>. */
+  pipeline: "urn:x-nmos:device:pipeline",
+  /** Value <code>urn:x-nmos:device:generic</code>. */
+  generic: "urn:x-nmos:device:generic"
 };
 
 /** Check if a value is a valid device type. */

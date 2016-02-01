@@ -29,7 +29,7 @@ var bbcSourceJSON = `{
             "ap-z220-0"
         ]
     },
-    "format": "urn:x-ipstudio:format:video",
+    "format": "urn:x-nmos:format:video",
     "caps": {},
     "version": "1441703336:902850419",
     "parents": [],

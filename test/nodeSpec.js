@@ -26,16 +26,16 @@ var bbcNodeJSON = `{
     "href": "http://172.29.176.102:12345/",
     "services": [
         {
-            "href": "http://172.29.176.102:12345/x-ipstudio/node/v1.0/self/status/",
-            "type": "urn:x-ipstudio:service:status"
+            "href": "http://172.29.176.102:12345/x-nmos/node/v1.0/self/status/",
+            "type": "urn:x-nmos:service:status"
         },
         {
-            "href": "http://172.29.176.102:12345/x-ipstudio/node/v1.0/self/pipelinemanager/",
-            "type": "urn:x-ipstudio:service:pipelinemanager"
+            "href": "http://172.29.176.102:12345/x-nmos/node/v1.0/self/pipelinemanager/",
+            "type": "urn:x-nmos:service:pipelinemanager"
         },
         {
-            "href": "http://172.29.176.102:12345/x-ipstudio/node/v1.0/self/mdnsbridge/",
-            "type": "urn:x-ipstudio:service:mdnsbridge"
+            "href": "http://172.29.176.102:12345/x-nmos/node/v1.0/self/mdnsbridge/",
+            "type": "urn:x-nmos:service:mdnsbridge"
         }
     ],
     "caps": {},
@@ -49,12 +49,12 @@ var bbcNode = new Node(
   'http://172.29.176.102:12345/',
   'ap-ch-xw8600-2',
   {}, // caps
-  [ { href : 'http://172.29.176.102:12345/x-ipstudio/node/v1.0/self/status/',
-      type : 'urn:x-ipstudio:service:status' },
-    { href : 'http://172.29.176.102:12345/x-ipstudio/node/v1.0/self/pipelinemanager/',
-      type : 'urn:x-ipstudio:service:pipelinemanager' },
-    { href : 'http://172.29.176.102:12345/x-ipstudio/node/v1.0/self/mdnsbridge/',
-      type : 'urn:x-ipstudio:service:mdnsbridge' } ]
+  [ { href : 'http://172.29.176.102:12345/x-nmos/node/v1.0/self/status/',
+      type : 'urn:x-nmos:service:status' },
+    { href : 'http://172.29.176.102:12345/x-nmos/node/v1.0/self/pipelinemanager/',
+      type : 'urn:x-nmos:service:pipelinemanager' },
+    { href : 'http://172.29.176.102:12345/x-nmos/node/v1.0/self/mdnsbridge/',
+      type : 'urn:x-nmos:service:mdnsbridge' } ]
 );
 
 test('Valid hrefs', function (t) {

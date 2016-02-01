@@ -22,7 +22,7 @@ var methods = Flow.prototype;
 
 var bbcFlowJSON = `{
     "description": "LCH Lab Capture Audio Proxy",
-    "format": "urn:x-ipstudio:format:audio",
+    "format": "urn:x-nmos:format:audio",
     "tags": {
         "host": [
             "ap-ch-z820-4.rd.bbc.co.uk"
@@ -40,7 +40,7 @@ var bbcFlow = new Flow(
   '1441812152:154331951',
   'LCH Lab Capture Audio Proxy',
   'LCH Lab Capture Audio Proxy',
-  'urn:x-ipstudio:format:audio',
+  'urn:x-nmos:format:audio',
   { host : [ 'ap-ch-z820-4.rd.bbc.co.uk' ] },
   '2aa143ac-0ab7-4d75-bc32-5c00c13d186f',
   []

@@ -15,16 +15,16 @@
 
 // Run a demonstration node
 
-var NodeAPI = require('./api/NodeAPI.js');
-var NodeRAMStore = require('./api/NodeRAMStore.js');
-var Node = require('./model/Node.js');
-var Device = require('./model/Device.js');
-var Source = require('./model/Source.js');
-var Flow = require('./model/Flow.js');
-var Sender = require('./model/Sender.js');
-var Receiver = require('./model/Receiver.js');
-var formats = require('./model/Formats.js');
-var transports = require('./model/Transports.js');
+var NodeAPI = require('../api/NodeAPI.js');
+var NodeRAMStore = require('../api/NodeRAMStore.js');
+var Node = require('../model/Node.js');
+var Device = require('../model/Device.js');
+var Source = require('../model/Source.js');
+var Flow = require('../model/Flow.js');
+var Sender = require('../model/Sender.js');
+var Receiver = require('../model/Receiver.js');
+var formats = require('../model/Formats.js');
+var transports = require('../model/Transports.js');
 
 var node = new Node(null, null, "Punkd Up Node", "http://tereshkova.local:3000",
   "tereshkova");
@@ -126,7 +126,7 @@ function regVideoReceiver() {
     if (e) console.error(e);
     else nodeAPI.setStore(s);
     console.log('Demo registration complete.');
-    console.log(JSON.stringify(s));
+  //  console.log(JSON.stringify(s));
   });
 }
 

@@ -17,14 +17,14 @@ var Transports = require('../model/Transports.js');
 var test = require('tape');
 
 test('A valid device type', function(t) {
-  t.ok(Transports.validTransport('urn:x-ipstudio:transport:rtp'),
-    'is "urn:x-ipstudio:transport:rtp".');
-  t.ok(Transports.validTransport('urn:x-ipstudio:transport:rtp.mcast'),
-    'is "urn:x-ipstudio:transport:rtp.mcast".');
-  t.ok(Transports.validTransport('urn:x-ipstudio:transport:rtp.ucast'),
-    'is "urn:x-ipstudio:transport:rtp.ucast".');
-  t.ok(Transports.validTransport('urn:x-ipstudio:transport:dash'),
-    'is "urn:x-ipstudio:transport:dash".');
+  t.ok(Transports.validTransport('urn:x-nmos:transport:rtp'),
+    'is "urn:x-nmos:transport:rtp".');
+  t.ok(Transports.validTransport('urn:x-nmos:transport:rtp.mcast'),
+    'is "urn:x-nmos:transport:rtp.mcast".');
+  t.ok(Transports.validTransport('urn:x-nmos:transport:rtp.ucast'),
+    'is "urn:x-nmos:transport:rtp.ucast".');
+  t.ok(Transports.validTransport('urn:x-nmos:transport:dash'),
+    'is "urn:x-nmos:transport:dash".');
   t.ok(Transports.validTransport(Transports.rtp),
     'is Transports.rtp.');
   t.ok(Transports.validTransport(Transports.rtp_ucast),

@@ -20,21 +20,21 @@
  * over a network.
  *
  * <p>For example, an RTP Transmitter sending to a multicast group should use the
- * transport 'urn:x-ipstudio:transport:rtp.mcast', but a receiver supporting
+ * transport 'urn:x-nmos:transport:rtp.mcast', but a receiver supporting
  * both unicast and multicast should present the transport
- * 'urn:x-ipstudio:transport:rtp' to indicate its less restrictive state.</p>
+ * 'urn:x-nmos:transport:rtp' to indicate its less restrictive state.</p>
  * @readonly
  * @enum {string}
  */
 var transports = {
-  /** Value <code>urn:x-ipstudio:transport:rtp</code>. */
-  rtp: "urn:x-ipstudio:transport:rtp",
-  /** Value <code>urn:x-ipstudio:transport:rtp.ucast</code>. */
-  rtp_ucast: "urn:x-ipstudio:transport:rtp.ucast",
-  /** Value <code>urn:x-ipstudio:transport:rtp.mcast</code>. */
-  rtp_mcast: "urn:x-ipstudio:transport:rtp.mcast",
-  /** Value <code>urn:x-ipstudio:transport:dash</code>. */
-  dash: "urn:x-ipstudio:transport:dash"
+  /** Value <code>urn:x-nmos:transport:rtp</code>. */
+  rtp: "urn:x-nmos:transport:rtp",
+  /** Value <code>urn:x-nmos:transport:rtp.ucast</code>. */
+  rtp_ucast: "urn:x-nmos:transport:rtp.ucast",
+  /** Value <code>urn:x-nmos:transport:rtp.mcast</code>. */
+  rtp_mcast: "urn:x-nmos:transport:rtp.mcast",
+  /** Value <code>urn:x-nmos:transport:dash</code>. */
+  dash: "urn:x-nmos:transport:dash"
 };
 
 transports.validTransport = function (t) {

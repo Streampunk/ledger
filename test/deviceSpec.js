@@ -36,7 +36,7 @@ var bbcDeviceJSON = `{
       ],
       "id": "e19ef82c-5f0a-48da-a86c-bb2377ab09a4",
       "node_id": "4cf38bb4-d6c4-48d6-a086-6eac45d73ae5",
-      "type": "urn:x-ipstudio:device:pipeline"
+      "type": "urn:x-nmos:device:pipeline"
   }`;
 
 var bbcDevice = new Device(

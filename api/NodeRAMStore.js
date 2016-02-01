@@ -91,7 +91,7 @@ function getItem(items, id, cb, argsLength, name) {
     } else {
       var item = items[id];
       if (item) cb(null, item);
-      else cb(statusError(404, "A " + name + " with identifier ''" + id +
+      else cb(statusError(404, "A " + name + " with identifier '" + id +
         "' could not be found."));
     }
   });

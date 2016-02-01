@@ -20,18 +20,18 @@
  * [flow]{@link Flow
  *
  * <p>Sub-classifications of these core URNs may also be encountered within this
- * API version (such as urn:x-ipstudio:format:video.raw), and should still be
+ * API version (such as urn:x-nmos:format:video.raw), and should still be
  * interpreted correctly by consumers up to the boundaries above.</p>
  * @enum {string}
  * @readonly
  */
 var formats = {
-  /** Value <code>urn:x-ipstudio:format:video</code>. */
-  video: "urn:x-ipstudio:format:video",
-  /** Value <code>urn:x-ipstudio:format:audio</code>. */
-  audio: "urn:x-ipstudio:format:audio",
-  /** Value <code>urn:x-ipstudio:format:event</code>. */
-  event: "urn:x-ipstudio:format:event"
+  /** Value <code>urn:x-nmos:format:video</code>. */
+  video: "urn:x-nmos:format:video",
+  /** Value <code>urn:x-nmos:format:audio</code>. */
+  audio: "urn:x-nmos:format:audio",
+  /** Value <code>urn:x-nmos:format:event</code>. */
+  event: "urn:x-nmos:format:event"
 };
 
 formats.validFormat = function (f) {

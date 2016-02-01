@@ -35,7 +35,7 @@ function NodeAPI (port, store) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
     if (size) res.set('X-Streampunk-Ledger-Size', size.toString());
     if (pages) res.set('X-Streampunk-Ledger-Pages', pages.toString());
-    if (total) res.set('X-Streampink-Ledger-Total', total.toString());
+    if (total) res.set('X-Streampunk-Ledger-Total', total.toString());
     return res;
   }
 
@@ -74,21 +74,35 @@ function NodeAPI (port, store) {
    */
   this.init = function() {
 
-    app.get('/', function (req, res) {
-      res.json(['x-ipstudio/']);
+    app.use(function(req, res, next) {
+      // TODO enhance this to better supports CORS
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header("Access-Control-Allow-Methods", "GET, PUT, POST, HEAD, OPTIONS, DELETE");
+      res.header("Access-Control-Allow-Headers", "Content-Type, Accept");
+      res.header("Access-Control-Max-Age", "3600");
+
+      if (req.method == 'OPTIONS') {
+        res.sendStatus(200);
+      } else {
+        next();
+      }
     });
 
-    app.get('/x-ipstudio/', function (req, res) {
+    app.get('/', function (req, res) {
+      res.json(['x-nmos/']);
+    });
+
+    app.get('/x-nmos/', function (req, res) {
       res.json(['node/']);
     });
 
-    app.get('/x-ipstudio/node/', function (req, res) {
+    app.get('/x-nmos/node/', function (req, res) {
       res.json([ "v1.0/" ]);
     });
 
     var napi = express();
     // Mount all other methods at this base path
-    app.use('/x-ipstudio/node/v1.0/', napi);
+    app.use('/x-nmos/node/v1.0/', napi);
 
     napi.get('/', function (req, res) {
       res.json([
@@ -194,21 +208,27 @@ function NodeAPI (port, store) {
     });
 
     app.use(function (err, req, res, next) {
-      if (err) {
-        var status = err.status ? err.status : 404;
-        res.status(status).json({
-          status: status,
-          error: err.message,
-          debug: err.stack
+      if (err.status) {
+        res.status(err.status).json({
+          code: err.status,
+          error: (err.message) ? err.message : 'Internal server error. No message available.',
+          debug: (err.stack) ? err.stack : 'No stack available.'
         });
+      } else {
+        res.status(500).json({
+          code: 500,
+          error: (err.message) ? err.message : 'Internal server error. No message available.',
+          debug: (err.stack) ? err.stack : 'No stack available.'
+        })
       }
-      else {
-        res.status(404).json({
-          status : 404,
-          error : 'Could not find the requested resource.',
+    });
+
+    app.use(function (req, res, next) {
+      res.status(404).json({
+          code : 404,
+          error : `Could not find the requested resource '${req.path}'.`,
           debug : req.path
         });
-      }
     });
 
     return this;

@@ -22,7 +22,9 @@ var ledger = {
   NodeAPI : NodeAPI,
   RegistrationAPI : RegistrationAPI,
   QueryAPI : QueryAPI,
-  NodeRAMStore : NodeRAMStore
+  NodeRAMStore : NodeRAMStore,
+  Node : require('./model/Node.js'),
+  Device : require('./model/Device.js')
 };
 
 module.exports = ledger;
