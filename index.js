@@ -13,18 +13,20 @@
   limitations under the License.
 */
 
-var NodeAPI = require('./api/NodeAPI.js');
-var RegistrationAPI = require('./api/RegistrationAPI.js');
-var QueryAPI = require('./api/QueryAPI.js');
-var NodeRAMStore = require('./api/NodeRAMStore.js');
-
 var ledger = {
-  NodeAPI : NodeAPI,
-  RegistrationAPI : RegistrationAPI,
-  QueryAPI : QueryAPI,
-  NodeRAMStore : NodeRAMStore,
+  NodeAPI : require('./api/NodeAPI.js'),
+  RegistrationAPI : require('./api/RegistrationAPI.js'),
+  QueryAPI : require('./api/QueryAPI.js'),
+  NodeRAMStore : require('./api/NodeRAMStore.js'),
   Node : require('./model/Node.js'),
-  Device : require('./model/Device.js')
+  Device : require('./model/Device.js'),
+  Source : require('./model/Source.js'),
+  Flow : require('./model/Flow.js'),
+  Sender : require('./model/Sender.js'),
+  Receiver : require('./model/Receiver.js'),
+  formats : require('./model/Formats.js'),
+  deviceTypes : require('./model/deviceTypes.js'),
+  transports : require('./model/Transports.js')
 };
 
 module.exports = ledger;

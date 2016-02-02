@@ -15,13 +15,20 @@
 
 // Test the node API.
 
+// TODO tests of pagination features.
+
 var test = require('tape');
 var http = require('http');
 var uuid = require('uuid');
+var async = require('async');
 var ledger = require('../index.js');
 
 var Node = ledger.Node;
 var Device = ledger.Device;
+var Source = ledger.Source;
+var Flow = ledger.Flow;
+var Sender = ledger.Sender;
+var Receiver = ledger.Receiver;
 var testPort = 3210;
 
 function serverTest(description, node, fn) {
@@ -299,12 +306,48 @@ serverTest('Checking CORS headers using .../self', node,
 });
 
 var device = new Device(null, null, "Dat Punking Ting", null, node.id);
+var videoSource = new Source(null, null, "Noisy Punk", "Will you turn it down!!",
+  ledger.formats.video, null, null, device.id);
+var audioSource = new Source(null, null, "Garish Punk", "What do you look like!!",
+  ledger.formats.audio, null, null, device.id);
+var audioFlow = new Flow(null, null, "Funk Punk", "Blasting at you, punk!",
+  ledger.formats.audio, null, audioSource.id);
+var videoFlow = new Flow(null, null, "Junk Punk", "You looking at me, punk?",
+  ledger.formats.video, null, videoSource.id);
+var audioSender = new Sender(null, null, "Listen Up Punk",
+  "Should have listened to your Mother!", audioFlow.id,
+  ledger.transports.rtp_mcast, device.id, "http://tereshkova.local/audio.sdp");
+var videoSender = new Sender(null, null, "In Ya Face Punk",
+  "What do you look like?", videoFlow.id,
+  ledger.transports.rtp_mcast, device.id, "http://tereshkova.local/video.sdp");
+var audioReceiver = new Receiver(null, null, "Say It Punk?",
+  "You talking to me?", ledger.formats.audio, null, null, device.id,
+  ledger.transports.rtp_mcast);
+var videoReceiver = new Receiver(null, null, "Watching da Punks",
+  "Looking hot, punk!", ledger.formats.video, null, null, device.id,
+  ledger.transports.rtp_mcast);
+
+function fillStore(store, filled) {
+  async.waterfall([
+      function (cb) { store.putDevice(device, cb); },
+      function (d, s, cb) { s.putSource(videoSource, cb); },
+      function (v, s, cb) { s.putSource(audioSource, cb); },
+      function (a, s, cb) { s.putFlow(videoFlow, cb); },
+      function (v, s, cb) { s.putFlow(audioFlow, cb); },
+      function (a, s, cb) { s.putSender(videoSender, cb); },
+      function (v, s, cb) { s.putSender(audioSender, cb); },
+      function (a, s, cb) { s.putReceiver(videoReceiver, cb); },
+      function (v, s, cb) { s.putReceiver(audioReceiver, cb); }
+    ], function (e, x, result) { return filled(e, result); });
+}
+
 serverTest('Retrieving devices (with slash)', node,
     function (t, node, store, server, done) {
-  store.putDevice(device, function (e, d, s) {
+  fillStore(store, function (e, s) {
     if (e) { t.fail(e); }
     else {
       server.setStore(s);
+      var d = s.devices[Object.keys(s.devices)[0]]
       http.get({ port : testPort, path : `/x-nmos/node/v1.0/devices/`}, function (res) {
         t.equal(res.statusCode, 200, 'has status code 200.');
         t.equal(res.headers['x-streampunk-ledger-pageof'], "1", 'page of header is 1.');
@@ -312,7 +355,8 @@ serverTest('Retrieving devices (with slash)', node,
         t.equal(res.headers['x-streampunk-ledger-pages'], "1", 'pages header is 1.');
         t.equal(res.headers['x-streampunk-ledger-total'], "1", 'total header is 1.');
         res.on('data', function (chunk) {
-          t.deepEqual(JSON.parse(chunk.toString()), [device], 'matches the expected value.');
+          console.log(s.devices);
+          t.deepEqual(JSON.parse(chunk.toString()), [d], 'matches the expected value.');
           done();
         });
       }).on('error', function (e) {
@@ -324,10 +368,11 @@ serverTest('Retrieving devices (with slash)', node,
 
 serverTest('Retrieving devices (no slash)', node,
     function (t, node, store, server, done) {
-  store.putDevice(device, function (e, d, s) {
+  fillStore(store, function (e, s) {
     if (e) { t.fail(e); }
     else {
       server.setStore(s);
+      var d = s.devices[Object.keys(s.devices)[0]]
       http.get({ port : testPort, path : `/x-nmos/node/v1.0/devices`}, function (res) {
         t.equal(res.statusCode, 200, 'has status code 200.');
         t.equal(res.headers['x-streampunk-ledger-pageof'], "1", 'page of header is 1.');
@@ -335,7 +380,7 @@ serverTest('Retrieving devices (no slash)', node,
         t.equal(res.headers['x-streampunk-ledger-pages'], "1", 'pages header is 1.');
         t.equal(res.headers['x-streampunk-ledger-total'], "1", 'total header is 1.');
         res.on('data', function (chunk) {
-          t.deepEqual(JSON.parse(chunk.toString()), [device], 'matches the expected value.');
+          t.deepEqual(JSON.parse(chunk.toString()), [d], 'matches the expected value.');
           done();
         });
       }).on('error', function (e) {
@@ -347,14 +392,15 @@ serverTest('Retrieving devices (no slash)', node,
 
 serverTest('Retrieving a device (with slash)', node,
     function (t, node, store, server, done) {
-  store.putDevice(device, function (e, d, s) {
+  fillStore(store, function (e, s) {
     if (e) { t.fail(e); }
     else {
       server.setStore(s);
+      var d = s.devices[Object.keys(s.devices)[0]]
       http.get({ port : testPort, path : `/x-nmos/node/v1.0/devices/${device.id}/`}, function (res) {
         t.equal(res.statusCode, 200, 'has status code 200.');
         res.on('data', function (chunk) {
-          t.deepEqual(JSON.parse(chunk.toString()), device, 'matches the expected value.');
+          t.deepEqual(JSON.parse(chunk.toString()), d, 'matches the expected value.');
           done();
         });
       }).on('error', function (e) {
@@ -366,14 +412,331 @@ serverTest('Retrieving a device (with slash)', node,
 
 serverTest('Retrieving a device (no slash)', node,
     function (t, node, store, server, done) {
-  store.putDevice(device, function (e, d, s) {
+  fillStore(store, function (e, s) {
     if (e) { t.fail(e); }
     else {
       server.setStore(s);
-      http.get({ port : testPort, path : `/x-nmos/node/v1.0/devices/${device.id}/`}, function (res) {
+      var d = s.devices[Object.keys(s.devices)[0]]
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/devices/${device.id}`}, function (res) {
         t.equal(res.statusCode, 200, 'has status code 200.');
         res.on('data', function (chunk) {
-          t.deepEqual(JSON.parse(chunk.toString()), device, 'matches the expected value.');
+          t.deepEqual(JSON.parse(chunk.toString()), d, 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving sources (with slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var srcs = Object.keys(s.sources).map(function (x) { return s.sources[x]; });
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/sources/`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        t.equal(res.headers['x-streampunk-ledger-pageof'], "1", 'page of header is 1.');
+        t.equal(res.headers['x-streampunk-ledger-size'], "2", 'size header is 2.');
+        t.equal(res.headers['x-streampunk-ledger-pages'], "1", 'pages header is 1.');
+        t.equal(res.headers['x-streampunk-ledger-total'], "2", 'total header is 2.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), srcs, 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving sources (no slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var srcs = Object.keys(s.sources).map(function (x) { return s.sources[x]; });
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/sources`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), srcs, 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving the video source (with slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/sources/${videoSource.id}/`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), s.sources[videoSource.id], 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving the video source (no slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/sources/${videoSource.id}`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), s.sources[videoSource.id], 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving flows (with slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var flws = Object.keys(s.flows).map(function (x) { return s.flows[x]; });
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/flows/`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), flws, 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving flows (no slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var flws = Object.keys(s.flows).map(function (x) { return s.flows[x]; });
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/flows`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), flws, 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving the audio flow (with slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/flows/${audioFlow.id}/`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), s.flows[audioFlow.id], 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving the audio flow (with slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/flows/${audioFlow.id}`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), s.flows[audioFlow.id], 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving senders (with slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var snds = Object.keys(s.senders).map(function (x) { return s.senders[x]; });
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/senders/`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), snds, 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving senders (no slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var snds = Object.keys(s.senders).map(function (x) { return s.senders[x]; });
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/senders`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), snds, 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving the video sender (with slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/senders/${videoSender.id}/`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), s.senders[videoSender.id], 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving the video sender (no slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/senders/${videoSender.id}`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), s.senders[videoSender.id], 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving receivers (with slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var rcvs = Object.keys(s.receivers).map(function (x) { return s.receivers[x]; });
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/receivers/`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), rcvs, 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving receivers (no slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var rcvs = Object.keys(s.receivers).map(function (x) { return s.receivers[x]; });
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/receivers`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), rcvs, 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving the audio receiver (with slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/receivers/${audioReceiver.id}/`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), s.receivers[audioReceiver.id], 'matches the expected value.');
+          done();
+        });
+      }).on('error', function (e) {
+        t.fail(e); done();
+      });
+    }
+  });
+});
+
+serverTest('Retrieving the audio receiver (no slash)', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      http.get({ port : testPort, path : `/x-nmos/node/v1.0/receivers/${audioReceiver.id}`}, function (res) {
+        t.equal(res.statusCode, 200, 'has status code 200.');
+        res.on('data', function (chunk) {
+          t.deepEqual(JSON.parse(chunk.toString()), s.receivers[audioReceiver.id], 'matches the expected value.');
           done();
         });
       }).on('error', function (e) {
