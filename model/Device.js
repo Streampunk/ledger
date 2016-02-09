@@ -106,9 +106,9 @@ Device.prototype.valid = function () {
 Device.prototype.stringify = function() { return JSON.stringify(this); }
 Device.prototype.parse = function(json) {
   if (json === null || json === undefined || arguments.length === 0 ||
-      typeof json !== 'string')
+      (typeof json !== 'string' && typeof json !== 'object'))
     throw "Cannot parse JSON to a Device value because it is not a valid input.";
-  var parsed = JSON.parse(json);
+  var parsed = (typeof json === 'string') ? JSON.parse(json) : json;
   return new Device(parsed.id, parsed.version, parsed.label, parsed.type,
     parsed.node_id, parsed.senders, parsed.receivers);
 };

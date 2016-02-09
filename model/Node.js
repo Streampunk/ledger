@@ -134,9 +134,9 @@ Node.prototype.stringify = function() { return JSON.stringify(this); }
 
 Node.prototype.parse = function (json) {
   if (json === null || json === undefined || arguments.length === 0 ||
-      typeof json !== 'string')
+      (typeof json !== 'string' && typeof json !== 'object'))
     throw "Cannot parse JSON to a Node value because it is not a valid input.";
-  var parsed = JSON.parse(json);
+  var parsed = typeof json === 'string' ? JSON.parse(json) : json;
   return new Node(parsed.id, parsed.version, parsed.label, parsed.href,
     parsed.hostname, parsed.caps, parsed.services);
 }

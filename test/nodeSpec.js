@@ -232,6 +232,7 @@ test('Node objects', function (t) {
       href : n.href, hostname : n.hostname, caps : n.caps,
       services : n.services
     })), n, 'convert from a JSON object as expected.');
+  t.deepEqual(Node.prototype.parse(m), n, "parse converts JSON object.");
   t.end();
 });
 

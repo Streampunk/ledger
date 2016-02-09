@@ -305,6 +305,7 @@ test('Source objects', function (t) {
         description : s.description, format : s.format, caps : s.caps,
         tags : s.tags, device_id: s.device_id, parents : s.parents })), w,
     'convert from a JSON object as expected.');
+  t.deepEqual(Source.prototype.parse(w), s, "parse converts JSON object.");
   t.end();
 });
 

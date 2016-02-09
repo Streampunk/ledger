@@ -346,6 +346,7 @@ test('Receiver objects', function (t) {
         tags : r.tags, device_id : r.device_id, transport : r.transport,
         subscription : r.subscription })), j,
     'convert from a JSON object as expected.');
+  t.deepEquals(Receiver.prototype.parse(j), r, "parse converts an object.");
   t.end();
 });
 

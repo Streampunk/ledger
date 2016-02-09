@@ -14,6 +14,7 @@
 */
 
 var express = require('express');
+var bodyparser = require('body-parser');
 var immutable = require('seamless-immutable');
 var NodeStore = require('./NodeStore.js');
 var mdns = require('mdns-js');
@@ -87,6 +88,8 @@ function NodeAPI (port, store) {
         next();
       }
     });
+
+    app.use(bodyparser.json());
 
     app.get('/', function (req, res) {
       res.json(['x-nmos/']);
@@ -204,6 +207,20 @@ function NodeAPI (port, store) {
       store.getReceiver(req.params.id, function(err, receiver) {
         if (err) next(err);
         else res.json(receiver);
+      });
+    });
+
+    napi.put('/receivers/:id/target', function (req, res, next) {
+      var updatedSender = Sender.parse(req.body.toString());
+      // TODO Check for bad sender
+      store.getReceiver(req.params.id, function(err, receiver) {
+        if (err) next(err);
+        else {
+          receiver = receiver.merge(subscription, { sender_id: updatedSender.id });
+          store.putReceiver(receiver, function (e, sndr, str) {
+
+          });
+        }
       });
     });
 

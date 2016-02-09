@@ -258,6 +258,7 @@ test('Flow objects', function(t) {
         description : f.description, format : f.format, tags: f.tags,
         source_id : f.source_id, parents : f.parents})), g,
     'converts from a JSON object as expected.');
+  t.deepEqual(Flow.prototype.parse(g), f, "parse converts JSON object.");
   t.end();
 });
 

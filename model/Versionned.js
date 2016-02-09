@@ -217,9 +217,9 @@ Versionned.prototype.stringify = function() { return JSON.stringify(this); }
 
 Versionned.prototype.parse = function (json) {
   if (json === null || json === undefined || arguments.length === 0 ||
-      typeof json !== 'string')
+      (typeof json !== 'string' && typeof json !== 'object'))
     throw "Cannot parse JSON to a Versionned value because it is not a valid input.";
-  var parsedJSON = JSON.parse(json);
+  var parsedJSON = (typeof json === 'string') ? JSON.parse(json) : json;
   return new Versionned(parsedJSON.id, parsedJSON.version, parsedJSON.label);
 }
 

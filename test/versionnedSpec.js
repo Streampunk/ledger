@@ -150,6 +150,7 @@ test('Versionned objects', function (t) {
     'convert from JSON object as expected.');
   t.notOk(new Versionned('wibble', 'wobble').valid(),
     'can be constructed as invalid.');
+  t.deepEqual(Versionned.prototype.parse(w), v, "parse converts JSON object.");
   t.end();
 });
 

@@ -248,6 +248,7 @@ test('Sender objects', function (t) {
         transport : s.transport, device_id : s.device_id,
         manifest_href : s.manifest_href})), w,
     'convert from a JSON object as expected.');
+  t.deepEqual(Sender.prototype.parse(w), s, "parse converts JSON object.");
   t.end();
 });
 

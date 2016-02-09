@@ -100,9 +100,9 @@ Receiver.prototype.valid = function() {
 Receiver.prototype.stringify = function() { return JSON.stringify(this); }
 Receiver.prototype.parse = function (json) {
   if (json === null || json === undefined || arguments.length === 0 ||
-      typeof json !== 'string')
+      (typeof json !== 'string' && typeof json !== 'object'))
     throw "Cannot parse JSON to a Receiver value because it is not a valid input.";
-  var parsed = JSON.parse(json);
+  var parsed = (typeof json === 'string') ? JSON.parse(json) : json;
   return new Receiver(parsed.id, parsed.version, parsed.label,
     parsed.description, parsed.format, parsed.caps, parsed.tags,
     parsed.device_id, parsed.transport, parsed.subscription);

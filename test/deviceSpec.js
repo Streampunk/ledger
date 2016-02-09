@@ -225,6 +225,7 @@ test('Device objects', function (t) {
     JSON.stringify({ id : d.id, version : d.version, label : d.label,
         type : d.type, node_id : d.node_id, senders : d.senders,
         receivers : d.receivers })), d, 'converts from JSON as expected.');
+  t.deepEqual(Device.prototype.parse(w), d, "parse converts JSON object.");
   t.end();
 });
 
