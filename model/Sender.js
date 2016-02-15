@@ -83,7 +83,7 @@ Sender.prototype.stringify = function() { return JSON.stringify(this); }
 Sender.prototype.parse = function(json) {
   if (json === null || json === undefined || arguments.length === 0 ||
       (typeof json !== 'string' && typeof json !== 'object'))
-    throw "Cannot parse JSON to a Sender value because it is not a valid input.";
+    throw new Error("Cannot parse JSON to a Sender value because it is not a valid input.");
   var parsed = (typeof json === 'string') ? JSON.parse(json) : json;
   return new Sender(parsed.id, parsed.version, parsed.label, parsed.description,
     parsed.flow_id, parsed.transport, parsed.device_id, parsed.manifest_href);

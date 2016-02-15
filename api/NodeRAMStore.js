@@ -124,7 +124,7 @@ function checkValidAndForward(item, items, name, cb) {
     return false;
   }
   if (items[item.id]) { // Already stored
-    if (compareVersions(this.items[item.id].version, item.version) !== -1) {
+    if (compareVersions(items[item.id].version, item.version) !== -1) {
       cb(statusError(409,
         "Cannot replace a " + name + " device with one with the same or " +
         "an earler version."));

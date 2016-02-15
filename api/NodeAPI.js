@@ -19,6 +19,7 @@ var immutable = require('seamless-immutable');
 var NodeStore = require('./NodeStore.js');
 var mdns = require('mdns-js');
 var http = require('http');
+var Sender = require('../model/Sender.js');
 
 /**
  * Create an instance of the Node API.
@@ -211,18 +212,23 @@ function NodeAPI (port, store) {
     });
 
     napi.put('/receivers/:id/target', function (req, res, next) {
-      var updatedSender = Sender.parse(req.body.toString());
-      // TODO Check for bad sender
+      var updatedSender = Sender.prototype.parse(req.body);
       store.getReceiver(req.params.id, function(err, receiver) {
-        if (err) next(err);
-        else {
-          receiver = receiver.merge(subscription, { sender_id: updatedSender.id });
-          store.putReceiver(receiver, function (e, sndr, str) {
-
-          });
+        if (err) return next(err);
+        if (updatedSender.transport !== receiver.transport) {
+          return next(NodeStore.prototype.statusError(400,
+            "Cannot subscribe a receiver to a sender with different transport types."));
         }
-      });
-    });
+        receiver = receiver
+          .set('subscription', { sender_id: updatedSender.id })
+          .set('version', Sender.prototype.generateVersion());
+        store.putReceiver(receiver, function (e, sndr, str) {
+          if (e) return next(e);
+          this.setStore(str);
+          res.status(202).json(sndr);
+        }.bind(this));
+      }.bind(this));
+    }.bind(this));
 
     app.use(function (err, req, res, next) {
       if (err.status) {
