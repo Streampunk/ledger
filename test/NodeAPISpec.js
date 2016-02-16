@@ -745,3 +745,128 @@ serverTest('Retrieving the audio receiver (no slash)', node,
     }
   });
 });
+
+var subscribeToSender = `{
+    "description": "LCH Studio GoPro HD",
+    "label": "LCH Studio GoPro HD",
+    "manifest_href": "http://172.29.176.142:12345/x-ipstudio/node/v1.0/self/pipelinemanager/run/pipeline/1/pipel/ipp_rtptx0c6d/misc/sdp/",
+    "flow_id": "84f1a535-748b-457c-a25f-49d6691bab30",
+    "id": "72af8f63-15ad-4ec2-8a22-363b4a094fee",
+    "version": "1455646074:437653635",
+    "transport": "urn:x-nmos:transport:rtp.mcast",
+    "device_id": "2b9ad611-da45-4175-b091-41577f09f15f"
+}`;
+
+serverTest('Subscribing receiver to sender', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var subscribeReq = http.request({
+        port : testPort,
+        path : `/x-nmos/node/v1.0/receivers/${videoReceiver.id}/target`,
+        method : 'PUT',
+        headers : {
+          'Content-Type' : 'application/json',
+          'Content-Length' : subscribeToSender.length
+        }
+      }, function (res) {
+        t.equals(res.statusCode, 202, 'produces a 202 Accepted error code.');
+        res.setEncoding('utf8');
+        res.on('data', function (result) {
+          t.deepEqual(Sender.prototype.parse(result.toString()),
+            Sender.prototype.parse(subscribeToSender), 'returns what is sent.');
+        });
+        res.on('end', function () {
+          http.get({
+              port : testPort,
+              path : `/x-nmos/node/v1.0/receivers/${videoReceiver.id}`
+          }, function (res) {
+            t.equal(res.statusCode, 200, 'subsequent retrieve has status code 200.');
+            res.on('data', function (chunk) {
+              t.equal(JSON.parse(chunk.toString()).subscription.sender_id,
+                '72af8f63-15ad-4ec2-8a22-363b4a094fee',
+                'updates the "subscription.sender_id".');
+              done();
+            });
+          }).on('error', function (e) {
+            t.fail(e); done();
+          });
+        });
+      });
+      subscribeReq.write(subscribeToSender);
+      subscribeReq.end();
+    }
+  });
+});
+
+serverTest('Subscribing receiver to sender with wrong transport', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    var brokenSender = subscribeToSender.replace(
+      /urn:x-nmos:transport:rtp\.mcast/,
+      "urn:x-nmos:transport:rtp");
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var subscribeReq = http.request({
+        port : testPort,
+        path : `/x-nmos/node/v1.0/receivers/${videoReceiver.id}/target`,
+        method : 'PUT',
+        headers : {
+          'Content-Type' : 'application/json',
+          'Content-Length' : brokenSender.length
+        }
+      }, function (res) {
+        t.equals(res.statusCode, 400, 'produces a 400 Bad Request error code.');
+        res.setEncoding('utf8');
+        res.on('data', function (result) {
+          var error = JSON.parse(result.toString())
+          t.equal(error.code, 400, 'error message has correct code.');
+          t.equal(error.error,
+            'Cannot subscribe a receiver to a sender with different transport types.',
+            'error message is as expected.');
+        });
+        res.on('end', done);
+      });
+
+      subscribeReq.write(brokenSender);
+      subscribeReq.end();
+    }
+  });
+});
+
+serverTest('Subscribing receiver to sender with bad sender', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    var brokenSender = subscribeToSender.substring(13);
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var subscribeReq = http.request({
+        port : testPort,
+        path : `/x-nmos/node/v1.0/receivers/${videoReceiver.id}/target`,
+        method : 'PUT',
+        headers : {
+          'Content-Type' : 'application/json',
+          'Content-Length' : brokenSender.length
+        }
+      }, function (res) {
+        t.equals(res.statusCode, 400, 'produces a 400 Bad Request error code.');
+        res.setEncoding('utf8');
+        res.on('data', function (result) {
+          var error = JSON.parse(result.toString())
+          t.equal(error.code, 400, 'error message has correct code.');
+          t.equal(error.error,
+            'Unexpected token p',
+            'error message is as expected.');
+        });
+        res.on('end', done);
+      });
+
+      subscribeReq.write(brokenSender);
+      subscribeReq.end();
+    }
+  });
+});

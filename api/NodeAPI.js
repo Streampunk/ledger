@@ -225,7 +225,7 @@ function NodeAPI (port, store) {
         store.putReceiver(receiver, function (e, sndr, str) {
           if (e) return next(e);
           this.setStore(str);
-          res.status(202).json(sndr);
+          res.status(202).json(updatedSender);
         }.bind(this));
       }.bind(this));
     }.bind(this));
