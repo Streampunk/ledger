@@ -406,7 +406,7 @@ function NodeAPI (port, store) {
   }
 
   if (!validPort(port))
-    return new Error('Port is not a valid value. Must be an interger greater than zero.');
+    return new Error('Port is not a valid value. Must be an integer greater than zero.');
   if (!validStore(store))
     return new Error('Store does not have a sufficient contract.');
   return immutable(this, { prototype : NodeAPI.prototype });

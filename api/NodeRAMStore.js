@@ -138,45 +138,58 @@ var extractVersions = util.extractVersions;
 var compareVersions = util.compareVersions;
 
 /**
- * In RAM store representing the state of a [node]{@link Node}. Immutable value.
+ * In RAM store representing the state of a [node]{@link Node} or regstry.
+ * Immutable value.
  * @constructor
  * @implements {NodeStore}
  * @param {Node} self Node this store is to represent.
  * @return {(NodeRAMStore|Error)} New node RAM store or an error.
  */
 function NodeRAMStore(self) {
+  /**
+   * Details of this [node]{@link Node}. For use by the node API, not when in
+   * use as a registry.
+   * @type {Node}
+   * @readonly
+   */
   this.self = self;
   /**
-   * Map of devices available at this [node]{@link Node}. Keys are UUIDs.
+   * Map of nodes avaiable at this registry. Keys are UUIDs.
+   * @type {Object.<string, Node>}
+   * @readonly
+   */
+  this.nodes = {};
+  /**
+   * Map of devices available at this [node]{@link Node} or registry. Keys are UUIDs.
    * @type {Object.<string, Device>}
    * @readonly
    */
   this.devices = {};
   /**
-   * Map of sources available at this [node]{@link Node}. Keys are UUIDs.
+   * Map of sources available at this [node]{@link Node} or registry. Keys are UUIDs.
    * @type {Object.<string, Source>}
    * @readonly
    */
   this.sources = {};
   /**
-   * Map of flows associated with this [node]{@link Node}. Keys are UUIDs.
+   * Map of flows associated with this [node]{@link Node} or registry. Keys are UUIDs.
    * @type {Object.<string, Flow>}
    * @readonly
    */
   this.flows = {};
   /**
-   * Map of senders associated with this [node]{@link Node}. Keys are UUIDs.
+   * Map of senders associated with this [node]{@link Node} or registry. Keys are UUIDs.
    * @type {Object.<string, Sender>}
    * @readonly
    */
   this.senders = {};
   /**
-   * Map of receivers associated with this [node]{@link Node}. Keys are UUIDs.
+   * Map of receivers associated with this [node]{@link Node} or registry. Keys are UUIDs.
    * @type {Object.<string, Receiver>}
    * @readonly
    */
   this.receivers = {};
-  if (this.self.valid())
+  if (arguments.length === 0 || this.self.valid())
     return immutable(this, { prototype : NodeRAMStore.prototype });
   else
     return new Error("Cannot set an invalid node as the node for this store.");
@@ -213,6 +226,29 @@ NodeRAMStore.prototype.putSelf = function (node, cb) {
 
     cb(null, node, this.set('self', node));
   }.bind(this) );
+}
+
+NodeRAMStore.prototype.getNodes = function (skip, limit, cb) {
+  getCollection(this.nodes, skip, limit, cb, arguments.length);
+}
+
+NodeRAMStore.prototype.getNode = function (id, cb) {
+  getItem(this.nodes, id, cb, arguments.length, 'node');
+}
+
+NodeRAMStore.prototype.putNode = function (node, cb) {
+  setImmediate(function() {
+    if (!Node.isNode(node)) {
+      return cb(statusError(400,
+        "Value being used to put a node is not of Node type."));
+    };
+    if (!checkValidAndForward(node, this.nodes, 'node', cb)) return;
+    cb(null, node, this.setIn(['nodes', node.id], node));
+  }.bind(this));
+}
+
+NodeRAMStore.prototype.deleteNode = function (id, cb) {
+  deleteItem(this.nodes, id, cb, arguments.length, 'node', this);
 }
 
 NodeRAMStore.prototype.getDevices = function (skip, limit, cb) {

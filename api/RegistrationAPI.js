@@ -15,10 +15,23 @@
 
 var express = require('express');
 var immutable = require('seamless-immutable');
+var bodyparser = require('body-parser');
+var Node = require('../model/Node.js');
+var Device = require('../model/Device.js');
+var Source = require('../model/Source.js');
+var Sender = require('../model/Sender.js');
+var Receiver = require('../model/Receiver.js');
+var Flow = require('../model/Flow.js');
+var uuid = require('uuid');
+var mdns = require('mdns-js');
+var NodeStore = require('./NodeStore.js');
 
 function RegistrationAPI (port, store) {
   var app = express();
   var server = null;
+
+  var nodeHealth = {};
+  var mdnsService = null;
 
   /**
    * Returns the port that this Registration API is configured to use.
@@ -29,33 +42,173 @@ function RegistrationAPI (port, store) {
   }
 
   /**
-   * Initialise the Node APIs routing table.
+   * Replace the [store]{@link NodeStore} set for this API.
+   * @param {NodeStore} replacementStore Store to use to replace the current one.
+   * @return {(Error|null)}  Error if a problem, otherwise null for success.
+   */
+  this.setStore = function (replacementStore) {
+    if (!validStore(replacementStore))
+      return new Error('The given replacement store is not valid.');
+    store = replacementStore;
+    return null;
+  }
+
+  /**
+   * Returns the [store]{@link NodeStore} used to produce results.
+   * @return {NodeStore} Store backing this Registration API.
+   */
+  this.getStore = function () {
+    return store;
+  }
+
+  /**
+   * Initialise the Registration APIs routing table.
    * @return {NodeAPI} Returns this object with the routing table initialised and
    *                   ready to {@link NodeAPI#start}.
    */
   this.init = function() {
 
-    app.get('/', function (req, res) {
-      res.json(['x-ipstudio/']);
+    app.use(function(req, res, next) {
+      // TODO enhance this to better supports CORS
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header("Access-Control-Allow-Methods", "GET, PUT, POST, HEAD, OPTIONS, DELETE");
+      res.header("Access-Control-Allow-Headers", "Content-Type, Accept");
+      res.header("Access-Control-Max-Age", "3600");
+
+      if (req.method == 'OPTIONS') {
+        res.sendStatus(200);
+      } else {
+        next();
+      }
     });
 
-    app.get('/x-ipstudio/', function (req, res) {
+    app.use(bodyparser.json());
+
+    app.get('/', function (req, res) {
+      res.json(['x-nmos/']);
+    });
+
+    app.get('/x-nmos/', function (req, res) {
       res.json(['registration/']);
     });
 
-    app.get('/x-ipstudio/registration/', function (req, res) {
+    app.get('/x-nmos/registration/', function (req, res) {
       res.json([ "v1.0/" ]);
     });
 
-    var qapi = express();
+    var rapi = express();
     // Mount all other methods at this base path
-    app.use('/x-ipstudio/registration/v1.0/', qapi);
+    app.use('/x-nmos/registration/v1.0/', rapi);
 
-    qapi.get('/', function (req, res) {
+    rapi.get('/', function (req, res) {
       res.json([
         "resource/",
         "health/"
       ]);
+    });
+
+    rapi.post('/resource', function (req, res, next) {
+      var input = req.body;
+      var value = null;
+      try {
+        switch (input.type) {
+          case 'node':
+            value = Node.prototype.parse(input.data);
+            break;
+          case 'source':
+            value = Source.prototype.parse(input.data);
+            break;
+          case 'sender':
+            value = Sender.prototype.parse(input.data);
+            break;
+          case 'receiver':
+            value = Receiver.prototype.parse(input.data);
+            break;
+          case 'device':
+            value = Device.prototype.parse(input.data);
+            break;
+          case 'flow':
+            value = Flow.prototype.prase(input.data);
+            break;
+          default:
+            break;
+        }
+      } catch (e) {
+        e.status = 400;
+        return next(e);
+      }
+
+      if (value) {
+        var fnName = 'put' + input.type.charAt(0).toUpperCase() +
+          input.substr(1).toLowerCase();
+        store[fnName](value, function (err, item, updatedStore) {
+          if (err) return next(err);
+          setStore(updatedStore);
+          res.json(item);
+        });
+      } else {
+        next(NodeStore.prototype.statusError(400,
+          `Unable to process resource with given type '${input.type}'.`));
+      }
+    });
+
+    // Show a registered resource (for debug use only)
+    rapi.get('/resource/:resourceID', function (req, res, next) {
+      var id = req.param.resourceID;
+      var sent = false;
+      [store.getNode, store.getDevice, store.getSource, store.getReceiver,
+        store.getSender, store.getFlow].forEach(function (f) {
+          if (!sent) f(id, function(e, item) {
+            if (e) return;
+            res.json(item);
+            sent = true;
+          });
+        });
+      if (!sent) next();
+    });
+
+    rapi.post('/health/nodes/:nodeID', function (req, res, next) {
+      if (req.params.nodeID.match(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/) == null) {
+        return next(NodeStore.prototype.statusError(400,
+          'Given node identifier path parameter on health check is not a valid UUID.'));
+      }
+      var healthNow = Date.now() / 1000|0;
+      nodeHealth[req.params.nodeID] = healthNow;
+      res.json({ health : healthNow });
+    });
+
+    // Show a Node's health (for debug use only)
+    rapi.get('/health/nodes/:nodeID', function (req, res, next) {
+      if (nodeHealth.hasOwnProperty(req.param.nodeID)) {
+        res.json({ health : nodeHealth[req.param.nodeID] });
+      } else {
+        next();
+      }
+    });
+
+    app.use(function (err, req, res, next) {
+      if (err.status) {
+        res.status(err.status).json({
+          code: err.status,
+          error: (err.message) ? err.message : 'Internal server error. No message available.',
+          debug: (err.stack) ? err.stack : 'No stack available.'
+        });
+      } else {
+        res.status(500).json({
+          code: 500,
+          error: (err.message) ? err.message : 'Internal server error. No message available.',
+          debug: (err.stack) ? err.stack : 'No stack available.'
+        })
+      }
+    });
+
+    app.use(function (req, res, next) {
+      res.status(404).json({
+          code : 404,
+          error : `Could not find the requested resource '${req.path}'.`,
+          debug : req.path
+        });
     });
 
     return this;
@@ -86,9 +239,30 @@ function RegistrationAPI (port, store) {
       };
     });
 
-  //  this.startMDNS();
+    this.startMDNS();
 
     return this;
+  }
+
+  this.startMDNS = function startMDNS() {
+    mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-registration'), port, {
+      name : 'ledger_reg',
+      txt : {
+        pri : 0
+      }
+    });
+
+    mdnsService.start();
+
+    process.stdin.resume();
+
+    process.on('SIGINT', function () {
+      mdnsService.stop();
+
+      setTimeout(function onTimeout() {
+        process.exit();
+      }, 1000);
+    });
   }
 
   /**
@@ -107,6 +281,37 @@ function RegistrationAPI (port, store) {
     return this;
   }
 
+  // Check the validity of a port
+  function validPort(port) {
+    return port &&
+      Number(port) === port &&
+      port % 1 === 0 &&
+      port > 0;
+  }
+
+  // Check that a store has a sufficient contract for this API
+  function validStore(store) {
+    return store &&
+      typeof store.getNodes === 'function' &&
+      typeof store.getNode === 'function' &&
+      typeof store.getDevices === 'function' &&
+      typeof store.getDevice === 'function' &&
+      typeof store.getSources === 'function' &&
+      typeof store.getSource === 'function' &&
+      typeof store.getSenders === 'function' &&
+      typeof store.getSender === 'function' &&
+      typeof store.getReceivers === 'function' &&
+      typeof store.getReceiver === 'function' &&
+      typeof store.getFlows === 'function' &&
+      typeof store.getFlow === 'function';
+      // TODO add more of the required methods ... or drop this check?
+  }
+
+  if (!validPort(port))
+    return new Error('Port is not a valid value. Must be an integer greater than zero.');
+  if (!validStore(store))
+    return new Error('Store does not have a sufficient contract.');
+  return immutable(this, { prototype : RegistrationAPI.prototype });
 }
 
 /**

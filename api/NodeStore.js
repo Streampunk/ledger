@@ -35,7 +35,15 @@ function statusError(status, message) {
 NodeStore.prototype.statusError = statusError;
 
 /**
- * Generic store providing access to the current state of a [node]{@link Node}.
+ * Generic store providing access to the current state of a [node]{@link Node}
+ * or as the backing for a registry that can be queried.
+ *
+ * All methods are asynchronous to ensure that implementations backed by
+ * external data sources, such as databases, do not block the event loop.
+ *
+ * Operations that change the state of the store (put, delete) return an updated
+ * copy of the store and information to allow the client to decide how to merge
+ * or reject overlapping / parallel changes.
  * @interface
  */
 function NodeStore() {}
@@ -73,10 +81,68 @@ NodeStore.prototype.putSelf = function (node, cb) {
  */
 
 /**
- * Get all the devices available at this [node]{@link Node}.
+ * Get all the nodes available at this registry.
+ * @param  {number=}   skip  Number of nodes to skip before starting the listing.
+ * @param  {number=}   limit Limit the number of values returned.
+ * @param  {NodeStore~nodesCallback} cb Callback providing list of nodes.
+ */
+NodeStore.prototype.getNodes = function (skip, limit, cb) {
+  cb(statusError(500, 'Method getNodes must be implemented by extending NodeStore.'));
+}
+
+/**
+ * Callback to contain a list of nodes.
+ * @callback NodeStore~nodesCallback
+ * @param {Error}    err     Error retrieving the list of nodes.
+ * @param {Node[]} result  List of nodes.
+ * @param {number=}  total   Total number of nodes.
+ * @param {number=}  pageOf  Current page number, starting from 1.
+ * @param {number=}  pages   Total number of pages.
+ * @param {number=}  size    Number of items on this page. Up to the provided limit.
+ */
+
+/**
+ * Get the details of a specific node.
+ * @param  {String}   id Identity of the device being queried. String as UUID.
+ * @param  {NodeStore~nodeCallback} cb Callback with the device result.
+ */
+NodeStore.prototype.getNode = function (id, cb) {
+  cb(statusError(500, 'Method getNode must be implemented by extending NodeStore.'));
+}
+
+/**
+ * Callback with the single requested node.
+ * @callback NodeStore~nodeCallback
+ * @param {Error}      err    Error retrieving the node's details.
+ * @param {Node}       result Single requested node.
+ * @param {NodeStore=} store  New state of the node store if it has changed.
+ */
+
+ /**
+  * Add or update a [node]{@link Node} in this registry. The
+  * following conditions are checked:
+  * <ul>
+  *  <li>If the node already exists, the [version number]{@link Node#version}
+  *   must be more up-to-date.</li>
+  *  <li>The node is [valid]{@link Node#valid}.</li>
+  * </ul>
+  * @param  {Node}   node Node to add or replace.
+  * @param  {NodeStore~nodeCallback} cb Callback containing the node and
+  *                                       updated store, or an error.
+  */
+NodeStore.prototype.putNode = function (node, cb) {
+  cb(statusError(500, 'Method putNode must be implemented by extending NodeStore.'));
+}
+
+NodeStore.prototype.deleteNode = function (id, cb) {
+  cb(statusError(500, 'Method deleteDevice must be implemented by extending NodeStore.'));
+}
+
+/**
+ * Get all the devices available at this [node]{@link Node} or reigistry.
  * @param  {number=}   skip  Number of devices to skip before starting the listing.
  * @param  {number=}   limit Limit the number of values returned.
- * @param  {NodeStore~devicesCallback} cb    Callback providing the list of devlices.
+ * @param  {NodeStore~devicesCallback} cb    Callback providing the list of devices.
  */
 NodeStore.prototype.getDevices = function (skip, limit, cb) {
   cb(statusError(500, 'Method getDevices must be implemented by extending NodeStore.'));
