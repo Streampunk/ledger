@@ -254,16 +254,14 @@ function RegistrationAPI (port, store) {
 
     mdnsService.start();
 
-    process.stdin.resume();
-
     process.on('SIGINT', function () {
-      mdnsService.stop();
+      if (mdnsService) mdnsService.stop();
 
       setTimeout(function onTimeout() {
         process.exit();
       }, 1000);
     });
-  }
+  }git s
 
   /**
    * Stop the server running the Registration API.
@@ -273,11 +271,22 @@ function RegistrationAPI (port, store) {
    *                                           to stop the server.
    */
   this.stop = function(cb) {
+    var error = '';
     if (server) server.close(cb);
     else {
-      if (cb) cb(new Error('Server is not set for this Registration API and so cannot be stopped.'));
+      error = 'Server is not set for this Registration API and so cannot be stopped. ';
     }
     server = null;
+    console.log(mdnsService);
+    if (mdnsService) mdnsService.stop(function () { console.log('WIBBLING wibble!') });
+    else {
+      error += 'MDNS advertisement is not set for this Registration API and so cannot be stopped.';
+    }
+    mdnsService.networking.stop();
+    console.log(mdnsService);
+    mdnsService = null;
+    if (error.length > 0)
+      cb(new Error(error));
     return this;
   }
 
