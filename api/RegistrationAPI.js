@@ -254,14 +254,16 @@ function RegistrationAPI (port, store) {
 
     mdnsService.start();
 
-    process.on('SIGINT', function () {
-      if (mdnsService) mdnsService.stop();
+    if (process.listenerCount('SIGINT') === 0) {
+      process.on('SIGINT', function () {
+        if (mdnsService) mdnsService.stop();
 
-      setTimeout(function onTimeout() {
-        process.exit();
-      }, 1000);
-    });
-  }git s
+        setTimeout(function onTimeout() {
+          process.exit();
+        }, 1000);
+      });
+    }
+  }
 
   /**
    * Stop the server running the Registration API.
@@ -272,21 +274,34 @@ function RegistrationAPI (port, store) {
    */
   this.stop = function(cb) {
     var error = '';
-    if (server) server.close(cb);
-    else {
-      error = 'Server is not set for this Registration API and so cannot be stopped. ';
+    if (server) {
+      server.close(function () {
+        this.stopMDNS(cb);
+        server = null;
+      }.bind(this));
+    } else {
+      this.stopMDNS(function (e) {
+        if (e) cb(new Error(e.message +
+          ' Server is not set for this Registration API and so cannot be stopped.'));
+        else
+          cb(new Error('Server is not set for this Registration API and so cannot be stopped.'));
+        server = null;
+      }.bind(this));
     }
-    server = null;
-    console.log(mdnsService);
-    if (mdnsService) mdnsService.stop(function () { console.log('WIBBLING wibble!') });
-    else {
-      error += 'MDNS advertisement is not set for this Registration API and so cannot be stopped.';
+
+    return this;
+  }
+
+  this.stopMDNS = function (cb) {
+    if (mdnsService) {
+      mdnsService.stop();
+      mdnsService.networking.stop();
+      mdnsService = null;
+      cb();
+    } else {
+      cb(new Error('MDNS advertisement is not set for this Registration API and so cannot be stopped.'));
     }
-    mdnsService.networking.stop();
-    console.log(mdnsService);
-    mdnsService = null;
-    if (error.length > 0)
-      cb(new Error(error));
+
     return this;
   }
 

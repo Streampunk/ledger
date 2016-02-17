@@ -60,3 +60,149 @@ serverTest('The server reports its root path (slash)', new Node(),
     t.fail(e); done();
   });
 });
+
+serverTest('The server reports its root path (no slash)', new Node(),
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : ''}, function (res) {
+    res.on("data", function (chunk) {
+      t.equal(chunk.toString(), JSON.stringify(['x-nmos/']), 'and it is as expected.');
+      done();
+    });
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+serverTest('The server reports its api type (slash)', new Node(),
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : '/x-nmos/'}, function (res) {
+    res.on("data", function (chunk) {
+      t.equal(chunk.toString(), JSON.stringify(['registration/']), 'and it is as expected.');
+      done();
+    });
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+serverTest('The server reports its api type (no slash)', new Node(),
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : '/x-nmos'}, function (res) {
+    res.on("data", function (chunk) {
+      t.equal(chunk.toString(), JSON.stringify(['registration/']), 'and it is as expected.');
+      done();
+    });
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+serverTest('The server reports its version (slash)', new Node(),
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : '/x-nmos/registration/'}, function (res) {
+    res.on("data", function (chunk) {
+      t.equal(chunk.toString(), JSON.stringify(['v1.0/']), 'and it is as expected.');
+      done();
+    });
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+serverTest('The server reports its version (no slash)', new Node(),
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : '/x-nmos/registration'}, function (res) {
+    res.on("data", function (chunk) {
+      t.equal(chunk.toString(), JSON.stringify(['v1.0/']), 'and it is as expected.');
+      done();
+    });
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+var baseResponse = [
+  'resource/',
+  'health/'
+];
+
+serverTest('The server reports its resources (slash)', new Node(),
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : '/x-nmos/registration/v1.0/'}, function (res) {
+    res.on("data", function (chunk) {
+      t.equal(chunk.toString(), JSON.stringify(baseResponse), 'and it is as expected.');
+      done();
+    });
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+serverTest('The server reports its resources (no slash)', new Node(),
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : '/x-nmos/registration/v1.0'}, function (res) {
+    res.on("data", function (chunk) {
+      t.equal(chunk.toString(), JSON.stringify(baseResponse), 'and it is as expected.');
+      done();
+    });
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+serverTest('The server reports an error for an incorrect short path', new Node(),
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : '/x-nmos/wibble'}, function (res) {
+    t.equal(res.statusCode, 404, 'with status code 404.')
+    res.on("data", function (chunk) {
+      t.equal(chunk.toString(), JSON.stringify({
+        code : 404,
+        error : "Could not find the requested resource '/x-nmos/wibble'.",
+        debug : "/x-nmos/wibble"}), 'responding with an error.');
+      done();
+    });
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+serverTest('The server reports an error for an incorrect long path', new Node(),
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : '/x-nmos/registration/v1.0/wibble'}, function (res) {
+    t.equal(res.statusCode, 404, 'with status code 404.')
+    res.on("data", function (chunk) {
+      t.equal(chunk.toString(), JSON.stringify({
+        code : 404,
+        error : "Could not find the requested resource '/x-nmos/registration/v1.0/wibble'.",
+        debug : "/x-nmos/registration/v1.0/wibble"}), 'responding with an error.');
+      done();
+    });
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+serverTest('The server allows a health status to be posted', new Node(),
+    function (t, node, store, server, done) {
+  var nodeID = uuid.v4();
+  var req = http.request({
+      port : testPort,
+      path : `/x-nmos/registration/v1.0/health/nodes/${nodeID}`,
+      method : 'POST',
+      headers : {
+        'Content-Length' : 0
+      }
+    }, function (res) {
+    t.equal(res.statusCode, 200, 'has an OK response.');
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      var body = JSON.parse(chunk.toString());
+      console.log(body);
+      t.ok(body.hasOwnProperty('health'), 'result has health property.');
+      t.ok(typeof body.health === 'number', 'health result is a number,');
+      t.ok(body.health > (Date.now() / 1000|0 - 10), 'health is in the last 10s.');
+    });
+    res.on('end', done);
+  });
+  req.end();
+});
