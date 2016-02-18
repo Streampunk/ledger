@@ -24,6 +24,6 @@ var node = new Node(null, null, "Punkd Up Node", "http://tereshkova.local:3000",
   "tereshkova");
 var store = new NodeRAMStore(node);
 
-var queryAPI = new QueryAPI(3001, store);
+var queryAPI = new QueryAPI(3001, function () { return store; });
 
 queryAPI.init().start();

@@ -81,12 +81,19 @@ NodeStore.prototype.putSelf = function (node, cb) {
  */
 
 /**
- * Get all the nodes available at this registry.
- * @param  {number=}   skip  Number of nodes to skip before starting the listing.
- * @param  {number=}   limit Limit the number of values returned.
- * @param  {NodeStore~nodesCallback} cb Callback providing list of nodes.
+ * Get all the nodes available at this registry. Query
+ * parameters are string pairs in an object that may include:
+ *
+ * <ul>
+ *  <li><em>skip</em>: Number of devices to skip before starting the listing.</li>
+ *  <li>>em>limit</em>:  Limit the number of values returned.</li>
+ *  <li>Name of an objects's property and a regular expression that must be matched.
+ *   Muliple properties will be treated as conjuctions (AND expressions).</li>
+ * </ul>
+ * @param  {Object.<string, string>=} query Filter parameters
+ * @param  {NodeStore~nodesCallback}  cb    Callback providing list of nodes.
  */
-NodeStore.prototype.getNodes = function (skip, limit, cb) {
+NodeStore.prototype.getNodes = function (query, cb) {
   cb(statusError(500, 'Method getNodes must be implemented by extending NodeStore.'));
 }
 
@@ -139,12 +146,19 @@ NodeStore.prototype.deleteNode = function (id, cb) {
 }
 
 /**
- * Get all the devices available at this [node]{@link Node} or reigistry.
- * @param  {number=}   skip  Number of devices to skip before starting the listing.
- * @param  {number=}   limit Limit the number of values returned.
+ * Get all the devices available at this [node]{@link Node} or reigistry. Query
+ * parameters are string pairs in an object that may include:
+ *
+ * <ul>
+ *  <li><em>skip</em>: Number of devices to skip before starting the listing.</li>
+ *  <li>>em>limit</em>:  Limit the number of values returned.</li>
+ *  <li>Name of an objects's property and a regular expression that must be matched.
+ *   Muliple properties will be treated as conjuctions (AND expressions).</li>
+ * </ul>
+ * @param  {Object.<string, string>}   query Filter parameters
  * @param  {NodeStore~devicesCallback} cb    Callback providing the list of devices.
  */
-NodeStore.prototype.getDevices = function (skip, limit, cb) {
+NodeStore.prototype.getDevices = function (query, cb) {
   cb(statusError(500, 'Method getDevices must be implemented by extending NodeStore.'));
 }
 
@@ -200,7 +214,7 @@ NodeStore.prototype.deleteDevice = function (id, cb) {
   cb(statusError(500, 'Method deleteDevice must be implemented by extending NodeStore.'));
 }
 
-NodeStore.prototype.getSources = function (skip, limit, cb) {
+NodeStore.prototype.getSources = function (query, cb) {
   cb(statusError(500, 'Method getSources must be implemented by extending NodeStore.'));
 }
 
@@ -208,7 +222,7 @@ NodeStore.prototype.getSource = function (id, cb) {
   cb(statusEroor(500, 'Method getSource must be implemented by extending NodeStore.'));
 }
 
-NodeStore.prototype.getSenders = function (skip, limit, cb) {
+NodeStore.prototype.getSenders = function (query, cb) {
   cb(statusError(500, 'Method getSenders must be implemented by extending NodeStore.'));
 }
 
@@ -216,7 +230,7 @@ NodeStore.prototype.getSender = function (id, cb) {
   cb(statusError(500, 'Method getSender must be implemented by extending NodeStore.'));
 }
 
-NodeStore.prototype.getReceivers = function (skip, limit, cb) {
+NodeStore.prototype.getReceivers = function (query, cb) {
   cb(statusError(500, 'Method getReceivers must be implemented by extending NodeStore.'));
 }
 
@@ -224,7 +238,7 @@ NodeStore.prototype.getReceiver = function (id, cb) {
   cb(statusError(500, 'Method getReceiver must be implemented by extending NodeStore.'));
 }
 
-NodeStore.prototype.getFlows = function (skip, limit, cb) {
+NodeStore.prototype.getFlows = function (query, cb) {
   cb(statusError(500, 'Method getFlows must be implemented by extending NodeStore.'));
 }
 

@@ -33,7 +33,7 @@ var statusError = NodeStore.prototype.statusError;
 // Check that the skip parameter is withing range, or set defaults
 function checkSkip (skip, keys) {
   if (skip && typeof skip === 'string') skip = +skip;
-  if (!skip || Number(skip) !== skip || skip % 1 !== skip ||
+  if (!skip || Number(skip) !== skip || skip % 1 !== 0 ||
       skip < 0)
     skip = 0;
   if (skip > keys.length) skip = keys.length;
@@ -43,36 +43,59 @@ function checkSkip (skip, keys) {
 // Check that the limit parameter is withing range, or set defaults
 function checkLimit (limit, keys) {
   if (limit && typeof limit === 'string') limit = +limit;
-  if (!limit || Number(limit) !== limit || limit % 1 !== limit ||
+  if (!limit || Number(limit) !== limit || limit % 1 !== 0 ||
       limit > keys.length)
     limit = keys.length;
   if (limit < 0) limit = 0;
   return limit;
 }
 
+function reIndexOf(a, re) {
+  for (var x in a) {
+    if (a[x].toString().match(re))
+      return x;
+  }
+  return -1;
+}
+
+function remove(a, re) {
+  var i = reIndexOf(a, re);
+  if (i > -1) a.splice(i, 1);
+  return a;
+}
+
 // Generic get collection methods that returns an ordered sequence of items
-function getCollection(items, skip, limit, cb, argsLength) {
+function getCollection(items, query, cb, argsLength) {
+  var skip = 0, limit = Number.MAX_SAFE_INTEGER;
   setImmediate(function() {
     if (argsLength === 1) {
-      cb = skip;
-      skip = null;
-      limit = null;
-    }
-    if (argsLength !== 3) {
-      cb(statusError(400, "Both skip and limit parameters must be provided."));
-      return;
+      cb = query;
+    } else {
+      skip = (query.skip) ? query.skip : 0;
+      limit = (query.limit) ? query.limit : Number.MAX_SAFE_INTEGER;
     }
     var sortedKeys = Object.keys(items);
+    var qKeys = remove(remove(Object.keys(query), /skip/), /limit/);
+    qKeys.forEach(function (k) {
+      try {
+        var re = new RegExp(query[k]);
+        sortedKeys = sortedKeys.filter(function (l) {
+          return items[l][k].toString().match(re);
+        });
+      } catch (e) {
+        console.error(`Problem filtering collection for parameter ${k}.`,
+          e.message);
+      }
+    });
     skip = checkSkip(skip, sortedKeys);
     limit = checkLimit(limit, sortedKeys);
     if (sortedKeys.length === 0 || limit === 0 || skip >= sortedKeys.length) {
-      cb(null, [], sortedKeys.length, 1, 1, 0);
-      return;
+      return cb(null, [], sortedKeys.length, 1, 1, 0);
     }
     var pages = Math.ceil(sortedKeys.length / limit);
     var pageOf = Math.ceil(skip / limit) + 1;
     var itemArray = new Array();
-    for ( var x = skip ; x < Math.max(skip + limit, sortedKeys.length) ; x++ ) {
+    for ( var x = skip ; x < Math.min(skip + limit, sortedKeys.length) ; x++ ) {
       itemArray.push(items[sortedKeys[x]]);
     }
     cb(null, itemArray, sortedKeys.length, pageOf, pages, itemArray.length);
@@ -228,8 +251,8 @@ NodeRAMStore.prototype.putSelf = function (node, cb) {
   }.bind(this) );
 }
 
-NodeRAMStore.prototype.getNodes = function (skip, limit, cb) {
-  getCollection(this.nodes, skip, limit, cb, arguments.length);
+NodeRAMStore.prototype.getNodes = function (query, cb) {
+  getCollection(this.nodes, query, cb, arguments.length);
 }
 
 NodeRAMStore.prototype.getNode = function (id, cb) {
@@ -251,8 +274,8 @@ NodeRAMStore.prototype.deleteNode = function (id, cb) {
   deleteItem(this.nodes, id, cb, arguments.length, 'node', this);
 }
 
-NodeRAMStore.prototype.getDevices = function (skip, limit, cb) {
-  getCollection(this.devices, skip, limit, cb, arguments.length);
+NodeRAMStore.prototype.getDevices = function (query, cb) {
+  getCollection(this.devices, query, cb, arguments.length);
 }
 
 NodeRAMStore.prototype.getDevice = function (id, cb) {
@@ -291,8 +314,8 @@ NodeRAMStore.prototype.deleteDevice = function (id, cb) {
   deleteItem(this.devices, id, cb, arguments.length, 'device', this);
 }
 
-NodeRAMStore.prototype.getSources = function (skip, limit, cb) {
-  getCollection(this.sources, skip, limit, cb, arguments.length);
+NodeRAMStore.prototype.getSources = function (query, cb) {
+  getCollection(this.sources, query, cb, arguments.length);
 }
 
 NodeRAMStore.prototype.getSource = function (id, cb) {
@@ -318,8 +341,8 @@ NodeRAMStore.prototype.deleteSource = function (id, cb) {
   deleteItem(this.sources, id, cb, arguments.length, 'source', this);
 }
 
-NodeRAMStore.prototype.getSenders = function (skip, limit, cb) {
-  getCollection(this.senders, skip, limit, cb, arguments.length);
+NodeRAMStore.prototype.getSenders = function (query, cb) {
+  getCollection(this.senders, query, cb, arguments.length);
 }
 
 NodeRAMStore.prototype.getSender = function (id, cb) {
@@ -356,8 +379,8 @@ NodeRAMStore.prototype.putSender = function (sender, cb) {
 NodeRAMStore.prototype.deleteSender = function(id, cb) {
   deleteItem(this.senders, id, cb, arguments.length, 'sender');
 }
-NodeRAMStore.prototype.getReceivers = function (skip, limit, cb) {
-  getCollection(this.receivers, skip, limit, cb, arguments.length);
+NodeRAMStore.prototype.getReceivers = function (query, cb) {
+  getCollection(this.receivers, query, cb, arguments.length);
 }
 
 NodeRAMStore.prototype.getReceiver = function (id, cb) {
@@ -391,8 +414,8 @@ NodeRAMStore.prototype.deleteReceiver = function (id, cb) {
   deleteItem(this.receivers, id, cb, arguments.length, 'receiver');
 }
 
-NodeRAMStore.prototype.getFlows = function (skip, limit, cb) {
-  getCollection(this.flows, skip, limit, cb, arguments.length);
+NodeRAMStore.prototype.getFlows = function (query, cb) {
+  getCollection(this.flows, query, cb, arguments.length);
 }
 
 NodeRAMStore.prototype.getFlow = function (id, cb) {

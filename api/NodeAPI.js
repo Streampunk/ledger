@@ -128,7 +128,7 @@ function NodeAPI (port, store) {
 
     // List devices
     napi.get('/devices/', function (req, res, next) {
-      store.getDevices(req.query.skip, req.query.limit,
+      store.getDevices(req.query,
           function (err, devices, total, pageOf, pages, size) {
         if (err) next(err);
         else setPagingHeaders(res, total, pageOf, pages, size).json(devices);
@@ -145,7 +145,7 @@ function NodeAPI (port, store) {
 
     // List sources
     napi.get('/sources/', function (req, res, next) {
-      store.getSources(req.query.skip, req.query.limit,
+      store.getSources(req.query,
           function(err, sources, total, pageOf, pages, size) {
         if (err) next(err);
         else setPagingHeaders(res, total, pageOf, pages, size).json(sources);
@@ -162,7 +162,7 @@ function NodeAPI (port, store) {
 
     // List flows
     napi.get('/flows/', function (req, res, next) {
-      store.getFlows(req.query.skip, req.query.limit,
+      store.getFlows(req.query,
           function (err, flows, total, pageOf, pages, size) {
         if (err) next(err);
         else setPagingHeaders(res, total, pageOf, pages, size).json(flows);
@@ -179,7 +179,7 @@ function NodeAPI (port, store) {
 
     // List senders
     napi.get('/senders/', function (req, res, next) {
-      store.getSenders(req.query.skip, req.query.limit,
+      store.getSenders(req.query,
          function(err, senders, pageOf, size, page, total) {
         if (err) next(err);
         else setPagingHeaders(res, total, pageOf, page, size).json(senders);
@@ -196,7 +196,7 @@ function NodeAPI (port, store) {
 
     // List receivers
     napi.get('/receivers/', function (req, res, next) {
-      store.getReceivers(req.query.skip, req.query.limit,
+      store.getReceivers(req.query,
           function(err, receivers, total, pageOf, pages, size) {
         if (err) next(err);
         else setPagingHeaders(res, total, pageOf, pages, size).json(receivers);

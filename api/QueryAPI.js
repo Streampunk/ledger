@@ -17,10 +17,23 @@
 
 var express = require('express');
 var immutable = require('seamless-immutable');
+var NodeStore = require('./NodeStore.js');
+var mdns = require('mdns-js');
 
-function QueryAPI (port, store) {
+function QueryAPI (port, storeFn, serviceName, pri) {
   var app = express();
   var server = null;
+  var mdnsService = null;
+  if (!pri || Number(pri) !== pri || pri % 1 !== 0) pri = 100;
+  if (!serviceName || typeof serviceName !== 'string') serviceName = 'ledger_query';
+
+  function setPagingHeaders(res, total, pageOf, pages, size) {
+    if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
+    if (size) res.set('X-Streampunk-Ledger-Size', size.toString());
+    if (pages) res.set('X-Streampunk-Ledger-Pages', pages.toString());
+    if (total) res.set('X-Streampunk-Ledger-Total', total.toString());
+    return res;
+  }
 
   /**
    * Returns the port that this Query API is configured to use.
@@ -31,27 +44,41 @@ function QueryAPI (port, store) {
   }
 
   /**
-   * Initialise the Node APIs routing table.
+   * Initialise the Query APIs routing table.
    * @return {NodeAPI} Returns this object with the routing table initialised and
    *                   ready to {@link NodeAPI#start}.
    */
   this.init = function() {
 
-    app.get('/', function (req, res) {
-      res.json(['x-ipstudio/']);
+    app.use(function(req, res, next) {
+      // TODO enhance this to better supports CORS
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header("Access-Control-Allow-Methods", "GET, PUT, POST, HEAD, OPTIONS, DELETE");
+      res.header("Access-Control-Allow-Headers", "Content-Type, Accept");
+      res.header("Access-Control-Max-Age", "3600");
+
+      if (req.method == 'OPTIONS') {
+        res.sendStatus(200);
+      } else {
+        next();
+      }
     });
 
-    app.get('/x-ipstudio/', function (req, res) {
+    app.get('/', function (req, res) {
+      res.json(['x-nmos/']);
+    });
+
+    app.get('/x-nmos/', function (req, res) {
       res.json(['query/']);
     });
 
-    app.get('/x-ipstudio/query/', function (req, res) {
+    app.get('/x-nmos/query/', function (req, res) {
       res.json([ "v1.0/" ]);
     });
 
     var qapi = express();
     // Mount all other methods at this base path
-    app.use('/x-ipstudio/query/v1.0/', qapi);
+    app.use('/x-nmos/query/v1.0/', qapi);
 
     qapi.get('/', function (req, res) {
       res.json([
@@ -63,6 +90,152 @@ function QueryAPI (port, store) {
         "senders/",
         "receivers/"
       ]);
+    });
+
+    // List nodes
+    qapi.get('/nodes', function (req, res, next) {
+      storeFn().getNodes(req.query,
+        function (err, nodes, total, pageOf, pages, size) {
+          if (err) next(err);
+          else setPagingHeaders(res, total, pageOf, pages, size).json(nodes);
+      });
+    });
+
+    // Get single node
+    qapi.get('/nodes/:id', function (req, res, next) {
+      storeFn().getNode(req.params.id, function (err, node) {
+        if (err) next(err);
+        else res.json(node);
+      });
+    });
+
+    // List devices
+    qapi.get('/devices/', function (req, res, next) {
+      storeFn().getDevices(req.query,
+          function (err, devices, total, pageOf, pages, size) {
+        if (err) next(err);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(devices);
+      });
+    });
+
+    // Get a single device
+    qapi.get('/devices/:id', function (req, res, next) {
+      storeFn().getDevice(req.params.id, function (err, device) {
+        if (err) next(err);
+        else res.json(device);
+      });
+    });
+
+    // List sources
+    qapi.get('/sources/', function (req, res, next) {
+      storeFn().getSources(req.query,
+          function(err, sources, total, pageOf, pages, size) {
+        if (err) next(err);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(sources);
+      });
+    });
+
+    // Get a single source
+    qapi.get('/sources/:id', function (req, res, next) {
+      storeFn().getSource(req.params.id, function (err, source) {
+        if (err) next(err);
+        else res.json(source);
+      });
+    });
+
+    // List flows
+    qapi.get('/flows/', function (req, res, next) {
+      storeFn().getFlows(req.query,
+          function (err, flows, total, pageOf, pages, size) {
+        if (err) next(err);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(flows);
+      });
+    });
+
+    // Get a single flow
+    qapi.get('/flows/:id', function (req, res, next) {
+      storeFn().getFlow(req.params.id, function (err, flow) {
+        if (err) next(err);
+        else res.json(flow);
+      });
+    });
+
+    // List senders
+    qapi.get('/senders/', function (req, res, next) {
+      storeFn().getSenders(req.query,
+         function(err, senders, pageOf, size, page, total) {
+        if (err) next(err);
+        else setPagingHeaders(res, total, pageOf, page, size).json(senders);
+      });
+    });
+
+    // Get a single sender
+    qapi.get('/senders/:id', function (req, res, next) {
+      storeFn().getSender(req.params.id, function (err, sender) {
+        if (err) next(err);
+        else res.json(sender);
+      });
+    });
+
+    // List receivers
+    qapi.get('/receivers/', function (req, res, next) {
+      storeFn().getReceivers(req.query,
+          function(err, receivers, total, pageOf, pages, size) {
+        if (err) next(err);
+        else setPagingHeaders(res, total, pageOf, pages, size).json(receivers);
+      });
+    });
+
+    // Get a single receiver
+    qapi.get('/receivers/:id', function (req, res, next) {
+      storeFn().getReceiver(req.params.id, function(err, receiver) {
+        if (err) next(err);
+        else res.json(receiver);
+      });
+    });
+
+    qapi.post('/subscriptions', function (req, res, next) {
+      next(NodeStore.prototype.statusError(501,
+        "Subscriptions are not yet implemented for the ledger query API."));
+    });
+
+    qapi.get('/subscriptions', function (req, res, next) {
+      next(NodeStore.prototype.statusError(501,
+        "Subscriptions are not yet implemented for the ledger query API."));
+    });
+
+    qapi.get('/subscriptions/:id', function (req, res, next) {
+      next(NodeStore.prototype.statusError(501,
+        "Subscriptions are not yet implemented for the ledger query API."));
+    });
+
+    qapi.delete('/subscriptions/:id', function (req, res, next) {
+      next(NodeStore.prototype.statusError(501,
+        "Subscriptions are not yet implemented for the ledger query API."));
+    });
+
+    app.use(function (err, req, res, next) {
+      if (err.status) {
+        res.status(err.status).json({
+          code: err.status,
+          error: (err.message) ? err.message : 'Internal server error. No message available.',
+          debug: (err.stack) ? err.stack : 'No stack available.'
+        });
+      } else {
+        res.status(500).json({
+          code: 500,
+          error: (err.message) ? err.message : 'Internal server error. No message available.',
+          debug: (err.stack) ? err.stack : 'No stack available.'
+        })
+      }
+    });
+
+    app.use(function (req, res, next) {
+      res.status(404).json({
+          code : 404,
+          error : `Could not find the requested resource '${req.path}'.`,
+          debug : req.path
+        });
     });
 
     return this;
@@ -93,9 +266,30 @@ function QueryAPI (port, store) {
       };
     });
 
-  //  this.startMDNS();
+    this.startMDNS();
 
     return this;
+  }
+
+  this.startMDNS = function startMDNS() {
+    mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-query'), port, {
+      name : serviceName,
+      txt : {
+        pri : pri
+      }
+    });
+
+    mdnsService.start();
+
+    if (process.listenerCount('SIGINT') === 0) {
+      process.on('SIGINT', function () {
+        if (mdnsService) mdnsService.stop();
+
+        setTimeout(function onTimeout() {
+          process.exit();
+        }, 1000);
+      });
+    }
   }
 
   /**
@@ -105,15 +299,50 @@ function QueryAPI (port, store) {
    * @return {QueryAPI}                 This object with an asynchronous request
    *                                   to stop the server.
    */
-  this.stop = function(cb) {
-    if (server) server.close(cb);
-    else {
-      if (cb) cb(new Error('Server is not set for this Query API and so cannot be stopped.'));
-    }
-    server = null;
-    return this;
-  }
+   this.stop = function(cb) {
+     var error = '';
+     if (server) {
+       server.close(function () {
+         this.stopMDNS(cb);
+         server = null;
+       }.bind(this));
+     } else {
+       this.stopMDNS(function (e) {
+         if (e) cb(new Error(e.message +
+           ' Server is not set for this Query API and so cannot be stopped.'));
+         else
+           cb(new Error('Server is not set for this Query API and so cannot be stopped.'));
+         server = null;
+       }.bind(this));
+     }
 
+     return this;
+   }
+
+   this.stopMDNS = function (cb) {
+     if (mdnsService) {
+       mdnsService.stop();
+       mdnsService.networking.stop();
+       mdnsService = null;
+       cb();
+     } else {
+       cb(new Error('MDNS advertisement is not set for this Query API and so cannot be stopped.'));
+     }
+
+     return this;
+   }
+
+   // Check the validity of a port
+   function validPort(port) {
+     return port &&
+       Number(port) === port &&
+       port % 1 === 0 &&
+       port > 0;
+   }
+
+   if (!validPort(port))
+     return new Error('Port is not a valid value. Must be an integer greater than zero.');
+   return immutable(this, { prototype : QueryAPI.prototype });
 }
 
 /**
