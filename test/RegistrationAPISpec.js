@@ -13,7 +13,7 @@
   limitations under the License.
 */
 
-// Test the node API.
+// Test the registration API.
 
 var test = require('tape');
 var http = require('http');
@@ -32,7 +32,7 @@ var testPort = 3211;
 function serverTest(description, node, fn) {
   test(description, function (t) {
     var store = new ledger.NodeRAMStore(node);
-    var api = new ledger.RegistrationAPI(testPort, store);
+    var api = new ledger.RegistrationAPI(testPort, store, 'none');
     api.init().start(function (e) {
       if (e) {
         t.fail('Failed to start server');
@@ -177,6 +177,25 @@ serverTest('The server reports an error for an incorrect long path', new Node(),
         debug : "/x-nmos/registration/v1.0/wibble"}), 'responding with an error.');
       done();
     });
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+serverTest('Checking CORS headers using base response', new Node(),
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : `/x-nmos/registration/v1.0/`}, function (res) {
+    t.equal(res.statusCode, 200, 'has status code 200.');
+    t.equal(res.headers['access-control-allow-origin'], '*',
+      'has Access-Control-Allow-Origin header.');
+    t.equal(res.headers['access-control-allow-methods'],
+      'GET, PUT, POST, HEAD, OPTIONS, DELETE',
+      'has Access-Control-Allow-Methods header.');
+    t.equal(res.headers['access-control-allow-headers'], 'Content-Type, Accept',
+      'has Access-Control-Allow-Headers header.');
+    t.equal(res.headers['access-control-max-age'], '3600',
+      'has Access-Control-Max-Age header.');
+    done();
   }).on('error', function (e) {
     t.fail(e); done();
   });

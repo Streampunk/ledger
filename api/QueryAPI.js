@@ -272,6 +272,7 @@ function QueryAPI (port, storeFn, serviceName, pri) {
   }
 
   this.startMDNS = function startMDNS() {
+    if (serviceName === 'none') return; // For REST service acceptance testing
     mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-query'), port, {
       name : serviceName,
       txt : {
@@ -320,6 +321,7 @@ function QueryAPI (port, storeFn, serviceName, pri) {
    }
 
    this.stopMDNS = function (cb) {
+     if (serviceName === 'none') return cb(); // For REST service acceptance testing
      if (mdnsService) {
        mdnsService.stop();
        mdnsService.networking.stop();

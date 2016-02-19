@@ -306,9 +306,9 @@ serverTest('Checking CORS headers using .../self', node,
 });
 
 var device = new Device(null, null, "Dat Punking Ting", null, node.id);
-var videoSource = new Source(null, null, "Noisy Punk", "Will you turn it down!!",
+var videoSource = new Source(null, null, "Garish Punk", "Will you turn it down!!",
   ledger.formats.video, null, null, device.id);
-var audioSource = new Source(null, null, "Garish Punk", "What do you look like!!",
+var audioSource = new Source(null, null, "Noisy Punk", "What do you look like!!",
   ledger.formats.audio, null, null, device.id);
 var audioFlow = new Flow(null, null, "Funk Punk", "Blasting at you, punk!",
   ledger.formats.audio, null, audioSource.id);

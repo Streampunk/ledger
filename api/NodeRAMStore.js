@@ -289,9 +289,16 @@ NodeRAMStore.prototype.putDevice = function (device, cb) {
         "Value being used to put a device is not of Device type."));
     };
     if (!checkValidAndForward(device, this.devices, 'device', cb)) return;
-    if (device.node_id !== this.self.id) {
+    if (this.self) {
+      if (device.node_id !== this.self.id) {
       return cb(statusError(400,
         "Device node_id property must reference this node."));
+      }
+    } else {
+      if (Object.keys(this.nodes).indexOf(device.node_id) < 0) {
+        return cb(statusError(400,
+          "Device node_id property must reference an existing node."));
+      }
     }
     if (!device.senders.every(function (s) {
       return this.senders.hasOwnProperty(s);

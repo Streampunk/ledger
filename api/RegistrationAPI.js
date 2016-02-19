@@ -26,9 +26,11 @@ var uuid = require('uuid');
 var mdns = require('mdns-js');
 var NodeStore = require('./NodeStore.js');
 
-function RegistrationAPI (port, store) {
+function RegistrationAPI (port, store, serviceName, pri) {
   var app = express();
   var server = null;
+  if (!pri || Number(pri) !== pri || pri % 1 !== 0) pri = 100;
+  if (!serviceName || typeof serviceName !== 'string') serviceName = 'ledger_reg';
 
   var nodeHealth = {};
   var mdnsService = null;
@@ -245,10 +247,11 @@ function RegistrationAPI (port, store) {
   }
 
   this.startMDNS = function startMDNS() {
+    if (serviceName === 'none') return; // For acceptance testing of REST API
     mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-registration'), port, {
-      name : 'ledger_reg',
+      name : serviceName,
       txt : {
-        pri : 0
+        pri : pri
       }
     });
 
@@ -293,6 +296,7 @@ function RegistrationAPI (port, store) {
   }
 
   this.stopMDNS = function (cb) {
+    if (serviceName === 'none') return cb(); // For REST service acceptance testing
     if (mdnsService) {
       mdnsService.stop();
       mdnsService.networking.stop();
