@@ -1,5 +1,5 @@
 {
-  "name": "ledger",
+  "name": "nmos-ledger",
   "version": "1.0.0",
   "description": "0.0.1",
   "main": "index.js",
@@ -28,7 +28,8 @@
     "incubator",
     "registration",
     "discovery",
-    "JT-NM"
+    "JT-NM",
+    "NMOS"
   ],
   "author": "Christine S. MacNeill",
   "license": "Apache-2.0",
