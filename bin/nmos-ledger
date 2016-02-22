@@ -18,10 +18,32 @@
 // Run a registration API
 
 var RegistrationAPI = require('../api/RegistrationAPI.js');
+var QueryAPI = require('../api/QueryAPI.js');
 var NodeRAMStore = require('../api/NodeRAMStore.js');
+
+var properties = {
+  queryPort : '3002',
+  registrationPort : '3001',
+  queryName : 'ledger_query',
+  registrationName : 'ledger_registration',
+  queryPri : '100',
+  registrationPri : '100'
+};
+
+for ( var i = 2 ; i < process.argv.length ; i++ ) {
+  var arg = /(\S+)=(\S+)/.exec(process.argv[i]);
+  if (arg) properties[arg[1]] = arg[2];
+  else console.error(`Could not process argument ${i - 1}: '${process.argv[i]}'`);
+}
 
 var store = new NodeRAMStore();
 
-var registrationAPI = new RegistrationAPI(3002, store);
+// TODO check that numberic properties are numbers
+
+var registrationAPI = new RegistrationAPI(+properties.registrationPort, store,
+  properties.registrationName, +properties.registrationPri);
+var queryAPI = new QueryAPI(+properties.queryPort, registrationAPI.getStore,
+  properties.queryName, +properties.queryPri);
 
 registrationAPI.init().start();
+queryAPI.init().start();

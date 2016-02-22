@@ -20,6 +20,10 @@ Once installed, to run a combined registration and query API over the same memor
 
     nmos-ledger
 
+The following is a example of configuring properties such as port numbers, DNS-SD service names and service priority:
+
+    nmos-ledger queryPort=4000 registrationPort=4001 queryName=qi queryPri=10
+
 ### Install as a local dependency
 
 To install ledger for use in you own application, such as when implementing a node, use npm as follows:
