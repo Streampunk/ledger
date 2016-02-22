@@ -28,9 +28,16 @@ function compareVersions(l, r) {
   return 0;
 }
 
+function getResourceName(r) {
+  return /^function\s+([\w\$]+)\s*\(/.exec(
+    r.constructor.toString())[1].toLowerCase();
+  // TODO conside changing to ES6 <Function>.name
+}
+
 var util = {
   extractVersions : extractVersions,
-  compareVersions : compareVersions
+  compareVersions : compareVersions,
+  getResourceName : getResourceName
 };
 
 module.exports = util;

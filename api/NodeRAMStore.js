@@ -147,9 +147,10 @@ function checkValidAndForward(item, items, name, cb) {
     return false;
   }
   if (items[item.id]) { // Already stored
-    if (compareVersions(items[item.id].version, item.version) !== -1) {
+  //  console.log('***', items[item.id].version, item.version);
+    if (compareVersions(items[item.id].version, item.version) === 1) {
       cb(statusError(409,
-        "Cannot replace a " + name + " device with one with the same or " +
+        "Cannot replace a " + name + " device with one with " +
         "an earler version."));
       return false;
     }

@@ -20,6 +20,7 @@ var NodeStore = require('./NodeStore.js');
 var mdns = require('mdns-js');
 var http = require('http');
 var Sender = require('../model/Sender.js');
+var getResourceName = require('./Util.js').getResourceName;
 
 /**
  * Create an instance of the Node API.

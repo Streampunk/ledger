@@ -130,7 +130,7 @@ function RegistrationAPI (port, store, serviceName, pri) {
             value = Device.prototype.parse(input.data);
             break;
           case 'flow':
-            value = Flow.prototype.prase(input.data);
+            value = Flow.prototype.parse(input.data);
             break;
           default:
             break;
@@ -142,17 +142,20 @@ function RegistrationAPI (port, store, serviceName, pri) {
 
       if (value) {
         var fnName = 'put' + input.type.charAt(0).toUpperCase() +
-          input.substr(1).toLowerCase();
+          input.type.substring(1).toLowerCase();
         store[fnName](value, function (err, item, updatedStore) {
           if (err) return next(err);
-          setStore(updatedStore);
+            res.status((Object.keys(
+              store[input.type + 's']).indexOf(item.id) < 0) ? 201 : 200);
+          this.setStore(updatedStore);
+          res.set('Location', `/x-nmos/registration/v1.0/resource/${input.type}s/${item.id}`);
           res.json(item);
-        });
+        }.bind(this));
       } else {
         next(NodeStore.prototype.statusError(400,
           `Unable to process resource with given type '${input.type}'.`));
       }
-    });
+    }.bind(this));
 
     // Show a registered resource (for debug use only)
     rapi.get('/resource/:resourceID', function (req, res, next) {
