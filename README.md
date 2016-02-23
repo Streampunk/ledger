@@ -112,7 +112,7 @@ JsDoc API documentation can be found in the `docs` folder. Details of the APIs a
 
 Registered information is stored in memory and is lost when the application fails. The software has been designed to so that it will be possible to add extra stores, such as those backed by files or a database, in the future.
 
-Although the architecture of ledger is such that it could be used at scale in production environments, development is not yet complete. In its current state, it is recommended that this software is used in development environments and for building prototypes. Future development will this fit for production use.
+Although the architecture of ledger is such that it could be used at scale in production environments, development is not yet complete. In its current state, it is recommended that this software is used in development environments and for building prototypes. Future development will make this more appropriate for production use.
 
 Contributions can be made via pull requests and will be considered by the author on their merits. Enhancement requests and bug reports should be raised as github issues. For support, please contact [Streampunk Media](http://www.streampunk.media/).
 
