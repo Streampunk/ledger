@@ -274,9 +274,10 @@ serverTest('The server allows a node to be updated with new version',
 
 serverTest('The server allows a node to be updated with the same version',
     function (t, store, server, done) {
-  postResource(node, t, store, server, 201, function () {
-    postResource(node, t, server.getStore(), server, 200, done);
-  });
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(node, t, server.getStore(), server, 200, cb); }
+  ], function (err) { if (err) return t.fail(err); done(); });
 });
 
 var device = new Device(null, null, "Dat Punking Ting", null, node.id);
@@ -328,14 +329,31 @@ serverTest('The server allows a sender to be created',
 var videoReceiver = new Receiver(null, null, "Watching da Punks",
   "Looking hot, punk!", ledger.formats.video, null, null, device.id,
   ledger.transports.rtp_mcast);
-  serverTest('The server allows a receiver to be created',
-      function (t, store, server, done) {
-    async.waterfall([
-      function (cb) { postResource(node, t, store, server, 201, cb); },
-      function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
-      function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
-      function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
-      function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)},
-      function (cb) { postResource(videoReceiver, t, server.getStore(), server, 201, cb)}
-    ], function (err) { if (err) return t.fail(err); done(); });
+serverTest('The server allows a receiver to be created',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoReceiver, t, server.getStore(), server, 201, cb)}
+  ], function (err) { if (err) return t.fail(err); done(); });
+});
+
+serverTest('The server allows a node to be deleted',
+    function (t, store, server, done) {
+  postResource(node, t, store, server, 201, function () {
+    var req = http.request({
+      port : testPort,
+      path : `/x-nmos/registration/v1.0/resource/nodes/${node.id}`,
+      method : 'DELETE'
+    }, function (res) {
+      t.equal(res.statusCode, 204, 'with response code 204 No Content.');
+      console.log(res.haaders);
+      res.on('data', function (chunky) { console.log(chunky.toString())});
+      res.on('end', done);
+    });
+    req.end();
   });
+});

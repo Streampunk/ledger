@@ -157,19 +157,25 @@ function RegistrationAPI (port, store, serviceName, pri) {
       }
     }.bind(this));
 
+    rapi.delete('/resource/:resourceType/:resourceID', function (req, res, next) {
+      var type = 'delete' + req.params.resourceType.slice(0, 1).toUpperCase() +
+        req.params.resourceType.slice(1, -1);
+      console.log(type, this.getStore().constructor.prototype[type]);
+      this.getStore().constructor.prototype[type].call(this.getStore(),
+          req.params.resourceID, function (e, item, deltaStore) {
+        if (e) return next(e);
+        this.setStore(deltaStore);
+        res.status(204).end();
+      }.bind(this));
+    }.bind(this));
+
     // Show a registered resource (for debug use only)
-    rapi.get('/resource/:resourceID', function (req, res, next) {
-      var id = req.param.resourceID;
-      var sent = false;
-      [store.getNode, store.getDevice, store.getSource, store.getReceiver,
-        store.getSender, store.getFlow].forEach(function (f) {
-          if (!sent) f(id, function(e, item) {
-            if (e) return;
-            res.json(item);
-            sent = true;
-          });
-        });
-      if (!sent) next();
+    rapi.get('/resource/:resourceType/:resourceID', function (req, res, next) {
+      var type = req.param.resourceType.slice(0, -1);
+      store['get' + type](req.param.resourceID, function (e, item) {
+        if (e) return next(e);
+        res.json(item);
+      });
     });
 
     rapi.post('/health/nodes/:nodeID', function (req, res, next) {

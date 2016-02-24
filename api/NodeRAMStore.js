@@ -125,12 +125,13 @@ function deleteItem(items, id, cb, argsLength, name, tidy, node) {
     if (argsLength !== 2) {
       cb(statusError(400, "Identifier and callback functions must be provided."));
     } else if (!id || typeof id != 'string') {
+      console.log(id);
       cb(statusError(400, "Identifier must be a string value."));
     } else if ((id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/) == null)) {
       cb(statusError(400, "Identifier must be a valid UUID."));
     } else {
       if (items.hasOwnProperty(id)) {
-        var tidied = (tidy) ? tidy() : node;
+        var tidied = (node) ? tidy() : tidy;
         cb(null, id, tidied.setIn(name + 's', items.without(id)));
       } else {
         cb(statusError(404, "A " + name + " with identifier '" + id +
