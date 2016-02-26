@@ -172,13 +172,12 @@ function RegistrationAPI (port, store, serviceName, pri) {
     rapi.get('/resource/:resourceType/:resourceID', function (req, res, next) {
       var type = 'get' + req.params.resourceType.slice(0, 1).toUpperCase() +
         req.params.resourceType.slice(1, -1);
-      console.log(this.getStore());
       this.getStore().constructor.prototype[type].call(this.getStore(),
           req.params.resourceID, function (e, item) {
         if (e) return next(e);
         res.json(item);
-      });
-    });
+      }.bind(this));
+    }.bind(this));
 
     rapi.post('/health/nodes/:nodeID', function (req, res, next) {
       if (req.params.nodeID.match(

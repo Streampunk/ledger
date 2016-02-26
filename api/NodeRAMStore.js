@@ -132,10 +132,10 @@ function deleteItem(items, id, cb, argsLength, name, tidy, node) {
     } else {
       if (items.hasOwnProperty(id)) {
         var tidied = (node) ? tidy() : tidy;
-        cb(null, id, tidied.setIn(name + 's', items.without(id)));
+        cb(null, id, tidied.setIn([name + 's'], items.without(id)));
       } else {
         cb(statusError(404, "A " + name + " with identifier '" + id +
-          " could not be found on a delete request."));
+          "' could not be found on a delete request."));
       }
     }
   }.bind(this));
@@ -386,7 +386,7 @@ NodeRAMStore.prototype.putSender = function (sender, cb) {
 }
 
 NodeRAMStore.prototype.deleteSender = function(id, cb) {
-  deleteItem(this.senders, id, cb, arguments.length, 'sender');
+  deleteItem(this.senders, id, cb, arguments.length, 'sender', this);
 }
 NodeRAMStore.prototype.getReceivers = function (query, cb) {
   getCollection(this.receivers, query, cb, arguments.length);
@@ -420,7 +420,7 @@ NodeRAMStore.prototype.putReceiver = function (receiver, cb) {
 }
 
 NodeRAMStore.prototype.deleteReceiver = function (id, cb) {
-  deleteItem(this.receivers, id, cb, arguments.length, 'receiver');
+  deleteItem(this.receivers, id, cb, arguments.length, 'receiver', this);
 }
 
 NodeRAMStore.prototype.getFlows = function (query, cb) {
@@ -447,12 +447,7 @@ NodeRAMStore.prototype.putFlow = function (flow, cb) {
 }
 
 NodeRAMStore.prototype.deleteFlow = function (id, cb) {
-  deleteItem(this.flows, id, cb, arguments.length, 'flow', this,
-    function () {
-      return this.setIn('flows', this.flows.filter(function (x) {
-        return x.id !== flow.id;
-      }.bind(this)));
-    });
+  deleteItem(this.flows, id, cb, arguments.length, 'flow', this);
 }
 
 module.exports = NodeRAMStore;

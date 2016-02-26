@@ -277,7 +277,7 @@ serverTest('The server allows a node to be updated with the same version',
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(node, t, server.getStore(), server, 200, cb); }
-  ], function (err) { if (err) return t.fail(err); done(); });
+  ], function (err) { if (err)  t.fail(err); done(); });
 });
 
 var device = new Device(null, null, "Dat Punking Ting", null, node.id);
@@ -286,7 +286,7 @@ serverTest('The server allows a device to be created',
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)}
-  ], function (err) { if (err) return t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err); done(); });
 });
 
 var videoSource = new Source(null, null, "Garish Punk", "Will you turn it down!!",
@@ -297,7 +297,7 @@ serverTest('The server allows a source to be created',
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)}
-  ], function (err) { if (err) return t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err); done(); });
 });
 
 var videoFlow = new Flow(null, null, "Junk Punk", "You looking at me, punk?",
@@ -309,7 +309,7 @@ serverTest('The server allows a flow to be created',
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)}
-  ], function (err) { if (err) return t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err); done(); });
 });
 
 var videoSender = new Sender(null, null, "In Ya Face Punk",
@@ -323,7 +323,7 @@ serverTest('The server allows a sender to be created',
     function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)}
-  ], function (err) { if (err) return t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err); done(); });
 });
 
 var videoReceiver = new Receiver(null, null, "Watching da Punks",
@@ -338,12 +338,14 @@ serverTest('The server allows a receiver to be created',
     function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoReceiver, t, server.getStore(), server, 201, cb)}
-  ], function (err) { if (err) return t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err); done(); });
 });
 
-serverTest('The server allows a node to be deleted',
+serverTest('The server allows an unreferenced node to be deleted',
     function (t, store, server, done) {
   postResource(node, t, store, server, 201, function () {
+    t.ok(server.getStore().nodes[node.id] !== undefined,
+      'store initially contains node.');
     var req = http.request({
       port : testPort,
       path : `/x-nmos/registration/v1.0/resource/nodes/${node.id}`,
@@ -351,6 +353,183 @@ serverTest('The server allows a node to be deleted',
     }, function (res) {
       t.equal(res.statusCode, 204, 'with response status code 204 No Content.');
       res.on('data', function (chunky) { t.fail('should not receive a body.'); });
+      res.on('end', function () {
+        t.ok(server.getStore().nodes[node.id] === undefined,
+          'store no longer contains node.');
+        done();
+      });
+    });
+    req.end();
+  });
+});
+
+serverTest('The server allows an unreferenced device to be deleted',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    t.ok(server.getStore().devices[device.id] !== undefined,
+      'store initially contains device.');
+    var req = http.request({
+        port : testPort,
+        path : `/x-nmos/registration/v1.0/resource/devices/${device.id}`,
+        method : 'DELETE'
+      }, function (res) {
+      t.equal(res.statusCode, 204, 'with response status code 204 No Content.');
+      res.on('data', function (chunky) { t.fail('should not receive a body.'); });
+      res.on('end', function () {
+        t.ok(server.getStore().devices[device.id] === undefined,
+          'store no longer contains device.');
+        done();
+      });
+    });
+    req.end();
+  });
+});
+
+serverTest('The server allows an unreferenced source to be deleted',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    t.ok(server.getStore().sources[videoSource.id] !== undefined,
+      'store initially contains source.');
+    var req = http.request({
+        port : testPort,
+        path : `/x-nmos/registration/v1.0/resource/sources/${videoSource.id}`,
+        method : 'DELETE'
+      }, function (res) {
+      t.equal(res.statusCode, 204, 'with response status code 204 No Content.');
+      res.on('data', function (chunky) { t.fail('should not receive a body.'); });
+      res.on('end', function () {
+        t.ok(server.getStore().sources[videoSource.id] === undefined,
+          'store no longer contains source.');
+        done();
+      });
+    });
+    req.end();
+  });
+});
+
+serverTest('The server allows an unreferenced flow to be deleted',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    t.ok(server.getStore().flows[videoFlow.id] !== undefined,
+      'store initially contains flow.');
+    var req = http.request({
+        port : testPort,
+        path : `/x-nmos/registration/v1.0/resource/flows/${videoFlow.id}`,
+        method : 'DELETE'
+      }, function (res) {
+      t.equal(res.statusCode, 204, 'with response status code 204 No Content.');
+      res.on('data', function (chunky) { t.fail('should not receive a body.'); });
+      res.on('end', function () {
+        t.ok(server.getStore().flows[videoFlow.id] === undefined,
+          'store no longer contains flow.');
+        done();
+      });
+    });
+    req.end();
+  });
+});
+
+serverTest('The server allows an unreferenced sender to be deleted',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    t.ok(server.getStore().senders[videoSender.id] !== undefined,
+      'store initially contains sender.');
+    var req = http.request({
+        port : testPort,
+        path : `/x-nmos/registration/v1.0/resource/senders/${videoSender.id}`,
+        method : 'DELETE'
+      }, function (res) {
+      t.equal(res.statusCode, 204, 'with response status code 204 No Content.');
+      res.on('data', function (chunky) { t.fail('should not receive a body.'); });
+      res.on('end', function () {
+        t.ok(server.getStore().senders[videoSender.id] === undefined,
+          'store no longer contains sender.');
+        done();
+      });
+    });
+    req.end();
+  });
+});
+
+serverTest('The server allows an unreferenced receiver to be deleted',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoReceiver, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    t.ok(server.getStore().receivers[videoReceiver.id] !== undefined,
+      'store initially contains receiver.');
+    var req = http.request({
+        port : testPort,
+        path : `/x-nmos/registration/v1.0/resource/receivers/${videoReceiver.id}`,
+        method : 'DELETE'
+      }, function (res) {
+      t.equal(res.statusCode, 204, 'with response status code 204 No Content.');
+      res.on('data', function (chunky) { t.fail('should not receive a body.'); });
+      res.on('end', function () {
+        t.ok(server.getStore().receivers[videoReceiver.id] === undefined,
+          'store no longer contains receiver.');
+        done();
+      });
+    });
+    req.end();
+  });
+});
+
+serverTest('The server returns a 404 when deleting a non-existant resource',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoReceiver, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    var dummyID = uuid.v4();
+    t.ok(server.getStore().receivers[dummyID] === undefined,
+      'store does not contain receiver.');
+    var req = http.request({
+        port : testPort,
+        path : `/x-nmos/registration/v1.0/resource/receivers/${dummyID}`,
+        method : 'DELETE'
+      }, function (res) {
+      t.equal(res.statusCode, 404, 'with response status code 404 Not Found.');
+      res.on('data', function (chunky) {
+        var message = JSON.parse(chunky.toString());
+        t.equal(message.code, 404, 'message with code 404.');
+        t.equal(message.error,
+          `A receiver with identifier '${dummyID}' could not be found on a delete request.`, 
+          'expected error message.');
+      });
       res.on('end', done);
     });
     req.end();
@@ -360,10 +539,167 @@ serverTest('The server allows a node to be deleted',
 serverTest('The server can retrieve debug details about a node',
     function (t, store, server, done) {
   postResource(node, t, store, server, 201, function () {
-    var req = http.get(`/x-nmos/registration/v1.0/resource/nodes/${node.id}`,
-        function (res) {
+    http.get({
+        path : `/x-nmos/registration/v1.0/resource/nodes/${node.id}`,
+        port : testPort
+      }, function (res) {
       t.equal(res.statusCode, 200, 'with response status code 200 OK.');
-      res.on('data', function (chunky) { console.log(chunky.toString()); });
+      res.setEncoding('utf8');
+      res.on('data', function (chunky) {
+        t.deepEquals(Node.prototype.parse(chunky.toString()), node,
+          'response body is the requested node value.')});
+      res.on('error', function (err) { t.fail(err); })
+      res.on('end', done);
+    });
+  });
+});
+
+serverTest('The server can retrieve debug details about a device',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    http.get({
+        path : `/x-nmos/registration/v1.0/resource/devices/${device.id}`,
+        port : testPort
+      }, function (res) {
+      t.equal(res.statusCode, 200, 'with response status code 200 OK.');
+      res.setEncoding('utf8');
+      res.on('data', function (chunky) {
+        t.deepEquals(Device.prototype.parse(chunky.toString()), device,
+          'response body is the requested device value.')});
+      res.on('error', function (err) { t.fail(err); })
+      res.on('end', done);
+    });
+  });
+});
+
+serverTest('The server can retrieve debug details about a source',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    http.get({
+        path : `/x-nmos/registration/v1.0/resource/sources/${videoSource.id}`,
+        port : testPort
+      }, function (res) {
+      t.equal(res.statusCode, 200, 'with response status code 200 OK.');
+      res.setEncoding('utf8');
+      res.on('data', function (chunky) {
+        t.deepEquals(Source.prototype.parse(chunky.toString()), videoSource,
+          'response body is the requested source value.')});
+      res.on('error', function (err) { t.fail(err); })
+      res.on('end', done);
+    });
+  });
+});
+
+serverTest('The server allows a flow to be created',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    http.get({
+        path : `/x-nmos/registration/v1.0/resource/flows/${videoFlow.id}`,
+        port : testPort
+      }, function (res) {
+      t.equal(res.statusCode, 200, 'with response status code 200 OK.');
+      res.setEncoding('utf8');
+      res.on('data', function (chunky) {
+        t.deepEquals(Flow.prototype.parse(chunky.toString()), videoFlow,
+          'response body is the requested flow value.')});
+      res.on('error', function (err) { t.fail(err); })
+      res.on('end', done);
+    });
+  });
+});
+
+serverTest('The server allows a sender to be created',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    http.get({
+        path : `/x-nmos/registration/v1.0/resource/senders/${videoSender.id}`,
+        port : testPort
+      }, function (res) {
+      t.equal(res.statusCode, 200, 'with response status code 200 OK.');
+      res.setEncoding('utf8');
+      res.on('data', function (chunky) {
+        t.deepEquals(Sender.prototype.parse(chunky.toString()), videoSender,
+          'response body is the requested sender value.')});
+      res.on('error', function (err) { t.fail(err); })
+      res.on('end', done);
+    });
+  });
+});
+
+serverTest('The server allows a receiver to be created',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoReceiver, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    http.get({
+        path : `/x-nmos/registration/v1.0/resource/receivers/${videoReceiver.id}`,
+        port : testPort
+      }, function (res) {
+      t.equal(res.statusCode, 200, 'with response status code 200 OK.');
+      res.setEncoding('utf8');
+      res.on('data', function (chunky) {
+        t.deepEquals(Receiver.prototype.parse(chunky.toString()), videoReceiver,
+          'response body is the requested receiver value.')});
+      res.on('error', function (err) { t.fail(err); })
+      res.on('end', done);
+    });
+  });
+});
+
+serverTest('The server returns 404 for a resource not found',
+    function (t, store, server, done) {
+  async.waterfall([
+    function (cb) { postResource(node, t, store, server, 201, cb); },
+    function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)},
+    function (cb) { postResource(videoReceiver, t, server.getStore(), server, 201, cb)}
+  ], function (err) {
+    if (err) { t.fail(err); return done(); }
+    var dummyID = uuid.v4();
+    http.get({
+        path : `/x-nmos/registration/v1.0/resource/receivers/${dummyID}`,
+        port : testPort
+      }, function (res) {
+      t.equal(res.statusCode, 404, 'with response status code 404 Not Found.');
+      res.setEncoding('utf8');
+      res.on('data', function (chunky) {
+        var message = JSON.parse(chunky.toString());
+        t.equal(message.code, 404, 'has message with code 404.');
+        t.equal(message.error,
+          `A receiver with identifier '${dummyID}' could not be found.`,
+          'has expected error message.');
+      });
+      res.on('error', function (err) { t.fail(err); })
       res.on('end', done);
     });
   });
