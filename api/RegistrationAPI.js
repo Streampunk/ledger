@@ -160,7 +160,6 @@ function RegistrationAPI (port, store, serviceName, pri) {
     rapi.delete('/resource/:resourceType/:resourceID', function (req, res, next) {
       var type = 'delete' + req.params.resourceType.slice(0, 1).toUpperCase() +
         req.params.resourceType.slice(1, -1);
-      console.log(type, this.getStore().constructor.prototype[type]);
       this.getStore().constructor.prototype[type].call(this.getStore(),
           req.params.resourceID, function (e, item, deltaStore) {
         if (e) return next(e);
@@ -171,8 +170,11 @@ function RegistrationAPI (port, store, serviceName, pri) {
 
     // Show a registered resource (for debug use only)
     rapi.get('/resource/:resourceType/:resourceID', function (req, res, next) {
-      var type = req.param.resourceType.slice(0, -1);
-      store['get' + type](req.param.resourceID, function (e, item) {
+      var type = 'get' + req.params.resourceType.slice(0, 1).toUpperCase() +
+        req.params.resourceType.slice(1, -1);
+      console.log(this.getStore());
+      this.getStore().constructor.prototype[type].call(this.getStore(),
+          req.params.resourceID, function (e, item) {
         if (e) return next(e);
         res.json(item);
       });

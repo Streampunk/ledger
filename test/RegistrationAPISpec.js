@@ -349,11 +349,22 @@ serverTest('The server allows a node to be deleted',
       path : `/x-nmos/registration/v1.0/resource/nodes/${node.id}`,
       method : 'DELETE'
     }, function (res) {
-      t.equal(res.statusCode, 204, 'with response code 204 No Content.');
-      console.log(res.haaders);
-      res.on('data', function (chunky) { console.log(chunky.toString())});
+      t.equal(res.statusCode, 204, 'with response status code 204 No Content.');
+      res.on('data', function (chunky) { t.fail('should not receive a body.'); });
       res.on('end', done);
     });
     req.end();
+  });
+});
+
+serverTest('The server can retrieve debug details about a node',
+    function (t, store, server, done) {
+  postResource(node, t, store, server, 201, function () {
+    var req = http.get(`/x-nmos/registration/v1.0/resource/nodes/${node.id}`,
+        function (res) {
+      t.equal(res.statusCode, 200, 'with response status code 200 OK.');
+      res.on('data', function (chunky) { console.log(chunky.toString()); });
+      res.on('end', done);
+    });
   });
 });
