@@ -1,0 +1,95 @@
+{
+  "id": "a0055be4-ffb8-4d6b-ab4b-d55da042b523",
+  "version": "1456679273:670757",
+  "label": "Techy Video Flow",
+  "description": "Video flow with added technical metadata.",
+  "format": "urn:x-nmos:format:video",
+  "tags": {
+    "encodingName": [
+      "raw"
+    ],
+    "clockRate": [
+      "90000"
+    ],
+    "sampling": [
+      "YCbCr-4:2:2"
+    ],
+    "width": [
+      "1920"
+    ],
+    "height": [
+      "1080"
+    ],
+    "depth": [
+      "10"
+    ],
+    "colorimetry": [
+      "BT709-2"
+    ],
+    "interlace": [
+      "1"
+    ]
+  },
+  "source_id": "844ae866-acde-4cd7-af45-934dc28ffaf6",
+  "parents": []
+}
+{
+  "id": "1565e659-418d-4a48-9f08-4e06d62ee007",
+  "version": "1456679273:17692816",
+  "label": "Techy Audio Flow",
+  "description": "Audio flow with added technical metadata.",
+  "format": "urn:x-nmos:format:audio",
+  "tags": {
+    "encodingName": [
+      "L24"
+    ],
+    "clockRate": [
+      "48000"
+    ],
+    "channels": [
+      "2"
+    ]
+  },
+  "source_id": "57ba5155-d82e-4dbd-8315-29544c69d1b4",
+  "parents": []
+}
+{
+  "id": "89e2937d-eb97-4a81-b2f2-29f1042f27e4",
+  "version": "1456679273:19285833",
+  "label": "Encoded video flow",
+  "description": "Encoded video flow with added technical metadata.",
+  "format": "urn:x-nmos:format:video",
+  "tags": {
+    "encodingName": [
+      "H264"
+    ],
+    "clockRate": [
+      "90000"
+    ],
+    "profile": [
+      "42"
+    ],
+    "level": [
+      "3"
+    ],
+    "sampling": [
+      "YCbCr-4:2:0"
+    ],
+    "width": [
+      "1920"
+    ],
+    "height": [
+      "1080"
+    ],
+    "depth": [
+      "8"
+    ],
+    "bitrate": [
+      "4000"
+    ]
+  },
+  "source_id": "844ae866-acde-4cd7-af45-934dc28ffaf6",
+  "parents": [
+    "a0055be4-ffb8-4d6b-ab4b-d55da042b523"
+  ]
+}
