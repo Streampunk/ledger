@@ -33,6 +33,7 @@ var getResourceName = require('./Util.js').getResourceName;
 function NodeAPI (port, store) {
   var app = express();
   var server = null;
+  var healthcheck = null;
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -283,7 +284,7 @@ function NodeAPI (port, store) {
       };
     });
 
-  //  this.startMDNS();
+    this.startMDNS();
 
     return this;
   }
@@ -298,7 +299,7 @@ function NodeAPI (port, store) {
       browser.discover();
     });
     browser.on('update', function (data) {
-      if (data.query[0].startsWith('_ips-registration._tcp')) {
+      if (data.query[0] && data.query[0].startsWith('_ips-registration._tcp')) {
         registerNode(data.addresses[0], data.port);
       }
     });
@@ -338,32 +339,48 @@ function NodeAPI (port, store) {
   }
 
   function registerNode(regAddress, regPort) {
-    var snap = store;
-    registerResource(snap);
-    snap.devices.forEach(registerResource);
-    snap.sources.forEach(registerResource);
-    snap.flows.forEach(registerResource);
-    snap.senders.forEach(registerResource);
-    snap.receivers.forEach(registerResource);
+    console.log("registering node with http://"+regAddress+":"+regPort);
 
+    // Register node
+    var payload = JSON.stringify({
+      type: "node",
+      data: store.self
+    });
+    var req = http.request({
+      hostname : regAddress,
+      port : regPort,
+      path : '/x-nmos/registration/v1.0/resource',
+      method: 'POST',
+      headers: {
+        'Content-Type' : 'application/json',
+        'Content-Length' : payload.length
+      }
+    }, function(res) {
+      console.log("Registration response.", res.statusCode);
+    });
+    req.write(payload)
+    req.end();
+
+    // Start health check ticker
+    health();
     function health() {
-      setTimeout(function () {
+      healthcheck = setInterval(function() {
         var req = http.request({
-          hostname : reqAddress,
-          port : reqPort,
-          path : 'x-ipstudio/registration/v1.0/resource/' + store.self.id,
+          hostname : regAddress,
+          port : regPort,
+          path : '/x-nmos/registration/v1.0/health/nodes/' + store.self.id,
           method: 'POST',
           headers: {
             'Content-Type' : 'application/json'
           }
-        }, function (res) {
-          console.log("Health check.");
-          res.end();
+        }, function(res) {
+          if (res.statusCode != 204)
+            console.log("Health check response.", res.statusCode);
         });
-        health();
-      },5000);
+        req.end();
+      }
+      ,5000);
     }
-    req.end();
   }
 
   /**
