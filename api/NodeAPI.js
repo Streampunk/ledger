@@ -339,8 +339,6 @@ function NodeAPI (port, store) {
   }
 
   function registerNode(regAddress, regPort) {
-    console.log("registering node with http://"+regAddress+":"+regPort);
-
     // Register node
     var payload = JSON.stringify({
       type: "node",
@@ -356,31 +354,31 @@ function NodeAPI (port, store) {
         'Content-Length' : payload.length
       }
     }, function(res) {
-      console.log("Registration response.", res.statusCode);
+      if (res.statusCode == 201) {
+        console.error("node registered with http://"+regAddress+":"+regPort);
+        // Start health check ticker
+        healthcheck = setInterval(function() {
+          var req = http.request({
+            hostname : regAddress,
+            port : regPort,
+            path : '/x-nmos/registration/v1.0/health/nodes/' + store.self.id,
+            method: 'POST',
+            headers: {
+              'Content-Type' : 'application/json'
+            }
+          }, function(res) {
+            if (res.statusCode != 204)
+              console.log("Health check response.", res.statusCode);
+          });
+          req.end();
+        }
+        ,5000);
+      } else {
+        console.error("Error registering node with http://"+regAddress+":"+regPort, res.statusCode);
+      }
     });
     req.write(payload)
     req.end();
-
-    // Start health check ticker
-    health();
-    function health() {
-      healthcheck = setInterval(function() {
-        var req = http.request({
-          hostname : regAddress,
-          port : regPort,
-          path : '/x-nmos/registration/v1.0/health/nodes/' + store.self.id,
-          method: 'POST',
-          headers: {
-            'Content-Type' : 'application/json'
-          }
-        }, function(res) {
-          if (res.statusCode != 204)
-            console.log("Health check response.", res.statusCode);
-        });
-        req.end();
-      }
-      ,5000);
-    }
   }
 
   /**
