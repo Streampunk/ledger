@@ -22,26 +22,26 @@ function Source(id, version, label, description,
     format, caps, tags, device_id, parents) {
 
   // Globally unique identifier for the Source
-  this.id = this.generateID(id);
+  this.id = Source.prototype.generateID(id);
   // String formatted PTP timestamp (<seconds>:<nanoseconds>) indicating
   // precisely when an attribute of the resource last changed
-  this.version = this.generateVersion(version);
+  this.version = Source.prototype.generateVersion(version);
   // Freeform string label for the Source
-  this.label = this.generateLabel(label);
+  this.label = Source.prototype.generateLabel(label);
   // Detailed description of the Source
-  this.description = this.generateDescription(description);
+  this.description = Source.prototype.generateDescription(description);
   // Format of the data coming from the Source as a URN
-  this.format = this.generateFormat(format);
+  this.format = Source.prototype.generateFormat(format);
   // Capabilities (not yet defined)
-  this.caps = this.generateCaps(caps);
+  this.caps = Source.prototype.generateCaps(caps);
   // Key value set of freeform string tags to aid in filtering Sources. Values
   // should be represented as an array of strings. Can be empty.
-  this.tags = this.generateTags(tags);
+  this.tags = Source.prototype.generateTags(tags);
   // Globally unique identifier for the Device which initially created the Source
-  this.device_id = this.generateDeviceID(device_id);
+  this.device_id = Source.prototype.generateDeviceID(device_id);
   // Array of UUIDs representing the Source IDs of Grains which came together at
   // the input to this Source (may change over the lifetime of this Source)
-  this.parents = this.generateParents(parents);
+  this.parents = Source.prototype.generateParents(parents);
   return immutable(this, { prototype: Source.prototype });
 }
 

@@ -29,8 +29,6 @@ var immutable = require('seamless-immutable');
  *                             last changed.
  * @param {string} label       Freeform string label for the Flow.
  * @param {string} description Detailed description of the Flow.
- * @param {string} format      [Format]{@link formats} of the data coming from the
- *                             Flow as a URN.
  * @param {Object.<string, string[]>} tags Key value set of freeform string tags
  *                                         to aid in filtering Flows. Can be empty.
  * @param {string} source_id   Globally unique UUID for the [source]{@link Source}
@@ -39,42 +37,36 @@ var immutable = require('seamless-immutable');
  *                             which came together to generate this Flow. (May
  *                             change over the lifetime of this Flow).
  */
-function Flow(id, version, label, description, format,
+function Flow(id, version, label, description,
     tags, source_id, parents) {
-  this.id = this.generateID(id);
-  this.version = this.generateVersion(version);
-  this.label = this.generateLabel(label);
+  this.id = Flow.prototype.generateID(id);
+  this.version = Flow.prototype.generateVersion(version);
+  this.label = Flow.prototype.generateLabel(label);
   /**
    * Detailed description of the Flow.
    * @type {string}
    * @readonly
    */
-  this.description = this.generateDescription(description);
-  /**
-   * [Format]{@link formats} of the data coming from the Flow as a URN.
-   * @type {string}
-   * @readonly
-   */
-  this.format = this.generateFormat(format);
+  this.description = Flow.prototype.generateDescription(description);
   /**
    * Key value set of freeform string tags to aid in filtering Flows. Can be
    * empty.
    * @type {Array.<string, string[]>}
    * @readonly
    */
-  this.tags = this.generateTags(tags); // Treating as a required property
+  this.tags = Flow.prototype.generateTags(tags); // Treating as a required property
   /**
    * Globally unique UUID identifier for the [source]{@link Source} which initially
    * created the Flow.
    * @type {string}
    * @readonly
    */
-  this.source_id = this.generateSourceID(source_id);
+  this.source_id = Flow.prototype.generateSourceID(source_id);
   /**
    * Array of UUIDs representing the Flow IDs of Grains which came together to
    * generate this Flow. (May change over the lifetime of this Flow.)
    */
-  this.parents = this.generateParents(parents);
+  this.parents = Flow.prototype.generateParents(parents);
   return immutable(this, { prototype: Flow.prototype });
 }
 

@@ -354,8 +354,35 @@ function NodeAPI (port, store) {
         'Content-Length' : payload.length
       }
     }, function(res) {
-      if (res.statusCode == 201) {
+      if (res.statusCode == 201 || res.statusCode == 200) {
         console.error("node registered with http://"+regAddress+":"+regPort);
+        
+        // @FIXME Race conditions registering nodes Will use promises (e.g. Q.all)
+        
+        Object.keys(store.devices).forEach(function(key) {
+          var device = store.devices[key];
+          if (device.id)
+            registerResource('device', device, regAddress, regPort);
+        });
+        
+        Object.keys(store.sources).forEach(function(key) {
+          var source = store.sources[key];
+          if (source.id)
+            registerResource('source', source, regAddress, regPort);
+        });
+        
+        Object.keys(store.flows).forEach(function(key) {
+          var flow = store.flows[key];
+          if (flow.id)
+            registerResource('flow', flow, regAddress, regPort);
+        });
+
+        Object.keys(store.senders).forEach(function(key) {
+          var sender = store.senders[key];
+          if (sender.id)
+            registerResource('sender', sender, regAddress, regPort);
+        });
+        
         // Start health check ticker
         healthcheck = setInterval(function() {
           var req = http.request({
@@ -381,6 +408,32 @@ function NodeAPI (port, store) {
     req.end();
   }
 
+  function registerResource(type, resource, regAddress, regPort) {
+    // Register resouces
+    var payload = JSON.stringify({
+      type: type,
+      data: resource
+    });
+    var req = http.request({
+      hostname : regAddress,
+      port : regPort,
+      path : '/x-nmos/registration/v1.0/resource',
+      method: 'POST',
+      headers: {
+        'Content-Type' : 'application/json',
+        'Content-Length' : payload.length
+      }
+    }, function(res) {
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        console.error("resource registered with http://"+regAddress+":"+regPort);
+      } else {
+        console.error("Error registering resource with http://"+regAddress+":"+regPort, { type: type, statusCode: res.statusCode });
+      }
+    });
+    req.write(payload)
+    req.end();
+  }
+  
   /**
    * Stop the server running the Node API.
    * @param  {NodeAPI~trackStatus=} cb Optional callback that tracks when the
