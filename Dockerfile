@@ -7,5 +7,5 @@ RUN cd /src; npm install --production
 # Bundle app source
 COPY . /src
 
-EXPOSE  8080
-# CMD ["node", "/src/index.js"]
+EXPOSE  3001 3002 
+CMD ["node", "/src/bin/nmos-ledger"]
