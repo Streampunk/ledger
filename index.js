@@ -25,7 +25,7 @@ var ledger = {
   Sender : require('./model/Sender.js'),
   Receiver : require('./model/Receiver.js'),
   formats : require('./model/Formats.js'),
-  deviceTypes : require('./model/deviceTypes.js'),
+  deviceTypes : require('./model/DeviceTypes.js'),
   transports : require('./model/Transports.js')
 };
 
