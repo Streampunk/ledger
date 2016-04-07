@@ -1,0 +1,9 @@
+deployment:
+  dockerhub:
+    branch: master
+    commands:
+      - $DOCKER_HUB_TRIGGER
+
+machine:
+  node:
+    version: 4.1.0
