@@ -33,6 +33,7 @@ var getResourceName = require('./Util.js').getResourceName;
 function NodeAPI (port, store) {
   var app = express();
   var server = null;
+  var healthcheck = null;
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -283,7 +284,7 @@ function NodeAPI (port, store) {
       };
     });
 
-  //  this.startMDNS();
+    this.startMDNS();
 
     return this;
   }
@@ -298,7 +299,7 @@ function NodeAPI (port, store) {
       browser.discover();
     });
     browser.on('update', function (data) {
-      if (data.query[0].startsWith('_ips-registration._tcp')) {
+      if (data.query[0] && data.query[0].startsWith('_ips-registration._tcp')) {
         registerNode(data.addresses[0], data.port);
       }
     });
@@ -338,34 +339,101 @@ function NodeAPI (port, store) {
   }
 
   function registerNode(regAddress, regPort) {
-    var snap = store;
-    registerResource(snap);
-    snap.devices.forEach(registerResource);
-    snap.sources.forEach(registerResource);
-    snap.flows.forEach(registerResource);
-    snap.senders.forEach(registerResource);
-    snap.receivers.forEach(registerResource);
-
-    function health() {
-      setTimeout(function () {
-        var req = http.request({
-          hostname : reqAddress,
-          port : reqPort,
-          path : 'x-ipstudio/registration/v1.0/resource/' + store.self.id,
-          method: 'POST',
-          headers: {
-            'Content-Type' : 'application/json'
-          }
-        }, function (res) {
-          console.log("Health check.");
-          res.end();
+    // Register node
+    var payload = JSON.stringify({
+      type: "node",
+      data: store.self
+    });
+    var req = http.request({
+      hostname : regAddress,
+      port : regPort,
+      path : '/x-nmos/registration/v1.0/resource',
+      method: 'POST',
+      headers: {
+        'Content-Type' : 'application/json',
+        'Content-Length' : payload.length
+      }
+    }, function(res) {
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        console.error("node registered with http://"+regAddress+":"+regPort);
+        
+        // @FIXME Race conditions registering nodes Will use promises (e.g. Q.all)
+        
+        Object.keys(store.devices).forEach(function(key) {
+          var device = store.devices[key];
+          if (device.id)
+            registerResource('device', device, regAddress, regPort);
         });
-        health();
-      },5000);
-    }
+        
+        Object.keys(store.sources).forEach(function(key) {
+          var source = store.sources[key];
+          if (source.id)
+            registerResource('source', source, regAddress, regPort);
+        });
+        
+        Object.keys(store.flows).forEach(function(key) {
+          var flow = store.flows[key];
+          if (flow.id)
+            registerResource('flow', flow, regAddress, regPort);
+        });
+
+        Object.keys(store.senders).forEach(function(key) {
+          var sender = store.senders[key];
+          if (sender.id)
+            registerResource('sender', sender, regAddress, regPort);
+        });
+        
+        // Start health check ticker
+        healthcheck = setInterval(function() {
+          var req = http.request({
+            hostname : regAddress,
+            port : regPort,
+            path : '/x-nmos/registration/v1.0/health/nodes/' + store.self.id,
+            method: 'POST',
+            headers: {
+              'Content-Type' : 'application/json'
+            }
+          }, function(res) {
+            if (res.statusCode != 204)
+              console.log("Health check response.", res.statusCode);
+          });
+          req.end();
+        }
+        ,5000);
+      } else {
+        console.error("Error registering node with http://"+regAddress+":"+regPort, res.statusCode);
+      }
+    });
+    req.write(payload)
     req.end();
   }
 
+  function registerResource(type, resource, regAddress, regPort) {
+    // Register resouces
+    var payload = JSON.stringify({
+      type: type,
+      data: resource
+    });
+    var req = http.request({
+      hostname : regAddress,
+      port : regPort,
+      path : '/x-nmos/registration/v1.0/resource',
+      method: 'POST',
+      headers: {
+        'Content-Type' : 'application/json',
+        'Content-Length' : payload.length
+      }
+    }, function(res) {
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        console.error("resource registered with http://"+regAddress+":"+regPort);
+      } else {
+        console.error("Error registering resource with http://"+regAddress+":"+regPort, { type: type, statusCode: res.statusCode });
+      }
+    });
+    req.write(payload)
+    req.end();
+  }
+  
   /**
    * Stop the server running the Node API.
    * @param  {NodeAPI~trackStatus=} cb Optional callback that tracks when the

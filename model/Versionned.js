@@ -68,7 +68,7 @@ function Versionned(id, version, label) {
  * @return {string}     Value passed to the method or a generated pseudo-random
  *                      UUID for no arguments, null or undefined.
  */
-Versionned.prototype.generateID = function (id) {
+Versionned.prototype.generateID = function(id) {
   if (arguments.length === 0 || id === null || id === undefined)
     return uuid.v4();
   else return id;

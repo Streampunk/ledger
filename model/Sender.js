@@ -19,22 +19,23 @@ var immutable = require('seamless-immutable');
 function Sender(id, version, label, description,
     flow_id, transport, device_id, manifest_href) {
   // Globally unique identifier for the Sender.
-  this.id = this.generateID(id);
+  this.id = Sender.prototype.generateID(id);
   // String formatted PTP timestamp (<seconds>:<nanoseconds>) indicating
   // precisely when an attribute of the resource last changed.
-  this.version = this.generateVersion(version);
+  this.version = Sender.prototype.generateVersion(version);
   // Freeform string label for the Sender
-  this.label = this.generateLabel(label);
+  this.label = Sender.prototype.generateLabel(label);
   // Detailed description of the Sender
-  this.description = this.generateDescription(description);
+  this.description = Sender.prototype.generateDescription(description);
   // ID of the Flow currently passing via this Sender
-  this.flow_id = this.generateFlowID(flow_id);
+  this.flow_id = Sender.prototype.generateFlowID(flow_id);
   // Transport type used by the Sender in URN format
-  this.transport = this.generateTransport(transport);
+  this.transport = Sender.prototype.generateTransport(transport);
   // Device ID which this Sender forms part of
-  this.device_id = this.generateDeviceID(device_id);
+  this.device_id = Sender.prototype.generateDeviceID(device_id);
   // HTTP URL to a file describing how to connect to the Sender (SDP for RTP).
-  this.manifest_href = this.generateManifestHREF(manifest_href);
+  // @FIXME Restore manifest_href validation
+  this.manifest_href = manifest_href;
   return immutable(this, { prototype : Sender.prototype });
 }
 

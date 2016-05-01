@@ -34,34 +34,34 @@ var DeviceTypes = require('./DeviceTypes.js');
  * @param {string[]} receivers UUIDs of Receivers attached to the Device
  */
 function Device(id, version, label, type, node_id, senders, receivers) {
-  this.id = this.generateID(id);
-  this.version = this.generateVersion(version);
-  this.label = this.generateLabel(label);
+  this.id = Device.prototype.generateID(id);
+  this.version = Device.prototype.generateVersion(version);
+  this.label = Device.prototype.generateLabel(label);
   /**
    * [Device type]{@link deviceTypes} URN.
    * @type {string}
    * @readonly
    */
-  this.type = this.generateType(type);
+  this.type = Device.prototype.generateType(type);
   /**
    * Globally unique UUID identifier for the {@link Node} which initially created
    * the Device.
    * @type {string}
    * @readonly
    */
-  this.node_id = this.generateNodeID(node_id);
+  this.node_id = Device.prototype.generateNodeID(node_id);
   /**
    * UUIDs of [Senders]{@link Sender} attached to the Device.
    * @type {string[]}
    * @readonly
    */
-  this.senders = this.generateSenders(senders);
+  this.senders = Device.prototype.generateSenders(senders);
   /**
    * UUIDs of [Receivers]{@link Receiver} attached to the Device.
    * @type {string[]}
    * @readonly
    */
-  this.receivers = this.generateReceivers(receivers);
+  this.receivers = Device.prototype.generateReceivers(receivers);
   return immutable(this, { prototype: Device.prototype });
 }
 
