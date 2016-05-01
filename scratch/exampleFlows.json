@@ -28,6 +28,9 @@
     ],
     "interlace": [
       "1"
+    ],
+    "packing": [
+      "v210"
     ]
   },
   "source_id": "844ae866-acde-4cd7-af45-934dc28ffaf6",

@@ -26,7 +26,8 @@ var vf = new Flow(null, null, "Techy Video Flow",
     height : ['1080'],
     depth : ['10'],
     colorimetry : ['BT709-2'],
-    interlace : ['1'] },
+    interlace : ['1'] ,
+    packing : ['v210'] },
   null, null);
 
 console.log(JSON.stringify(vf, null, 2));
