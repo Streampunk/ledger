@@ -6,7 +6,7 @@
 
     http://www.apache.org/licenses/LICENSE-2.0
 
-  Unless required by appli cable law or agreed to in writing, software
+  Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
@@ -34,6 +34,8 @@ function NodeAPI (port, store) {
   var app = express();
   var server = null;
   var healthcheck = null;
+  // if (useMDNS === undefined || useMDNS === null || typeof useMDNS !== 'boolean')
+  //   useMDNS = true;
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -394,6 +396,9 @@ function NodeAPI (port, store) {
       if (cb) cb(new Error('Server is not set for this Node API and so cannot be stopped.'));
     }
     server = null;
+    console.log("Calling browser.stop");
+    if (browser) browser.stop();
+    browser = null;
     return this;
   }
 

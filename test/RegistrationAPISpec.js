@@ -6,7 +6,7 @@
 
     http://www.apache.org/licenses/LICENSE-2.0
 
-  Unless required by appli cable law or agreed to in writing, software
+  Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
@@ -527,7 +527,7 @@ serverTest('The server returns a 404 when deleting a non-existant resource',
         var message = JSON.parse(chunky.toString());
         t.equal(message.code, 404, 'message with code 404.');
         t.equal(message.error,
-          `A receiver with identifier '${dummyID}' could not be found on a delete request.`, 
+          `A receiver with identifier '${dummyID}' could not be found on a delete request.`,
           'expected error message.');
       });
       res.on('end', done);

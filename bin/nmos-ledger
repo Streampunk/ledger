@@ -38,7 +38,22 @@ for ( var i = 2 ; i < process.argv.length ; i++ ) {
 
 var store = new NodeRAMStore();
 
-// TODO check that numberic properties are numbers
+if (isNaN(+properties.registrationPort) || +properties.registrationPort < 0) {
+  console.error("Registration port must be a positive number.");
+  process.exit(1);
+}
+if (isNaN(+properties.registrationPri)) {
+  console.error("Registration priority must be a number.");
+  process.exit(1);
+}
+if (isNaN(+properties.queryPort) || +properties.queryPort < 0) {
+  console.error("Query port must be a positive number.");
+  process.exit(1);
+}
+if (isNaN(+properties.queryPri)) {
+  console.error("Query priority must be a number.");
+  process.exit(1);
+}
 
 var registrationAPI = new RegistrationAPI(+properties.registrationPort, store,
   properties.registrationName, +properties.registrationPri);
