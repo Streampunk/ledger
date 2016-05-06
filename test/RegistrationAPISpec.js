@@ -219,8 +219,9 @@ serverTest('The server allows a health status to be posted',
       var body = JSON.parse(chunk.toString());
       console.log(body);
       t.ok(body.hasOwnProperty('health'), 'result has health property.');
-      t.ok(typeof body.health === 'number', 'health result is a number,');
-      t.ok(body.health > (Date.now() / 1000|0 - 10), 'health is in the last 10s.');
+      t.ok(typeof body.health === 'string' && !isNaN(+body.health),
+        'health result is a string which contains a number.');
+      t.ok(+body.health > (Date.now() / 1000|0 - 10), 'health is in the last 10s.');
     });
     res.on('end', done);
   });

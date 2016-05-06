@@ -34,8 +34,6 @@ function NodeAPI (port, store) {
   var app = express();
   var server = null;
   var healthcheck = null;
-  // if (useMDNS === undefined || useMDNS === null || typeof useMDNS !== 'boolean')
-  //   useMDNS = true;
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -293,18 +291,47 @@ function NodeAPI (port, store) {
 
   var browser = null;
   var registrationDetails = null;
+  var mdnsService = null;
+  var regConnected = false;
   this.startMDNS = function () {
     // mdns.excludeInterface('0.0.0.0');
-    browser = mdns.createBrowser('_ips-registration._tcp.local.');
+    mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-node'), port, {
+      name : 'ledger',
+      txt : { }
+    });
+    browser = mdns.createBrowser('_nmos-registration._tcp.local.');
     browser.on('ready', function () {
       console.log('ready for mdns');
       browser.discover();
     });
+    var candidates = [];
+    var selectionTimer = null;
     browser.on('update', function (data) {
-      if (data.query[0] && data.query[0].startsWith('_ips-registration._tcp')) {
-        registerNode(data.addresses[0], data.port);
+      if (regConnected) return;
+      if (data.fullname && data.fullname.indexOf('_nmos-registration._tcp') >= 0) {
+        console.log("Found a registration service.", data);
+        candidates.push(data);
+        if (!selectionTimer) selectionTimer = setTimeout(selectCandidate, 1000);
+        // registerNode(data.addresses[0], data.port);
       }
     });
+    function selectCandidate() {
+      function extractPri(x) {
+        var match = x.txt[0].match(/pri=([0-9]+)/);
+        if (match) return +match[1];
+        else return NaN;
+      }
+      if (candidates.length > 0) {
+        var selected = candidates.sort(function (x, y) {
+          return extractPri(x) > extractPri(y);
+        })[0];
+        console.log(`Selected registration service at http://${selected.addresses[0]}:${selected.port} ` +
+          `with priority ${extractPri(selected)}.`);
+        regConnected = true;
+        registerNode(selected.addresses[0], selected.port);
+      }
+      selectionTimer = null;
+    }
   }
 
   function pushResource(r) {
@@ -357,29 +384,42 @@ function NodeAPI (port, store) {
       }
     }, function(res) {
       if (res.statusCode == 201) {
-        console.error("node registered with http://"+regAddress+":"+regPort);
+        console.log(`NMOS node registered with http://${regAddress}:${regPort}`);
         // Start health check ticker
         healthcheck = setInterval(function() {
           var req = http.request({
             hostname : regAddress,
             port : regPort,
             path : '/x-nmos/registration/v1.0/health/nodes/' + store.self.id,
-            method: 'POST',
-            headers: {
-              'Content-Type' : 'application/json'
-            }
+            method: 'POST'
           }, function(res) {
-            if (res.statusCode != 204)
-              console.log("Health check response.", res.statusCode);
+            if (res.statusCode != 200)
+              console.log(`Unexpected health check response ${res.statusCode}.`);
+            res.on('error', function (err) {
+              console.error(`Error with healthcheck response from http://${regAddress}:${regPort}: ${err}`);
+              // TODO tidy up afterwards
+            });
+            // res.setEncoding('utf8');
+            // res.on('data', console.log);
+          });
+          req.on('error', function (err) {
+            console.error(`Error with healthcheck request to http://${regAddress}:${regPort}: ${err}`);
+            clearInterval(healthcheck);
+            // TODO tidy up afterwards
           });
           req.end();
         }
         ,5000);
       } else {
-        console.error("Error registering node with http://"+regAddress+":"+regPort, res.statusCode);
+        console.error(`Error registering node with http://${regAddress}:${regPort} with status ${res.statusCode}: ${err}`);
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => { console.error(chunk); });
       }
     });
-    req.write(payload)
+    req.write(payload);
+    req.on('error', function (err) {
+      console.error(`Error sending node registration to http://${regAddress}:${regPort}: ${err}`);
+    });
     req.end();
   }
 
@@ -396,9 +436,15 @@ function NodeAPI (port, store) {
       if (cb) cb(new Error('Server is not set for this Node API and so cannot be stopped.'));
     }
     server = null;
-    console.log("Calling browser.stop");
-    if (browser) browser.stop();
-    browser = null;
+    if (browser) {
+      browser.stop();
+      browser = null;
+    }
+    if (mdnsService) {
+      mdnsService.stop();
+      mdnsService.networking.stop();
+      mdnsService = null;
+    }
     return this;
   }
 

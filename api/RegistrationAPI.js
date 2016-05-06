@@ -187,7 +187,7 @@ function RegistrationAPI (port, store, serviceName, pri) {
       }
       var healthNow = Date.now() / 1000|0;
       nodeHealth[req.params.nodeID] = healthNow;
-      res.json({ health : healthNow });
+      res.json({ health : `${healthNow}` });
     });
 
     // Show a Node's health (for debug use only)
