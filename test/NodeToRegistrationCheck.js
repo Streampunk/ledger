@@ -48,7 +48,29 @@ var store = new ledger.NodeRAMStore(node);
 var nodeAPI = new ledger.NodeAPI(3000, store);
 nodeAPI.init().start();
 
-test('A registration service', function (t) {
+var device = new ledger.Device(null, null, "Dat Punking Ting", null, node.id);
+var videoSource = new ledger.Source(null, null, "Garish Punk", "Will you turn it down!!",
+  ledger.formats.video, null, null, device.id);
+var audioSource = new ledger.Source(null, null, "Noisy Punk", "What do you look like!!",
+  ledger.formats.audio, null, null, device.id);
+var audioFlow = new ledger.Flow(null, null, "Funk Punk", "Blasting at you, punk!",
+  ledger.formats.audio, null, audioSource.id);
+var videoFlow = new ledger.Flow(null, null, "Junk Punk", "You looking at me, punk?",
+  ledger.formats.video, null, videoSource.id);
+var audioSender = new ledger.Sender(null, null, "Listen Up Punk",
+  "Should have listened to your Mother!", audioFlow.id,
+  ledger.transports.rtp_mcast, device.id, "http://tereshkova.local/audio.sdp");
+var videoSender = new ledger.Sender(null, null, "In Ya Face Punk",
+  "What do you look like?", videoFlow.id,
+  ledger.transports.rtp_mcast, device.id, "http://tereshkova.local/video.sdp");
+var audioReceiver = new ledger.Receiver(null, null, "Say It Punk?",
+  "You talking to me?", ledger.formats.audio, null, null, device.id,
+  ledger.transports.rtp_mcast);
+var videoReceiver = new ledger.Receiver(null, null, "Watching da Punks",
+  "Looking hot, punk!", ledger.formats.video, null, null, device.id,
+  ledger.transports.rtp_mcast);
+
+test('A registration service with an empty node', function (t) {
   setTimeout(function () {
     registrationAPI.getStore().getNode(node.id, function (err, result) {
       if (err) {
@@ -61,7 +83,94 @@ test('A registration service', function (t) {
   }, 3000);
 });
 
+test('On a new device registration at a node, eventaully the registry', function (t) {
+  console.log('Starting device test.');
+  var store = nodeAPI.getStore();
+  store.putDevice(device, function (e, r, deltaStore) {
+    if (e) { t.end(`failed to add a device to the node: {$e}`); }
+    else {
+      nodeAPI.setStore(deltaStore);
+      setTimeout(function() {
+        registrationAPI.getStore().getDevice(device.id, function (err, result) {
+          if (err) { t.fail('does not have our device.'); }
+          else { t.deepEqual(result, device, 'has our device registered.'); }
+          t.end();
+        });
+      }, 1000);
+    }
+  });
+});
+
+test('On a new source registration at a node, eventaully the registry', function (t) {
+  var store = nodeAPI.getStore();
+  store.putSource(videoSource, function (e, r, deltaStore) {
+    if (e) { t.end(`failed to add a source to the node: ${e}`); }
+    else {
+      nodeAPI.setStore(deltaStore);
+      setTimeout(function() {
+        registrationAPI.getStore().getDevice(videoSource.id, function (err, result) {
+          if (err) { t.fail('does not have our source.'); }
+          else { t.deepEqual(result, videoSource, 'has our source registered.'); }
+          t.end();
+        });
+      }, 1000);
+    }
+  });
+});
+
+test('On a new flow registration at a node, eventaully the registry', function (t) {
+  var store = nodeAPI.getStore();
+  store.putFlow(videoFlow, function (e, r, deltaStore) {
+    if (e) { t.end(`failed to add a flow to the node: ${e}`); }
+    else {
+      nodeAPI.setStore(deltaStore);
+      setTimeout(function() {
+        registrationAPI.getStore().getFlow(videoFlow.id, function (err, result) {
+          if (err) { t.fail('does not have our flow.'); }
+          else { t.deepEqual(result, videoFlow, 'has our flow registered.'); }
+          t.end();
+        });
+      }, 1000);
+    }
+  });
+});
+
+test('On a new sender registration at a node, eventaully the registry', function (t) {
+  var store = nodeAPI.getStore();
+  store.putSender(videoSender, function (e, r, deltaStore) {
+    if (e) { t.end(`failed to add a sender to the node: ${e}`); }
+    else {
+      nodeAPI.setStore(deltaStore);
+      setTimeout(function() {
+        registrationAPI.getStore().getSender(videoSender.id, function (err, result) {
+          if (err) { t.fail('does not have our sender.'); }
+          else { t.deepEqual(result, videoSender, 'has our sender registered.'); }
+          t.end();
+        });
+      }, 1000);
+    }
+  });
+});
+
+test('On a new receiver registration at a node, eventaully the registry', function (t) {
+  var store = nodeAPI.getStore();
+  store.putReceiver(videoReceiver, function (e, r, deltaStore) {
+    if (e) { t.end(`failed to add a receiver to the node: ${e}`); }
+    else {
+      nodeAPI.setStore(deltaStore);
+      setTimeout(function() {
+        registrationAPI.getStore().getReceiver(videoReceiver.id, function (err, result) {
+          if (err) { t.fail('does not have our receiver.'); }
+          else { t.deepEqual(result, videoReceiver, 'has our receiver registered.'); }
+          t.end();
+        });
+      }, 1000);
+    }
+  });
+});
+
 test('Shutting down', function (t) {
+  console.log(nodeAPI.getStore());
   registrationAPI.stop();
   queryAPI.stop();
   nodeAPI.stop();
