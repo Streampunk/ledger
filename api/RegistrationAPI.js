@@ -311,9 +311,9 @@ function RegistrationAPI (port, store, serviceName, pri) {
       mdnsService.stop();
       mdnsService.networking.stop();
       mdnsService = null;
-      cb();
+      if (cb) cb();
     } else {
-      cb(new Error('MDNS advertisement is not set for this Registration API and so cannot be stopped.'));
+      if (cb) cb(new Error('MDNS advertisement is not set for this Registration API and so cannot be stopped.'));
     }
 
     return this;

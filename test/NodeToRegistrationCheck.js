@@ -42,10 +42,28 @@ registrationAPI.init().start();
 queryAPI.init().start();
 
 
-var node = new ledger.Node(null, null, "Ledger Node", "http://192.168.0.1:3000",
+var node = new ledger.Node(null, null, "Ledger Node", "http://ledger.local:3000",
   "ledger");
 var store = new ledger.NodeRAMStore(node);
 var nodeAPI = new ledger.NodeAPI(3000, store);
 nodeAPI.init().start();
 
-setTimeout(() => { nodeAPI.stop() }, 60000);
+test('A registration service', function (t) {
+  setTimeout(function () {
+    registrationAPI.getStore().getNode(node.id, function (err, result) {
+      if (err) {
+        t.fail(`failed to register our node ${err}`);
+      } else {
+        t.deepEqual(node, result, 'has our node registered.');
+      }
+      t.end();
+    });
+  }, 3000);
+});
+
+test('Shutting down', function (t) {
+  registrationAPI.stop();
+  queryAPI.stop();
+  nodeAPI.stop();
+  setTimeout(t.end, 2000);
+});

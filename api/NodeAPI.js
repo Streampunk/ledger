@@ -284,38 +284,46 @@ function NodeAPI (port, store) {
       };
     });
 
-    this.startMDNS();
+    startMDNS();
 
     return this;
   }
 
   var browser = null;
-  var registrationDetails = null;
   var mdnsService = null;
   var regConnected = false;
-  this.startMDNS = function () {
+  var candidates = [];
+  function startMDNS() {
     // mdns.excludeInterface('0.0.0.0');
+
+    console.log('Starting MDNS');
     mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-node'), port, {
       name : 'ledger',
       txt : { }
     });
-    browser = mdns.createBrowser('_nmos-registration._tcp.local.');
-    browser.on('ready', function () {
-      console.log('ready for mdns');
-      browser.discover();
-    });
-    var candidates = [];
+    if (!browser) {
+      browser = mdns.createBrowser('_nmos-registration._tcp.local.');
+      browser.on('ready', function () {
+        console.log('ready for mdns');
+        candidates = [];
+        browser.discover();
+      });
+    } else { // Strange behaviour where ready event is not called on reset
+      browser = mdns.createBrowser('_nmos-registration._tcp.local.');
+      setTimeout(() => { candidates = []; browser.discover(); console.log("DISCOVER"); }, 5000);
+    }
     var selectionTimer = null;
     browser.on('update', function (data) {
       if (regConnected) return;
       if (data.fullname && data.fullname.indexOf('_nmos-registration._tcp') >= 0) {
-        console.log("Found a registration service.", data);
+        console.log("Found a registration service.", data.fullname, data.txt.length > 0 ? data.txt[0] : "");
         candidates.push(data);
-        if (!selectionTimer) selectionTimer = setTimeout(selectCandidate, 1000);
-        // registerNode(data.addresses[0], data.port);
-      }
+        if (!selectionTimer) selectionTimer = setTimeout(function () {
+          selectCandidate(candidates); }, 1000);
+        }
     });
-    function selectCandidate() {
+    browser.on('error', console.error);
+    function selectCandidate(candidates) {
       function extractPri(x) {
         var match = x.txt[0].match(/pri=([0-9]+)/);
         if (match) return +match[1];
@@ -397,15 +405,16 @@ function NodeAPI (port, store) {
               console.log(`Unexpected health check response ${res.statusCode}.`);
             res.on('error', function (err) {
               console.error(`Error with healthcheck response from http://${regAddress}:${regPort}: ${err}`);
-              // TODO tidy up afterwards
+              clearInternal(healthcheck);
+              resetMDNS();
             });
-            // res.setEncoding('utf8');
-            // res.on('data', console.log);
+            res.setEncoding('utf8');
+            res.on('data', console.log);
           });
           req.on('error', function (err) {
             console.error(`Error with healthcheck request to http://${regAddress}:${regPort}: ${err}`);
             clearInterval(healthcheck);
-            // TODO tidy up afterwards
+            resetMDNS();
           });
           req.end();
         }
@@ -413,14 +422,25 @@ function NodeAPI (port, store) {
       } else {
         console.error(`Error registering node with http://${regAddress}:${regPort} with status ${res.statusCode}: ${err}`);
         res.setEncoding('utf8');
-        res.on('data', (chunk) => { console.error(chunk); });
+        res.on('data', console.error);
+        resetMDNS();
       }
     });
     req.write(payload);
     req.on('error', function (err) {
       console.error(`Error sending node registration to http://${regAddress}:${regPort}: ${err}`);
+      resetMDNS();
     });
     req.end();
+  }
+
+  function resetMDNS() {
+    console.log("Resetting NodeAPI MDNS registration services.");
+    if (browser) browser.stop();
+    setTimeout(function () {
+      regConnected = false;
+      startMDNS();
+    }, 5000);
   }
 
   /**
@@ -445,6 +465,7 @@ function NodeAPI (port, store) {
       mdnsService.networking.stop();
       mdnsService = null;
     }
+    if (healthcheck) clearInterval(healthcheck);
     return this;
   }
 
