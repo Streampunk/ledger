@@ -21,6 +21,7 @@ var mdns = require('mdns-js');
 var http = require('http');
 var Sender = require('../model/Sender.js');
 var getResourceName = require('./Util.js').getResourceName;
+var Promise = require('promise');
 
 /**
  * Create an instance of the Node API.
@@ -34,6 +35,7 @@ function NodeAPI (port, store) {
   var app = express();
   var server = null;
   var healthcheck = null;
+  var storePromise = Promise.resolve(store);
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -47,11 +49,13 @@ function NodeAPI (port, store) {
    * Replace the [store]{@link NodeStore} set for this API.
    * @param {NodeAPI} replacementStore Store to use to replace the current one.
    * @return {(Error|null)}  Error if a problem, otherwise null for success.
+   * @deprecated Use putResource, getResource and deleteResource
    */
   this.setStore = function (replacementStore) {
     if (!validStore(replacementStore))
       return new Error('The given replacement store is not valid.');
     store = replacementStore;
+    storePromise = Promise.resolve(store);
     return null;
   }
 
@@ -61,6 +65,36 @@ function NodeAPI (port, store) {
    */
   this.getStore = function () {
     return store;
+  }
+
+  function nameToCamel (n) {
+    return n.length > 0 ? n.substring(0, 1).toUpperCase() +
+      n.substring(1).toLowerCase() : '';
+  }
+
+  this.putResource = function (resource, cb) {
+    var nextState = storePromise.then(function (store) {
+      var putFn = Promise.denodeify(store['put' + resource.constructor.name]);
+      return putFn.call(store, resource);
+    });
+    storePromise = nextState.then(function (ro) {
+      store = ro.store;
+      return store;
+    }, function (e) { console.error(e); });
+    return nextState.then(function (ro) { return ro.resource; }).nodeify(cb);
+  }
+
+  this.getResource = function (id, type, cb) {
+    return storePromise.then(function (store) {
+      if (type && typeof type === 'string') {
+        var getFn = Promise.denodeify(store['get' + nameToCamel(type)]);
+        return getFn.call(store, id);
+      };
+    }).nodeify(cb);
+  }
+
+  this.deleteResource = function (resource, type) {
+
   }
 
   /**
