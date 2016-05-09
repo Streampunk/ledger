@@ -23,6 +23,8 @@ var Sender = require('../model/Sender.js');
 var getResourceName = require('./Util.js').getResourceName;
 var Promise = require('promise');
 
+var knownResourceTypes = ['node', 'device', 'flow', 'source', 'receiver', 'sender'];
+
 /**
  * Create an instance of the Node API.
  * @constructor
@@ -90,6 +92,19 @@ function NodeAPI (port, store) {
         var getFn = Promise.denodeify(store['get' + nameToCamel(type)]);
         return getFn.call(store, id);
       };
+    }).nodeify(cb);
+  }
+
+  this.getResources = function (type, cb) {
+    return storePromise.then(function (store) {
+      return new Promise(function (resolve, reject) {
+        if (type && typeof type === 'string' &&
+             knownResourceTypes.some(function (x) {
+               return type.toLowerCase() === x }) ) {
+          var getFn = Promise.denodeify(store['get' + nameToCamel(type) + 's']);
+          resolve(getFn.call(store));
+        } else { reject(new Error('Type is not a string or a known type.')) };
+      });
     }).nodeify(cb);
   }
 

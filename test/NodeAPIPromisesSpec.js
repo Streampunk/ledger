@@ -71,14 +71,38 @@ test('Retrieving a device via a callback', function (t) {
   });
 });
 
+test('Getting a list of resources for an unknown type', function (t) {
+  api.getResources('wibble').then(function (onSuccess) {
+    t.end(`should have failed. Actually produced: ${success}`);
+  }, function (e) {
+    t.deepEqual(e, new Error("Type is not a string or a known type."),
+      `fails as expected with error: ${e}`);
+    t.end();
+  });
+});
+
+test('Getting a list of devices', function (t) {
+  api.getResources('device').then(function (onSuccess) {
+    t.deepEqual(onSuccess, [ device ], 'is the expected array.');
+    t.end();
+  }, function (e) {
+    t.end(`fails with error: ${e}`);
+  });
+});
+
 test('Setting and getting is serialized', function (t) {
   var dev2 = new Device(null, null, "LOUD device", null, node.id);
   api.putResource(dev2).catch(t.end);
-  var sp = api.getResource(dev2.id, 'device');
-  sp.then(function (d) {
+  t.plan(2);
+  api.getResource(dev2.id, 'device').then(function (d) {
     t.deepEqual(d, dev2, 'and the result is as expected.');
-    t.end();
   }, function (e) {
-    t.end(`but it produces an error: ${e}`);
+    t.fail(`but it produces an error on single get: ${e}`);
+  });
+  api.getResources('device').then(function (ds) {
+    t.ok((ds.length === 2) && ((ds[0].id === device.id && ds[1].id === dev2.id) || (
+      ds[0].id === dev2.id && ds[1].id === device.id)), 'array has expected elements.');
+  }, function (e) {
+    t.fail(`but it produces an error on multiple get: ${e}`);
   });
 });
