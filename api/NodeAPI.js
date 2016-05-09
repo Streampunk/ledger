@@ -23,7 +23,7 @@ var Sender = require('../model/Sender.js');
 var getResourceName = require('./Util.js').getResourceName;
 var Promise = require('promise');
 
-var knownResourceTypes = ['node', 'device', 'flow', 'source', 'receiver', 'sender'];
+var knownResourceTypes = ['device', 'flow', 'source', 'receiver', 'sender'];
 
 /**
  * Create an instance of the Node API.
@@ -70,6 +70,7 @@ function NodeAPI (port, store) {
   }
 
   function nameToCamel (n) {
+    if (n.toLowerCase().endsWith('s')) n = n.substring(0, -1);
     return n.length > 0 ? n.substring(0, 1).toUpperCase() +
       n.substring(1).toLowerCase() : '';
   }
@@ -88,10 +89,21 @@ function NodeAPI (port, store) {
 
   this.getResource = function (id, type, cb) {
     return storePromise.then(function (store) {
-      if (type && typeof type === 'string') {
-        var getFn = Promise.denodeify(store['get' + nameToCamel(type)]);
-        return getFn.call(store, id);
-      };
+        if (type && typeof type === 'string' &&
+             knownResourceTypes.some(function (x) {
+               return type.toLowerCase() === x }) ) {
+          var getFn = Promise.denodeify(store['get' + nameToCamel(type)]);
+          return getFn.call(store, id);
+        } else {
+          var wobble = Promise.all(knownResourceTypes.map(function (x) {
+            return Promise.denodeify(store['get' + nameToCamel(x)]).call(store, id)
+              .then(function (s) { return s; }, function (e) { return null; }); }));
+          return wobble.then(function (a) {
+            var result = a.find(function (x) { return x !== null; });
+            if (result) return result;
+            else throw new Error("Could not find a resource with the given identifier.");
+          });
+        }
     }).nodeify(cb);
   }
 
@@ -109,7 +121,7 @@ function NodeAPI (port, store) {
   }
 
   this.deleteResource = function (resource, type) {
-
+    // TODO
   }
 
   /**

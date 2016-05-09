@@ -315,7 +315,7 @@ NodeRAMStore.prototype.putDevice = function (device, cb) {
       return;
     }
 
-    cb(null, { 
+    cb(null, {
       resource : device,
       store: this.setIn(['devices', device.id], device)
     });

@@ -61,41 +61,43 @@ nodeAPI.stop();
 
 ### Node API lifecycle
 
-During the lifetime of the node represented by the Node API, devices, sources, senders, receivers and flows - known as the _resources_ - will need to be added and removed from the node. The store is an immutable value and so to do this, it is necessary to read the current value for the store and then replace the currently represented store. Here is an example of adding a device:
+During the lifetime of the node represented by the Node API, devices, sources, senders, receivers and flows - known as the _resources_ - will need to be added and removed from the node. Do not try to interact with the underlying store directly. The Node API provides methods for non-blocking, safe, serialized access for updating of the store via the `getResource`, `getResources`, `putResource` and `deleteResource` methods. For example:
+
 
 ```javascript
 var device = new Device(null, null, "My Device", null, node.id);
-nodeAPI.getStore().putDevice(device, function (e, d, s) {
-  if (e) return console.error(e);
-  nodeAPI.setStore(s);
+nodeAPI.putResource(device).catch(console.error);
+nodeAPI.getResource(device.id, 'device', function (err, result) {
+  if (err) return console.error(err);
+  assert.deepEqual(result, device);
+  // ...
 });
 ```
 
-To simplify working with the asynchronous store, you can work with the [async module](https://www.npmjs.com/package/async), e.g.:
+These four resource-related methods work in one of two ways:
 
-```javascript
-var async = require('async');
-function fillStore(store, filled) {
-  async.waterfall([
-    function (cb) { s.putDevice(device, cb); },
-    function (d, s, cb) { s.putSource(videoSource, cb); },
-    function (v, s, cb) { s.putSource(audioSource, cb); },
-    function (a, s, cb) { s.putFlow(videoFlow, cb); },
-    function (v, s, cb) { s.putFlow(audioFlow, cb); },
-    function (a, s, cb) { s.putSender(videoSender, cb); },
-    function (v, s, cb) { s.putSender(audioSender, cb); },
-    function (a, s, cb) { s.putReceiver(videoReceiver, cb); },
-    function (v, s, cb) { s.putReceiver(audioReceiver, cb); }
-  ], function (e, x, result) { return filled(e, result); });
-}
-fillStore(nodeAPI.getStore(), function (e, s) {
-  if (!e) nodeAPI.setStore(s);
-});
-```
+1. If provided with a callback function as the last argument, then the methods follow the standard pattern of the callback functions first argument being an error and the second argument being the successful result.
+2. With no callback function, the methods return a [promise](https://www.promisejs.org/) and the result returned can be processed with `.then`, `.done`, `.catch` and `.finally`.
 
 The order of adding resources is important as referential integrity checks are carried out. For example, the `device_id` property of a source must reference a device that is already stored.
 
-The store supports get_resource_, get_resource_s (listing collections), put_resource_ and delete_resource_ methods for each resource type. For example, for senders the store has methods `getSender`, `getSenders`, `putSender` and `deleteSender`.
+Updates and reads via the resource methods are sequential in the order in which requests are made to the Node API. For reasons of efficiency, reads via the REST API do not block and wait for the update. A put request for a resource followed in time with a get request for the same resource should safely retrieve that resource. Other requests to change the store may be interleaved. Here are some further examples:
+
+```javascript
+nodeAPI.putResource(device).catch(console.error);
+nodeAPI.putResource(videSource).then(console.log, console.error);
+nodeAPI.putResource(videoFlow).catch(console.error);
+nodeAPI.getResources('source').then(function (srcs) {
+  console.log('Current sources are:');
+  srcs.map(function (s) { return s.label; }).forEach(console.log);
+});
+nodeAPI.deleteResource(videoSource.id, 'source');
+nodeAPI.getResource(videoSource.id, 'source').then(function (x) {
+  console.error('Video source was not removed as expected.');
+});
+```
+
+The previously recommended methods of `getStore` and `setStore` have been deprecated.
 
 ## Extra features
 
