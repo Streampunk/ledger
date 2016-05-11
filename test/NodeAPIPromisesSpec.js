@@ -198,7 +198,6 @@ for ( var i = 0 ; i < testResources.length ; i++) {
   })();
 } // end testResources loop
 
-
 promiseTest('Put ten devices and retrieve', function (t, api) {
   var pushy = [];
   for ( var x = 0 ; x < 10 ; x++) {
@@ -230,3 +229,49 @@ promiseTest('Putting a bad device', function (t, api) {
     t.end();
   });
 });
+
+promiseTest('Can retrieve details of self', function (t, api) {
+  t.plan(2);
+  api.getSelf().then(function (x) {
+    t.deepEqual(x, node, 'and value is as expected via promise.')
+  }, function (e) {
+    t.fail('failed via promise.');
+  });
+  api.getSelf(function (err, result) {
+    if (err) return t.fail('failed via callback request.')
+    t.deepEqual(result, node, 'and value is as expected via callback.');
+  });
+});
+
+promiseTest('Can alter details of self via promise', function (t, api) {
+  t.plan(2);
+  var replacementNode = new Node(node.id, null, "Replacement!",
+    "http://tereshkova.local:3000", "tereshkova");
+  api.putSelf(replacementNode).then(function (x) {
+    t.deepEqual(x, replacementNode, 'returns with matching result.');
+  }, function (onRejection) {
+    t.fail(`fails with error: ${onRejection}`);
+  });
+  api.getSelf().then(function (x) {
+    t.deepEqual(x, replacementNode, 'and value is as expected via promise.')
+  }, function (e) {
+    t.fail('failed via promise.');
+  });
+});
+
+promiseTest('Can alter details of self via callback', function (t, api) {
+  t.plan(2);
+  var replacementNode = new Node(node.id, null, "Replacement!",
+    "http://tereshkova.local:3000", "tereshkova");
+  api.putSelf(replacementNode, function (err, x) {
+    if (err) return t.fail(`fails with error: ${err}`);
+    t.deepEqual(x, replacementNode, 'returns with matching result.');
+  });
+  api.getSelf(function (err, x) {
+    if (err) return t.fail(`failed via callback: {e}`);
+    t.deepEqual(x, replacementNode, 'and value is as expected via promise.')
+  });
+});
+
+// Delete with bad type name
+// Documentation of nodes

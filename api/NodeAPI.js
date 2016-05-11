@@ -24,6 +24,7 @@ var getResourceName = require('./Util.js').getResourceName;
 var Promise = require('promise');
 
 var knownResourceTypes = ['device', 'flow', 'source', 'receiver', 'sender'];
+  // self is treated as a special case
 
 /**
  * Create an instance of the Node API.
@@ -133,6 +134,24 @@ function NodeAPI (port, store) {
     return nextState.then(function (ro) { return ro.id; }).nodeify(cb);
   }
 
+  this.getSelf = function (cb) {
+    return storePromise.then(function (store) {
+      var selfFn = Promise.denodeify(store.getSelf);
+      return selfFn.call(store);
+    }).nodeify(cb);
+  }
+
+  this.putSelf = function (newSelf, cb) {
+    var nextState = storePromise.then(function (store) {
+      var selfFn = Promise.denodeify(store.putSelf);
+      return selfFn.call(store, newSelf);
+    });
+    storePromise = nextState.then(function (ro) {
+      store = ro.store;
+      return store;
+    });
+    return nextState.then(function (ro) { return ro.resource; }).nodeify(cb);
+  }
   /**
    * Returns the port that this Node API is configured to use.
    * @return {Number} Port for this node API.

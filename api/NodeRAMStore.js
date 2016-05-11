@@ -249,7 +249,7 @@ NodeRAMStore.prototype.putSelf = function (node, cb) {
     }
     // Not sure if services has to be checked.
 
-    cb(null, node, this.set('self', node));
+    cb(null, { resource : node, store: this.set('self', node) });
   }.bind(this) );
 }
 

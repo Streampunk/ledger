@@ -1,6 +1,6 @@
 # Ledger
 
-Ledger is a [Node.js](http://nodejs.org/) Javascript implementation of the [Advanced Media Workflow Association's](http://www.amwa.tv/) [Networked Media Open Specifications](http://github.com/AMWA-TV/nmos) discovery and registration APIs.
+Ledger is a [Node.js](http://nodejs.org/) Javascript implementation of the [Advanced Media Workflow Association's](http://www.amwa.tv/) [Networked Media Open Specifications](http://www.nmos.tv/) [discovery and registration APIs](https://github.com/AMWA-TV/nmos-discovery-registration).
 
 Currently, this is a fairly complete implementation of the node, registration and query APIs. (Work on the support of the peer-to-peer API is still in progress.)
 
@@ -92,12 +92,14 @@ nodeAPI.getResources('source').then(function (srcs) {
   srcs.map(function (s) { return s.label; }).forEach(console.log);
 });
 nodeAPI.deleteResource(videoSource.id, 'source');
-nodeAPI.getResource(videoSource.id, 'source').then(function (x) {
+nodeAPI.getResource(videoSource.id, 'source').then(function (onResolved) {
   console.error('Video source was not removed as expected.');
+}, function (onRejection) {
+  console.log('Video source deleted as expected.');
 });
 ```
 
-Reading and updating the node itself is achieved using the `getSelf` and `putSelf` methods respectively.
+Reading and updating the _self_ node is achieved using the `getSelf` and `putSelf` methods respectively.
 
 The previously recommended methods of `getStore` and `setStore` have been deprecated.
 
@@ -110,7 +112,7 @@ The API has some features that are not specified in the NMOS documentation. Thes
 
 ## Documentation
 
-JsDoc API documentation can be found in the `docs` folder. Details of the APIs are available via the [AMWA NMOS github repository](http://github.com/AMWA-TV/nmos).
+JsDoc API documentation can be found in the `docs` folder. Details of the APIs are available via the [AMWA NMOS discovery and registration github repository](https://github.com/AMWA-TV/nmos-discovery-registration).
 
 ## Status, support and further development
 
