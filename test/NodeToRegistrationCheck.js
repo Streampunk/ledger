@@ -148,6 +148,14 @@ test('On a new receiver registration at a node, eventaully the registry', functi
   });
 });
 
+test('Deleting a flow at the node, eventually at the registry', function (t) {
+  t.end();
+}
+
+test('Updating a flow at the node, eventually at the registry', function (t) {
+  t.end();
+});
+
 test('Shutting down', function (t) {
   console.log('Node to Registration API integration spec tests ended. Waitng 2s.');
   registrationAPI.stop();
