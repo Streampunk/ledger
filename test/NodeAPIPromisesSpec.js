@@ -230,6 +230,16 @@ promiseTest('Putting a bad device', function (t, api) {
   });
 });
 
+promiseTest('Deleting with a bad type name', function (t, api) {
+  api.putResource(device).catch(t.end);
+  api.deleteResource(device.id, 'wibble').then(function (x) {
+    t.end('should not succeed.');
+  }, function (e) {
+    t.pass(`fails as expected with error: ${e}`);
+    t.end();
+  });
+});
+
 promiseTest('Can retrieve details of self', function (t, api) {
   t.plan(2);
   api.getSelf().then(function (x) {
