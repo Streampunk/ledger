@@ -187,6 +187,7 @@ function NodeAPI (port, store) {
     });
     storePromise = nextState.then(function (ro) {
       store = ro.store;
+      registerDelete(ro.resource);
       return store;
     });
     return nextState.then(function (ro) { return ro.id; }).nodeify(cb);
@@ -512,7 +513,7 @@ function NodeAPI (port, store) {
     }
   }
 
-  function pushResource(r) {
+  function pushResource (r) {
     if (!regConnected) return;
     var resourceType = r.constructor.name.toLowerCase();
     var reqBody = JSON.stringify({
@@ -549,6 +550,22 @@ function NodeAPI (port, store) {
     });
 
     req.write(reqBody);
+    req.end();
+  }
+
+  function registerDelete (r) {
+    if (!regConnected) return;
+    var resourceType = r.constructor.name.toLowerCase();
+    console.log('*** DELETE', resource.id);
+    var req = http.request({
+      hostname: regAddress,
+      port : regPort,
+      path : `/x-nmos/registration/v1.0/resource/${resourceType}s/${resource.id}`,
+      method : 'DELETE'
+    }, function (res) {
+      if (res.statusCode !== 204)
+        console.error(`Failed to delete ${resourceType} with id ${resource.id}.`);
+    });
     req.end();
   }
 

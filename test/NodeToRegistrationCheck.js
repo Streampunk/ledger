@@ -86,7 +86,7 @@ test('A registration service with an empty node', function (t) {
 test('On a new device registration at a node, eventaully the registry', function (t) {
   nodeAPI.putResource(device, function (e, x) {
     if (e) return t.end(`failed to add a device to the node: {$e}`);
-    setTimeout(function() {
+    setTimeout(function () {
       registrationAPI.getStore().getDevice(device.id, function (err, result) {
         if (err) return t.end('does not have our device.');
         t.deepEqual(result, device, 'has our device registered.');
@@ -125,7 +125,7 @@ test('On a new flow registration at a node, eventaully the registry', function (
 test('On a new sender registration at a node, eventaully the registry', function (t) {
   nodeAPI.putResource(videoSender, function (e, x) {
     if (e) return t.end(`failed to add a sender to the node: ${e}`);
-    setTimeout(function() {
+    setTimeout(function () {
       registrationAPI.getStore().getSender(videoSender.id, function (err, result) {
         if (err) return t.fail('does not have our sender.');
         t.deepEqual(result, videoSender, 'has our sender registered.');
@@ -138,7 +138,7 @@ test('On a new sender registration at a node, eventaully the registry', function
 test('On a new receiver registration at a node, eventaully the registry', function (t) {
   nodeAPI.putResource(videoReceiver, function (e, x) {
     if (e) return t.end(`failed to add a receiver to the node: ${e}`);
-    setTimeout(function() {
+    setTimeout(function () {
       registrationAPI.getStore().getReceiver(videoReceiver.id, function (err, result) {
         if (err) return t.end('does not have our receiver.');
         t.deepEqual(result, videoReceiver, 'has our receiver registered.');
@@ -148,12 +148,38 @@ test('On a new receiver registration at a node, eventaully the registry', functi
   });
 });
 
-test('Deleting a flow at the node, eventually at the registry', function (t) {
-  t.end();
-}
+test('Deleting a flow at the node', function (t) {
+  t.plan(3);
+  registrationAPI.getStore().getFlow(videoFlow.id, function (err, result) {
+    if (err) return t.fail('cannot be tested as the flow does not exist.');
+    t.deepEqual(result, videoFlow, 'starts with our flow registered.');
+  });
+  nodeAPI.deleteResource(videoFlow.id, 'flow', function (e, x) {
+    if (e) return t.fail('does not get deleted from node API store.');
+    t.equal(x, videoFlow.id, 'reports successfully deleted from node store.');
+  });
+  setTimeout(function () {
+    registrationAPI.getStore().getFlow(videoFlow.id, function (err, result) {
+      if (err) return t.pass('cannot retrieve the flow from the registry after delete.');
+      t.fail('has not worked as flow is still in the registry.');
+    });
+  }, 1000);
+});
 
-test('Updating a flow at the node, eventually at the registry', function (t) {
-  t.end();
+test('Updating a device at the node', function (t) {
+  t.plan(2);
+  registrationAPI.getStore().getDevice(device.id, function (err, result) {
+    if (err) return t.end('cannot be tested as the device does not exist.');
+    t.equal(result.id, device.id, 'has our device registered.');
+    console.log(result);
+    var deltaDevice = new ledger.Device(device.id, null, 'Switched up PUNK!',
+      null, node.id, result.senders, result.receivers);
+    nodeAPI.putResource(deltaDevice, function (e, x) {
+      if (e) return t.fail('failed to update device in node store.');
+      t.deepEqual(x, deltaDevice, 'device successfully updated on node store.');
+      console.log(x);
+    });
+  });
 });
 
 test('Shutting down', function (t) {

@@ -161,6 +161,7 @@ function RegistrationAPI (port, store, serviceName, pri) {
     rapi.delete('/resource/:resourceType/:resourceID', function (req, res, next) {
       var type = 'delete' + req.params.resourceType.slice(0, 1).toUpperCase() +
         req.params.resourceType.slice(1, -1);
+      console.log('*** DELETE', type);
       this.getStore().constructor.prototype[type].call(this.getStore(),
           req.params.resourceID, function (e, ro) {
         if (e) return next(e);

@@ -302,15 +302,17 @@ NodeRAMStore.prototype.putDevice = function (device, cb) {
           "Device node_id property must reference an existing node."));
       }
     }
+
     if (!device.senders.every(function (s) {
+      console.log(s, this.senders);
       return this.senders.hasOwnProperty(s);
-    })) {
+    }.bind(this))) {
       return cb(statusError(400,
         "Senders referenced from given device are not on this store."));
     }
     if (!device.receivers.every(function (r) {
       return this.receivers.hasOwnProperty(r);
-    })) {
+    }.bind(this))) {
       cb(statusError(400, "Receivers referenced from given device are not on this store."));
       return;
     }
