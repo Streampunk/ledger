@@ -145,11 +145,12 @@ function RegistrationAPI (port, store, serviceName, pri) {
           input.type.substring(1).toLowerCase();
         store[fnName](value, function (err, ro) {
           if (err) return next(err);
-            res.status((Object.keys(
-              store[input.type + 's']).indexOf(ro.resource.id) < 0) ? 201 : 200);
+          res.status((Object.keys(
+            store[input.type + 's']).indexOf(ro.resource.id) < 0) ? 201 : 200);
           this.setStore(ro.store);
           res.set('Location', `/x-nmos/registration/v1.0/resource/${input.type}s/${ro.resource.id}`);
           res.json(ro.resource);
+          res.end();
         }.bind(this));
       } else {
         next(NodeStore.prototype.statusError(400,

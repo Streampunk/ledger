@@ -97,6 +97,7 @@ function NodeAPI (port, store) {
     });
     storePromise = nextState.then(function (ro) {
       store = ro.store;
+      pushResource(ro.resource);
       return store;
     }, function (e) { console.error(e); });
     return nextState.then(function (ro) { return ro.resource; }).nodeify(cb);
@@ -457,6 +458,8 @@ function NodeAPI (port, store) {
   var browser = null;
   var mdnsService = null;
   var regConnected = false;
+  var regAddress = null;
+  var regPort = null;
   var candidates = [];
   function startMDNS() {
     // mdns.excludeInterface('0.0.0.0');
@@ -501,46 +504,55 @@ function NodeAPI (port, store) {
         console.log(`Selected registration service at http://${selected.addresses[0]}:${selected.port} ` +
           `with priority ${extractPri(selected)}.`);
         regConnected = true;
-        registerNode(selected.addresses[0], selected.port);
+        regAddress = selected.addresses[0];
+        regPort = selected.port;
+        registerSelf();
       }
       selectionTimer = null;
     }
   }
 
   function pushResource(r) {
-    var resourceType = r.constructor.name;
-    var reqBody = new Buffer(JSON.stringify({
+    if (!regConnected) return;
+    var resourceType = r.constructor.name.toLowerCase();
+    var reqBody = JSON.stringify({
       type : resourceType,
       data : r
-    }));
+    });
     var req = http.request({
       hostname: regAddress,
       port: regPort,
-      path: 'x-ipstudio/registration/v1.0/resource',
-      method: POST,
+      path: '/x-nmos/registration/v1.0/resource',
+      method: 'POST',
       headers: {
         'Content-Type' : 'application/json',
         'Content-Length' : reqBody.length
       }
     }, function (res) {
       if (res.statusCode >= 300) {
-        console.error('Received status code ' + res.statusCode +
-          ' when posting ' + resourceType + '.');
+        console.error(`Received status code ${res.statusCode} when pushing ${resourceType}.`);
+        res.setEncoding('utf8');
+        res.on('data', function (errBody) {
+          console.error(`Error message body: ${errBody}`); });
+      } else {
+        res.on('error', function (e) {
+          console.error(`Error during push of ${resourceType}: ${e}`);
+        });
+        res.on('end', function () {
+          console.log(`Pushed ${resourceType} and received Location ${res.headers.Location}.`);
+        });
       }
-      console.log('Posted ' + resourceType + ' with Location ' +
-        res.headers.Location + '.');
-      res.end();
     });
 
     req.on('error', (e) => {
-     console.error(`Problem with ${resourceType} request: ${e.message}`);
+      console.error(`Problem with ${resourceType} request: ${e.message}`);
     });
 
     req.write(reqBody);
     req.end();
   }
 
-  function registerNode(regAddress, regPort) {
+  function registerSelf() {
     // Register node
     var payload = JSON.stringify({
       type: "node",

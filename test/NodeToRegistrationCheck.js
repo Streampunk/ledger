@@ -83,95 +83,73 @@ test('A registration service with an empty node', function (t) {
   }, 3000);
 });
 
-/* test('On a new device registration at a node, eventaully the registry', function (t) {
-  console.log('Starting device test.');
-  var store = nodeAPI.getStore();
-  store.putDevice(device, function (e, r, deltaStore) {
-    if (e) { t.end(`failed to add a device to the node: {$e}`); }
-    else {
-      nodeAPI.setStore(deltaStore);
-      setTimeout(function() {
-        registrationAPI.getStore().getDevice(device.id, function (err, result) {
-          if (err) { t.fail('does not have our device.'); }
-          else { t.deepEqual(result, device, 'has our device registered.'); }
-          t.end();
-        });
-      }, 1000);
-    }
+test('On a new device registration at a node, eventaully the registry', function (t) {
+  nodeAPI.putResource(device, function (e, x) {
+    if (e) return t.end(`failed to add a device to the node: {$e}`);
+    setTimeout(function() {
+      registrationAPI.getStore().getDevice(device.id, function (err, result) {
+        if (err) return t.end('does not have our device.');
+        t.deepEqual(result, device, 'has our device registered.');
+        t.end();
+      });
+    }, 1000);
   });
 });
 
 test('On a new source registration at a node, eventaully the registry', function (t) {
-  var store = nodeAPI.getStore();
-  store.putSource(videoSource, function (e, r, deltaStore) {
-    if (e) { t.end(`failed to add a source to the node: ${e}`); }
-    else {
-      nodeAPI.setStore(deltaStore);
-      setTimeout(function() {
-        registrationAPI.getStore().getDevice(videoSource.id, function (err, result) {
-          if (err) { t.fail('does not have our source.'); }
-          else { t.deepEqual(result, videoSource, 'has our source registered.'); }
-          t.end();
-        });
-      }, 1000);
-    }
+  nodeAPI.putResource(videoSource, function (e, x) {
+  if (e) return t.end(`failed to add a source to the node: ${e}`);
+    setTimeout(function () {
+      registrationAPI.getStore().getSource(videoSource.id, function (err, result) {
+        if (err) return t.end('does not have our source.');
+        t.deepEqual(result, videoSource, 'has our source registered.');
+        t.end();
+      });
+    }, 1000);
   });
 });
 
 test('On a new flow registration at a node, eventaully the registry', function (t) {
-  var store = nodeAPI.getStore();
-  store.putFlow(videoFlow, function (e, r, deltaStore) {
-    if (e) { t.end(`failed to add a flow to the node: ${e}`); }
-    else {
-      nodeAPI.setStore(deltaStore);
-      setTimeout(function() {
-        registrationAPI.getStore().getFlow(videoFlow.id, function (err, result) {
-          if (err) { t.fail('does not have our flow.'); }
-          else { t.deepEqual(result, videoFlow, 'has our flow registered.'); }
-          t.end();
-        });
-      }, 1000);
-    }
+  nodeAPI.putResource(videoFlow, function (e, x) {
+    if (e) return t.end(`failed to add a flow to the node: ${e}`);
+    setTimeout(function () {
+      registrationAPI.getStore().getFlow(videoFlow.id, function (err, result) {
+        if (err) return t.end('does not have our flow.');
+        t.deepEqual(result, videoFlow, 'has our flow registered.');
+        t.end();
+      });
+    }, 1000);
   });
 });
 
 test('On a new sender registration at a node, eventaully the registry', function (t) {
-  var store = nodeAPI.getStore();
-  store.putSender(videoSender, function (e, r, deltaStore) {
-    if (e) { t.end(`failed to add a sender to the node: ${e}`); }
-    else {
-      nodeAPI.setStore(deltaStore);
-      setTimeout(function() {
-        registrationAPI.getStore().getSender(videoSender.id, function (err, result) {
-          if (err) { t.fail('does not have our sender.'); }
-          else { t.deepEqual(result, videoSender, 'has our sender registered.'); }
-          t.end();
-        });
-      }, 1000);
-    }
+  nodeAPI.putResource(videoSender, function (e, x) {
+    if (e) return t.end(`failed to add a sender to the node: ${e}`);
+    setTimeout(function() {
+      registrationAPI.getStore().getSender(videoSender.id, function (err, result) {
+        if (err) return t.fail('does not have our sender.');
+        t.deepEqual(result, videoSender, 'has our sender registered.');
+        t.end();
+      });
+    }, 1000);
   });
 });
 
 test('On a new receiver registration at a node, eventaully the registry', function (t) {
-  var store = nodeAPI.getStore();
-  store.putReceiver(videoReceiver, function (e, r, deltaStore) {
-    if (e) { t.end(`failed to add a receiver to the node: ${e}`); }
-    else {
-      nodeAPI.setStore(deltaStore);
-      setTimeout(function() {
-        registrationAPI.getStore().getReceiver(videoReceiver.id, function (err, result) {
-          if (err) { t.fail('does not have our receiver.'); }
-          else { t.deepEqual(result, videoReceiver, 'has our receiver registered.'); }
-          t.end();
-        });
-      }, 1000);
-    }
+  nodeAPI.putResource(videoReceiver, function (e, x) {
+    if (e) return t.end(`failed to add a receiver to the node: ${e}`);
+    setTimeout(function() {
+      registrationAPI.getStore().getReceiver(videoReceiver.id, function (err, result) {
+        if (err) return t.end('does not have our receiver.');
+        t.deepEqual(result, videoReceiver, 'has our receiver registered.');
+        t.end();
+      });
+    }, 1000);
   });
 });
-*/
 
 test('Shutting down', function (t) {
-  console.log(nodeAPI.getStore());
+  console.log('Node to Registration API integration spec tests ended. Waitng 2s.');
   registrationAPI.stop();
   queryAPI.stop();
   nodeAPI.stop();
