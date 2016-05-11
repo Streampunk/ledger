@@ -121,8 +121,8 @@ NodeStore.prototype.getNode = function (id, cb) {
  * Callback with the single requested node.
  * @callback NodeStore~nodeCallback
  * @param {Error}      err    Error retrieving the node's details.
- * @param {Node}       result Single requested node.
- * @param {NodeStore=} store  New state of the node store if it has changed.
+ * @param {Object}     result Object with properties resource, the updated node,
+ *                            and store, the updated store.
  */
 
  /**
@@ -186,8 +186,8 @@ NodeStore.prototype.getDevice = function (id, cb) {
  * Callback with the single requested device.
  * @callback NodeStore~deviceCallback
  * @param {Error}      err    Error retrieving the device's details.
- * @param {Device}     result Single requested device.
- * @param {NodeStore=} store  New state of the node store if it has changed.
+ * @param {Object}     result Object with properties resource, the updated device,
+ *                            and store, the updated store.
  */
 
 /**

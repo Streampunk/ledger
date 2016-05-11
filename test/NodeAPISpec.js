@@ -330,15 +330,15 @@ var videoReceiver = new Receiver(null, null, "Watching da Punks",
 function fillStore(store, filled) {
   async.waterfall([
       function (cb) { store.putDevice(device, cb); },
-      function (d, s, cb) { s.putSource(videoSource, cb); },
-      function (v, s, cb) { s.putSource(audioSource, cb); },
-      function (a, s, cb) { s.putFlow(videoFlow, cb); },
-      function (v, s, cb) { s.putFlow(audioFlow, cb); },
-      function (a, s, cb) { s.putSender(videoSender, cb); },
-      function (v, s, cb) { s.putSender(audioSender, cb); },
-      function (a, s, cb) { s.putReceiver(videoReceiver, cb); },
-      function (v, s, cb) { s.putReceiver(audioReceiver, cb); }
-    ], function (e, x, result) { return filled(e, result); });
+      function (x, cb) { x.store.putSource(videoSource, cb); },
+      function (x, cb) { x.store.putSource(audioSource, cb); },
+      function (x, cb) { x.store.putFlow(videoFlow, cb); },
+      function (x, cb) { x.store.putFlow(audioFlow, cb); },
+      function (x, cb) { x.store.putSender(videoSender, cb); },
+      function (x, cb) { x.store.putSender(audioSender, cb); },
+      function (x, cb) { x.store.putReceiver(videoReceiver, cb); },
+      function (x, cb) { x.store.putReceiver(audioReceiver, cb); }
+    ], function (e, result) { return filled(e, result.store); });
 }
 
 serverTest('Retrieving devices (with slash)', node,

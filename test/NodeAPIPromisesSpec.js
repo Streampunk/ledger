@@ -282,6 +282,3 @@ promiseTest('Can alter details of self via callback', function (t, api) {
     t.deepEqual(x, replacementNode, 'and value is as expected via promise.')
   });
 });
-
-// Delete with bad type name
-// Documentation of nodes

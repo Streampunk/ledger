@@ -268,7 +268,7 @@ NodeRAMStore.prototype.putNode = function (node, cb) {
         "Value being used to put a node is not of Node type."));
     };
     if (!checkValidAndForward(node, this.nodes, 'node', cb)) return;
-    cb(null, node, this.setIn(['nodes', node.id], node));
+    cb(null, { resource : node, store: this.setIn(['nodes', node.id], node) });
   }.bind(this));
 }
 

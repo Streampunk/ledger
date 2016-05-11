@@ -143,13 +143,13 @@ function RegistrationAPI (port, store, serviceName, pri) {
       if (value) {
         var fnName = 'put' + input.type.charAt(0).toUpperCase() +
           input.type.substring(1).toLowerCase();
-        store[fnName](value, function (err, item, updatedStore) {
+        store[fnName](value, function (err, ro) {
           if (err) return next(err);
             res.status((Object.keys(
-              store[input.type + 's']).indexOf(item.id) < 0) ? 201 : 200);
-          this.setStore(updatedStore);
-          res.set('Location', `/x-nmos/registration/v1.0/resource/${input.type}s/${item.id}`);
-          res.json(item);
+              store[input.type + 's']).indexOf(ro.resource.id) < 0) ? 201 : 200);
+          this.setStore(ro.store);
+          res.set('Location', `/x-nmos/registration/v1.0/resource/${input.type}s/${ro.resource.id}`);
+          res.json(ro.resource);
         }.bind(this));
       } else {
         next(NodeStore.prototype.statusError(400,
@@ -161,9 +161,9 @@ function RegistrationAPI (port, store, serviceName, pri) {
       var type = 'delete' + req.params.resourceType.slice(0, 1).toUpperCase() +
         req.params.resourceType.slice(1, -1);
       this.getStore().constructor.prototype[type].call(this.getStore(),
-          req.params.resourceID, function (e, item, deltaStore) {
+          req.params.resourceID, function (e, ro) {
         if (e) return next(e);
-        this.setStore(deltaStore);
+        this.setStore(ro.store);
         res.status(204).end();
       }.bind(this));
     }.bind(this));

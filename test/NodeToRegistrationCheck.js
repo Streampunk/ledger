@@ -83,7 +83,7 @@ test('A registration service with an empty node', function (t) {
   }, 3000);
 });
 
-test('On a new device registration at a node, eventaully the registry', function (t) {
+/* test('On a new device registration at a node, eventaully the registry', function (t) {
   console.log('Starting device test.');
   var store = nodeAPI.getStore();
   store.putDevice(device, function (e, r, deltaStore) {
@@ -168,6 +168,7 @@ test('On a new receiver registration at a node, eventaully the registry', functi
     }
   });
 });
+*/
 
 test('Shutting down', function (t) {
   console.log(nodeAPI.getStore());
