@@ -81,7 +81,7 @@ These four resource-related methods work in one of two ways:
 
 The order of adding resources is important as referential integrity checks are carried out. For example, the `device_id` property of a source must reference a device that is already stored.
 
-Updates and reads via the resource methods are sequential in the order in which requests are made to the Node API. For reasons of efficiency, reads via the REST API do not block and wait for the update. A put request for a resource followed in time with a get request for the same resource should safely retrieve that resource. Other requests to change the store may be interleaved. Here are some further examples:
+Updates and reads via the resource methods are sequential in the order in which requests are made to the Node API. For reasons of efficiency, reads via the HTTP REST API rather than the Javascript API do not block and wait for the update. A put request for a resource followed in time with a get request for the same resource should safely retrieve that resource. Other requests to change the store may be interleaved. Here are some further examples:
 
 ```javascript
 nodeAPI.putResource(device).catch(console.error);
@@ -96,6 +96,8 @@ nodeAPI.getResource(videoSource.id, 'source').then(function (x) {
   console.error('Video source was not removed as expected.');
 });
 ```
+
+Reading and updating the node itself is achieved using the `getSelf` and `putSelf` methods respectively.
 
 The previously recommended methods of `getStore` and `setStore` have been deprecated.
 

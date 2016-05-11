@@ -31,6 +31,29 @@ var testPort = 3210;
 var node = new Node(null, null, "Punkd Up Node", "http://tereshkova.local:3000",
   "tereshkova");
 var device = new Device(null, null, "Dat Punking Ting", null, node.id);
+var videoSource = new Source(null, null, "Garish Punk", "Will you turn it down!!",
+  ledger.formats.video, null, null, device.id);
+var audioSource = new Source(null, null, "Noisy Punk", "What do you look like!!",
+  ledger.formats.audio, null, null, device.id);
+var audioFlow = new Flow(null, null, "Funk Punk", "Blasting at you, punk!",
+  ledger.formats.audio, null, audioSource.id);
+var videoFlow = new Flow(null, null, "Junk Punk", "You looking at me, punk?",
+  ledger.formats.video, null, videoSource.id);
+var audioSender = new Sender(null, null, "Listen Up Punk",
+  "Should have listened to your Mother!", audioFlow.id,
+  ledger.transports.rtp_mcast, device.id, "http://tereshkova.local/audio.sdp");
+var videoSender = new Sender(null, null, "In Ya Face Punk",
+  "What do you look like?", videoFlow.id,
+  ledger.transports.rtp_mcast, device.id, "http://tereshkova.local/video.sdp");
+var audioReceiver = new Receiver(null, null, "Say It Punk?",
+  "You talking to me?", ledger.formats.audio, null, null, device.id,
+  ledger.transports.rtp_mcast);
+var videoReceiver = new Receiver(null, null, "Watching da Punks",
+  "Looking hot, punk!", ledger.formats.video, null, null, device.id,
+  ledger.transports.rtp_mcast);
+
+var testResources = [device, videoSource, audioSource, audioFlow, videoFlow,
+  audioSender, videoSender, audioReceiver, videoReceiver];
 
 function promiseTest(description, fn) {
   test(description, function (t) {
@@ -40,56 +63,141 @@ function promiseTest(description, fn) {
   });
 }
 
-promiseTest('Adding device with a promise', function (t, api) {
-  api.putResource(device).then(function (d) {
-    t.deepEqual(d, device, 'has created the expected value.');
-    t.end();
-  }, function (e) {
-    t.end(`produces and error: ${e}`);
-  });
-});
+for ( var i = 0 ; i < testResources.length ; i++) {
+  (function () {
+    var context = testResources.slice(0, i);
+    var r = testResources[i];
+    var name = r.constructor.name.toLowerCase();
+    promiseTest(`Adding ${name} with a promise`, function (t, api) {
+      context.forEach(function (x) { api.putResource(x).catch(t.end); });
+      api.putResource(r).then(function (x) {
+        t.deepEqual(x, r, 'has created the expected value.');
+        t.end();
+      }, function (e) {
+        t.end(`produces and error: ${e}`);
+      });
+    });
 
-promiseTest('Adding a device with a nodeified callback', function (t, api) {
-  api.putResource(device, function (err, result) {
-    if (err) return t.end(`produces an error: ${e}`);
-    t.deepEqual(result, device, 'has created the expected value.');
-    t.end();
-  });
-});
+    promiseTest(`Adding a ${name} with a nodeified callback`, function (t, api) {
+      context.forEach(function (x) { api.putResource(x).catch(t.end); });
+      api.putResource(r, function (err, result) {
+        if (err) return t.end(`produces an error: ${e}`);
+        t.deepEqual(result, r, 'has created the expected value.');
+        t.end();
+      });
+    });
 
-promiseTest('Retrieving a device via promise', function (t, api) {
-  api.putResource(device).catch(t.end);
-  api.getResource(device.id, 'device').then(function (d) {
-    t.deepEqual(d, device, 'has the expected result.');
-    t.end();
-  }, function (e) {
-    t.end(`produces an error: ${e}`);
-  });
-});
+    promiseTest(`Retrieving a ${name} via a promise`, function (t, api) {
+      context.forEach(function (x) { api.putResource(x).catch(t.end); });
+      api.putResource(r).catch(t.end);
+      api.getResource(r.id, name).then(function (x) {
+        t.deepEqual(x, r, 'has the expected result.');
+        t.end();
+      }, function (e) {
+        t.end(`produces an error: ${e}`);
+      });
+    });
 
-promiseTest('Retrieving a device via a callback', function (t, api) {
-  api.putResource(device).catch(t.end);
-  api.getResource(device.id, 'device', function (err, result) {
-    if (err) return t.fail(`produces an error: ${e}`);
-    t.deepEqual(result, device, 'has the exptected result.');
-    t.end();
-  });
-});
+    promiseTest(`Retrieving a ${name} via a callback`, function (t, api) {
+      context.forEach(function (x) { api.putResource(x).catch(t.end); });
+      api.putResource(r).catch(t.end);
+      api.getResource(r.id, name, function (err, result) {
+        if (err) return t.fail(`produces an error: ${e}`);
+        t.deepEqual(result, r, 'has the exptected result.');
+        t.end();
+      });
+    });
 
-promiseTest('Retrieve a device with no type', function (t, api) {
-  api.putResource(device).catch(t.end);
-  t.plan(2);
-  api.getResource(device.id).then(function (d) {
-    t.deepEqual(d, device, 'has the expected result with a known id.');
-  }, function (e) {
-    t.fail(`produces an error: ${e}`);
-  });
-  api.getResource(uuid.v4()).then(function (d) {
-    t.fail('should fail with a random id and it succeeded.');
-  }, function (e) {
-    t.deepEqual(e, new Error(""), 'errors with a random id as expected.')
-  });
-});
+    promiseTest(`Retrieve a ${name} with no type`, function (t, api) {
+      context.forEach(function (x) { api.putResource(x).catch(t.end); });
+      api.putResource(r).catch(t.end);
+      t.plan(2);
+      api.getResource(r.id).then(function (x) {
+        t.deepEqual(x, r, 'has the expected result with a known id.');
+      }, function (e) {
+        t.fail(`produces an error: ${e}`);
+      });
+      api.getResource(uuid.v4()).then(function (d) {
+        t.fail('should fail with a random id and it succeeded.');
+      }, function (e) {
+        t.equal(e.message, "Could not find a resource with the given identifier.",
+          'errors with a random id as expected.');
+      });
+    });
+
+    promiseTest(`Getting a list of ${name}s`, function (t, api) {
+      context.forEach(function (x) { api.putResource(x).catch(t.end); });
+      api.putResource(r).catch(t.end);
+      Promise.all([
+        api.getResources(name).then(function (devs) {
+          var expected = context.concat([r]).filter(function (x) {
+            return x.constructor.name.toLowerCase() === name;
+          });
+          t.equal(devs.length, expected.length, 'has the expected length.');
+          expected.forEach(function (x) {
+            t.ok(devs.some(function (y) { return x.id === y.id }),
+              `has ${name} with id ${x.id}.`);
+          });
+        }, t.fail),
+        api.getResources(name + 's').then(function (devs) {
+          var expected = context.concat([r]).filter(function (x) {
+            return x.constructor.name.toLowerCase() === name;
+          });
+          t.equal(devs.length, expected.length, 'with plural name has the expected length.');
+          expected.forEach(function (x) {
+            t.ok(devs.some(function (y) { return x.id === y.id }),
+              `with plural name has ${name} with id ${x.id}.`);
+          });
+        }, t.fail)
+      ]).finally(t.end);
+    });
+
+    promiseTest(`Deleting a ${name} with promises`, function (t, api) {
+      context.forEach(function (x) { api.putResource(x).catch(t.end); });
+      api.putResource(r).catch(t.end);
+      t.plan(4);
+      api.getResource(r.id, name).then(function (x) {
+        t.deepEqual(x, r, 'starts with the device stored.')
+      }, t.fail);
+      api.deleteResource(r.id, name).then(function (xid) {
+         t.deepEqual(xid, r.id, 'successful delete and retrieve.');
+      }, t.fail);
+      api.getResource(r.id, name).then(function (x) {
+        t.fail('still remains in the store at the end.')
+      }, function (e) {
+        t.pass(`is not found after deletion: ${e}`);
+      });
+      api.deleteResource(uuid.v4(), name).then(function (x) {
+        t.fail('with a random id delete should not succeed.');
+      }, function (e) {
+        t.pass('should fail with a random id.');
+      });
+    });
+
+    promiseTest(`Deleting a ${name} with callbacks`, function (t, api) {
+      context.forEach(function (x) { api.putResource(x).catch(t.end); });
+      api.putResource(r).catch(t.end);
+      t.plan(4);
+      api.getResource(r.id, name, function (e, x) {
+        if (e) return t.fail(e);
+        t.deepEqual(x, r, 'starts with the device stored.')
+      });
+      api.deleteResource(r.id, name, function (e, xid) {
+        if (e) return t.fail(e);
+        t.deepEqual(xid, r.id, 'successful delete and id check.');
+      });
+      api.getResource(r.id, name, function (e, x) {
+        if (e) return t.pass(`is not found after deletion: ${e}`);
+        t.fail('still remains in the store at the end.')
+      });
+      api.deleteResource(uuid.v4(), name, function (e, x) {
+        if (e) return t.pass('should fail with a random id.');
+        t.fail('with a random id delete should not succeed.');
+      });
+    });
+  })();
+} // end testResources loop
+
 
 promiseTest('Put ten devices and retrieve', function (t, api) {
   var pushy = [];
@@ -113,16 +221,54 @@ promiseTest('Getting a list of resources for an unknown type', function (t, api)
   });
 });
 
-promiseTest('Getting a list of devices', function (t, api) {
-  var device2 = new Device(null, null, "Getting devicive!", null, node.id);
-  api.putResource(device).catch(t.end);
-  api.putResource(device2).catch(t.end);
-  api.getResources('device').then(function (devs) {
-    t.equal(devs.length, 2, 'has the expected length.');
-    t.ok(devs.some(function (x) { return x.id === device.id}),
-      'has the first device.');
-    t.ok(devs.some(function (x) { return x.id === device2.id}),
-      'has the second device.');
+promiseTest('Putting a bad device', function (t, api) {
+  api.putResource(new Device()).then(function (d) {
+    t.end('should not have succeeded');
+  }, function (e) {
+    t.equal(e.message, 'Device node_id property must reference this node.',
+      `produces eexpected error: ${e.message}`);
     t.end();
-  }, t.end);
+  });
+});
+
+promiseTest('Deleting a device with promises', function (t, api) {
+  api.putResource(device).catch(t.end);
+  t.plan(4);
+  api.getResource(device.id, 'device').then(function (d) {
+    t.deepEqual(d, device, 'starts with the device stored.')
+  }, t.fail);
+  api.deleteResource(device.id, 'device').then(function (did) {
+     t.deepEqual(did, device.id, 'successful delete and retrieve.');
+  }, t.fail);
+  api.getResource(device.id, 'device').then(function (d) {
+    t.fail('still remains in the store at the end.')
+  }, function (e) {
+    t.pass(`is not found after deletion: ${e}`);
+  });
+  api.deleteResource(uuid.v4(), 'device').then(function (d) {
+    t.fail('with a random id delete should not succeed.');
+  }, function (e) {
+    t.pass('should fail with a random id.');
+  });
+});
+
+promiseTest('Deleting a device with callbacks', function (t, api) {
+  api.putResource(device).catch(t.end);
+  t.plan(4);
+  api.getResource(device.id, 'device', function (e, d) {
+    if (e) return t.fail(e);
+    t.deepEqual(d, device, 'starts with the device stored.')
+  });
+  api.deleteResource(device.id, 'device', function (e, did) {
+    if (e) return t.fail(e);
+    t.deepEqual(did, device.id, 'successful delete and id check.');
+  });
+  api.getResource(device.id, 'device', function (e, d) {
+    if (e) return t.pass(`is not found after deletion: ${e}`);
+    t.fail('still remains in the store at the end.')
+  });
+  api.deleteResource(uuid.v4(), 'device', function (e, d) {
+    if (e) return t.pass('should fail with a random id.');
+    t.fail('with a random id delete should not succeed.');
+  });
 });

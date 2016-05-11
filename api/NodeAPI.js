@@ -70,7 +70,7 @@ function NodeAPI (port, store) {
   }
 
   function nameToCamel (n) {
-    if (n.toLowerCase().endsWith('s')) n = n.substring(0, -1);
+    if (n.toLowerCase().endsWith('s')) n = n.slice(0, -1);
     return n.length > 0 ? n.substring(0, 1).toUpperCase() +
       n.substring(1).toLowerCase() : '';
   }
@@ -89,21 +89,21 @@ function NodeAPI (port, store) {
 
   this.getResource = function (id, type, cb) {
     return storePromise.then(function (store) {
-        if (type && typeof type === 'string' &&
-             knownResourceTypes.some(function (x) {
-               return type.toLowerCase() === x }) ) {
-          var getFn = Promise.denodeify(store['get' + nameToCamel(type)]);
-          return getFn.call(store, id);
-        } else {
-          var wobble = Promise.all(knownResourceTypes.map(function (x) {
-            return Promise.denodeify(store['get' + nameToCamel(x)]).call(store, id)
-              .then(function (s) { return s; }, function (e) { return null; }); }));
-          return wobble.then(function (a) {
-            var result = a.find(function (x) { return x !== null; });
-            if (result) return result;
-            else throw new Error("Could not find a resource with the given identifier.");
-          });
-        }
+      if (type && typeof type === 'string' &&
+           knownResourceTypes.some(function (x) {
+             return type.toLowerCase() === x }) ) {
+        var getFn = Promise.denodeify(store['get' + nameToCamel(type)]);
+        return getFn.call(store, id);
+      } else {
+        var wobble = Promise.all(knownResourceTypes.map(function (x) {
+          return Promise.denodeify(store['get' + nameToCamel(x)]).call(store, id)
+            .then(function (s) { return s; }, function (e) { return null; }); }));
+        return wobble.then(function (a) {
+          var result = a.find(function (x) { return x !== null; });
+          if (result) return result;
+          else throw new Error("Could not find a resource with the given identifier.");
+        });
+      }
     }).nodeify(cb);
   }
 
@@ -112,7 +112,8 @@ function NodeAPI (port, store) {
       return new Promise(function (resolve, reject) {
         if (type && typeof type === 'string' &&
              knownResourceTypes.some(function (x) {
-               return type.toLowerCase() === x }) ) {
+               return type.toLowerCase() === x ||
+                 type.slice(0, -1).toLowerCase() === x; }) ) {
           var getFn = Promise.denodeify(store['get' + nameToCamel(type) + 's']);
           resolve(getFn.call(store));
         } else { reject(new Error('Type is not a string or a known type.')) };
@@ -120,8 +121,16 @@ function NodeAPI (port, store) {
     }).nodeify(cb);
   }
 
-  this.deleteResource = function (resource, type) {
-    // TODO
+  this.deleteResource = function (id, type, cb) {
+    var nextState = storePromise.then(function (store) {
+      var deleteFn = Promise.denodeify(store['delete' + nameToCamel(type)]);
+      return deleteFn.call(store, id);
+    });
+    storePromise = nextState.then(function (ro) {
+      store = ro.store;
+      return store;
+    });
+    return nextState.then(function (ro) { return ro.id; }).nodeify(cb);
   }
 
   /**

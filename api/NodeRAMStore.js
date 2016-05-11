@@ -132,7 +132,7 @@ function deleteItem(items, id, cb, argsLength, name, tidy, node) {
     } else {
       if (items.hasOwnProperty(id)) {
         var tidied = (node) ? tidy() : tidy;
-        cb(null, id, tidied.setIn([name + 's'], items.without(id)));
+        cb(null, { id: id, store: tidied.setIn([name + 's'], items.without(id))});
       } else {
         cb(statusError(404, "A " + name + " with identifier '" + id +
           "' could not be found on a delete request."));
@@ -345,7 +345,7 @@ NodeRAMStore.prototype.putSource = function (source, cb) {
       return cb(statusError(400,
         "Referenced device '" + source.device_id + "' is not known on this node."));
     }
-    cb(null, source, this.setIn(['sources', source.id], source));
+    cb(null, { resource: source, store: this.setIn(['sources', source.id], source) });
   }.bind(this));
 }
 
@@ -380,10 +380,11 @@ NodeRAMStore.prototype.putSender = function (sender, cb) {
       var deviceSenders = this.devices[sender.device_id].senders.asMutable();
       deviceSenders.push(sender.id);
       // console.log(this.setIn(['senders', sender.id], sender));
-      cb(null, sender, this.setIn(['senders', sender.id], sender)
-        .setIn(['devices', sender.device_id, 'senders'], deviceSenders));
+      cb(null, { resource : sender, store: this.setIn(['senders', sender.id], sender)
+        .setIn(['devices', sender.device_id, 'senders'], deviceSenders) });
     } else {
-      cb(null, sender, this.setIn(['senders', sender.id], sender));
+      cb(null, { resource : sender,
+        store : this.setIn(['senders', sender.id], sender) });
     }
   }.bind(this));
 }
@@ -414,10 +415,11 @@ NodeRAMStore.prototype.putReceiver = function (receiver, cb) {
       var deviceReceivers = this.devices[receiver.device_id].receivers.asMutable();
       deviceReceivers.push(receiver.id);
       // console.log(deviceReceivers);
-      cb(null, receiver, this.setIn(['receivers', receiver.id], receiver)
-          .setIn(['devices', receiver.device_id, 'receivers'], deviceReceivers));
+      cb(null, { resource : receiver, store : this.setIn(['receivers', receiver.id], receiver)
+          .setIn(['devices', receiver.device_id, 'receivers'], deviceReceivers) });
     } else {
-      cb(null, receiver, this.setIn(['receivers', receiver.id], receiver));
+      cb(null, { resource : receiver,
+        store : this.setIn(['receivers', receiver.id], receiver) });
     }
   }.bind(this));
 }
@@ -445,7 +447,7 @@ NodeRAMStore.prototype.putFlow = function (flow, cb) {
       return cb(statusError(400,
         "Referenced source '" + flow.source_id + "' is not known to this node.'"));
     }
-    cb(null, flow, this.setIn(['flows', flow.id], flow));
+    cb(null, { resource : flow, store : this.setIn(['flows', flow.id], flow) });
   }.bind(this));
 }
 
