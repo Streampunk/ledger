@@ -534,10 +534,13 @@ function NodeAPI (port, store) {
         console.error(`Received status code ${res.statusCode} when pushing ${resourceType}.`);
         res.setEncoding('utf8');
         res.on('data', function (errBody) {
-          console.error(`Error message body: ${errBody}`); });
+          console.error(`Error message body: ${errBody}`);
+          resetMDNS();
+        });
       } else {
         res.on('error', function (e) {
           console.error(`Error during push of ${resourceType}: ${e}`);
+          resetMDNS();
         });
         res.on('end', function () {
           console.log(`Pushed ${resourceType} and received Location ${res.headers.location}.`);
@@ -547,6 +550,7 @@ function NodeAPI (port, store) {
 
     req.on('error', (e) => {
       console.error(`Problem with ${resourceType} request: ${e.message}`);
+      resetMDNS();
     });
 
     req.write(reqBody);
@@ -564,6 +568,15 @@ function NodeAPI (port, store) {
     }, function (res) {
       if (res.statusCode !== 204)
         console.error(`Failed to delete ${resourceType} with id ${rid}.`);
+      res.on('error', function (e) {
+        console.error(`Response error when deleting registered resournce: ${e}`);
+        resetMDNS();
+      })
+    });
+
+    req.on('error', function (e) {
+      console.error(`Request error when deleting registered resource: ${e}`);
+      resetMDNS();
     });
     req.end();
   }
@@ -598,7 +611,6 @@ function NodeAPI (port, store) {
               console.log(`Unexpected health check response ${res.statusCode}.`);
             res.on('error', function (err) {
               console.error(`Error with healthcheck response from http://${regAddress}:${regPort}: ${err}`);
-              clearInternal(healthcheck);
               resetMDNS();
             });
             res.setEncoding('utf8');
@@ -606,7 +618,6 @@ function NodeAPI (port, store) {
           });
           req.on('error', function (err) {
             console.error(`Error with healthcheck request to http://${regAddress}:${regPort}: ${err}`);
-            clearInterval(healthcheck);
             resetMDNS();
           });
           req.end();
@@ -629,6 +640,7 @@ function NodeAPI (port, store) {
 
   function resetMDNS() {
     console.log("Resetting NodeAPI MDNS registration services.");
+    clearInterval(healthcheck);
     if (browser) browser.stop();
     setTimeout(function () {
       regConnected = false;

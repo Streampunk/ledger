@@ -25,12 +25,17 @@ var Flow = require('../model/Flow.js');
 var uuid = require('uuid');
 var mdns = require('mdns-js');
 var NodeStore = require('./NodeStore.js');
+var Promise = require('promise');
+
+var knownResourceTypes = ['node', 'device', 'flow', 'source', 'receiver', 'sender'];
 
 function RegistrationAPI (port, store, serviceName, pri) {
   var app = express();
   var server = null;
   if (!pri || Number(pri) !== pri || pri % 1 !== 0) pri = 100;
   if (!serviceName || typeof serviceName !== 'string') serviceName = 'ledger_reg';
+
+  var storePromise = Promise.resolve(store);
 
   var nodeHealth = {};
   var mdnsService = null;
@@ -47,12 +52,75 @@ function RegistrationAPI (port, store, serviceName, pri) {
    * Replace the [store]{@link NodeStore} set for this API.
    * @param {NodeStore} replacementStore Store to use to replace the current one.
    * @return {(Error|null)}  Error if a problem, otherwise null for success.
+   * @deprecated Use putResource and deleteResource instead.
    */
   this.setStore = function (replacementStore) {
     if (!validStore(replacementStore))
       return new Error('The given replacement store is not valid.');
     store = replacementStore;
     return null;
+  }
+
+  function nameToCamel (n) {
+    if (n.toLowerCase().endsWith('s')) n = n.slice(0, -1);
+    return n.length > 0 ? n.substring(0, 1).toUpperCase() +
+      n.substring(1).toLowerCase() : '';
+  }
+
+  /**
+   * Create or update a resource (node, device, source, flow, sender, receiver)
+   * in the underlying [store]{@link NodeStore} of this node API. Calls to this
+   * methods are serialized into a chain of promises.
+   *
+   * Note that the underlying store may preform referential integrity checks on
+   * the resources and so the order in which they are created is important.
+   * @param  {[type]}   resource Resource to be created or updated
+   * @param  {Function=} cb      Optional callback - node style - with error as the
+   *                             first argument and the put resource as the second.
+   * @return {Promise}           When no callback is provided, a promise that
+   *                             resolves to the put resource.
+   */
+  this.putResource = function (resource, cb) {
+    var nextState = storePromise.then(function (store) {
+      var putFn = Promise.denodeify(store['put' + resource.constructor.name]);
+      return putFn.call(store, resource);
+    });
+    storePromise = nextState.then(function (ro) {
+      store = ro.store;
+      return store;
+    }, function (e) { console.error(e); });
+    return nextState.then(function (ro) { return ro.resource; }).nodeify(cb);
+  }
+
+  /**
+   * Delete a resource (node, device, source, flow, sender, receiver) in the underlying
+   * [store]{@link NodeStore} of this node API. Calls to this method resolve at
+   * the end of the current chain of serialized store-changing promises.
+   * @param  {string}    id   UUID identifier of the resource to be deleted.
+   * @param  {string}    type Type of the resource to delete. Unlike with
+   *                          getResource, the type must be provided.
+   * @param  {Function=} cb   Optional callback - node style - with any error
+   *                          as the first argument and the identifier of the
+   *                          deleted resource as the second.
+   * @return {Promise}        When no callback is provided, a promise that resolves
+   *                          to the identifier of the resource being deleted.
+   */
+  this.deleteResource = function (id, type, cb) {
+    var nextState = storePromise.then(function (store) {
+      return new Promise(function (resolve, reject) {
+        if (type && typeof type === 'string' &&
+             knownResourceTypes.some(function (x) {
+               return type.toLowerCase() === x; }) ) {
+          var deleteFn = Promise.denodeify(store['delete' + nameToCamel(type)]);
+          resolve(deleteFn.call(store, id));
+        } else { reject(new Error('Type is not a string or a known type.')) };
+      });
+    });
+    storePromise = nextState.then(function (ro) {
+      store = ro.store;
+      return store;
+    });
+    return nextState.then(function (ro) { return ro.id; }).nodeify(cb);
   }
 
   /**
@@ -141,15 +209,12 @@ function RegistrationAPI (port, store, serviceName, pri) {
       }
 
       if (value) {
-        var fnName = 'put' + input.type.charAt(0).toUpperCase() +
-          input.type.substring(1).toLowerCase();
-        store[fnName](value, function (err, ro) {
+        var exists = Object.keys(store[input.type + 's']).indexOf(value.id) >= 0;
+        this.putResource(value, function (err, r) {
           if (err) return next(err);
-          res.status((Object.keys(
-            store[input.type + 's']).indexOf(ro.resource.id) < 0) ? 201 : 200);
-          this.setStore(ro.store);
-          res.set('Location', `/x-nmos/registration/v1.0/resource/${input.type}s/${ro.resource.id}`);
-          res.json(ro.resource);
+          res.status(exists ? 200 : 201);
+          res.set('Location', `/x-nmos/registration/v1.0/resource/${input.type}s/${r.id}`);
+          res.json(r);
         }.bind(this));
       } else {
         next(NodeStore.prototype.statusError(400,
@@ -158,12 +223,9 @@ function RegistrationAPI (port, store, serviceName, pri) {
     }.bind(this));
 
     rapi.delete('/resource/:resourceType/:resourceID', function (req, res, next) {
-      var type = 'delete' + req.params.resourceType.slice(0, 1).toUpperCase() +
-        req.params.resourceType.slice(1, -1);
-      this.getStore().constructor.prototype[type].call(this.getStore(),
-          req.params.resourceID, function (e, ro) {
+      this.deleteResource(req.params.resourceID, req.params.resourceType.slice(0, -1),
+          function (e, r) {
         if (e) return next(e);
-        this.setStore(ro.store);
         res.status(204).end();
       }.bind(this));
     }.bind(this));
