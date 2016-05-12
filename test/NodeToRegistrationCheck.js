@@ -22,31 +22,37 @@ var RegistrationAPI = require('../api/RegistrationAPI.js');
 var QueryAPI = require('../api/QueryAPI.js');
 var NodeRAMStore = require('../api/NodeRAMStore.js');
 
+function generatePort() { return Math.random() * 32768|0 + 32768; };
+
 var properties = {
-  queryPort : '3002',
-  registrationPort : '3001',
+  queryPort : '' + generatePort(),
+  registrationPort : '' + generatePort(),
   queryName : 'ledger_query',
   registrationName : 'ledger_registration',
   queryPri : '100',
   registrationPri : '100'
 };
 
-var store = new NodeRAMStore();
-
-var registrationAPI = new RegistrationAPI(+properties.registrationPort, store,
-  properties.registrationName, +properties.registrationPri);
-var queryAPI = new QueryAPI(+properties.queryPort, registrationAPI.getStore,
-  properties.queryName, +properties.queryPri);
-
-registrationAPI.init().start();
-queryAPI.init().start();
-
-
+var registrationAPI, queryAPI, nodeAPI;
 var node = new ledger.Node(null, null, "Ledger Node", "http://ledger.local:3000",
   "ledger");
-var store = new ledger.NodeRAMStore(node);
-var nodeAPI = new ledger.NodeAPI(3000, store);
-nodeAPI.init().start();
+
+test('Starting stores', function (t) {
+  var store = new NodeRAMStore();
+
+  registrationAPI = new RegistrationAPI(+properties.registrationPort, store,
+    properties.registrationName, +properties.registrationPri);
+  queryAPI = new QueryAPI(+properties.queryPort, registrationAPI.getStore,
+    properties.queryName, +properties.queryPri);
+
+  registrationAPI.init().start();
+  queryAPI.init().start();
+
+  store = new ledger.NodeRAMStore(node);
+  nodeAPI = new ledger.NodeAPI(generatePort(), store);
+  nodeAPI.init().start();
+  t.end();
+});
 
 var device = new ledger.Device(null, null, "Dat Punking Ting", null, node.id);
 var videoSource = new ledger.Source(null, null, "Garish Punk", "Will you turn it down!!",
@@ -70,6 +76,15 @@ var videoReceiver = new ledger.Receiver(null, null, "Watching da Punks",
   "Looking hot, punk!", ledger.formats.video, null, null, device.id,
   ledger.transports.rtp_mcast);
 
+var testResources = [device, videoSource, audioSource, audioFlow, videoFlow,
+  audioSender, videoSender, audioReceiver, videoReceiver];
+
+test('Registering resources', function (t) {
+  t.plan(testResources.length);
+  testResources.forEach(function (r) {
+    nodeAPI.putResource(r).then(t.pass, t.fail)});
+});
+
 test('A registration service with an empty node', function (t) {
   setTimeout(function () {
     registrationAPI.getStore().getNode(node.id, function (err, result) {
@@ -81,6 +96,38 @@ test('A registration service with an empty node', function (t) {
       t.end();
     });
   }, 3000);
+});
+
+testResources.forEach(function (r) {
+  test(`Checking for ${r.constructor.name.toLowerCase()} in registry`, function (t) {
+    (registrationAPI.getStore())['get' + r.constructor.name](r.id, function (e, x) {
+      if (e) return t.end(`fails to find it: ${e}`);
+      if (r.constructor.name !== 'Device') {
+        t.deepEqual(x, r, 'finds it as expected.');
+      } else {
+        t.deepEqual(x.set("senders", []).set("receivers", []), r,
+          'finds the updated device.');
+        t.equal(x.senders.length, 2, 'device has 2 senders.');
+        t.equal(x.receivers.length, 2, 'device has 2 receivers.');
+      }
+      t.end();
+    });
+  });
+});
+
+test('Reset store by deleting all resources that are not nodes', function (t) {
+  var deleteProms = testResources.reverse().forEach(function (r) {
+    nodeAPI.deleteResource(r.id, r.constructor.name.toLowerCase()).catch(console.error);
+  });
+  t.plan(testResources.length);
+  setTimeout(function () {
+    testResources.forEach(function (r) {
+      (registrationAPI.getStore())['get' + r.constructor.name](r.id, function (e, x) {
+        if (e) return t.pass(`${r.constructor.name} has been deleted.`);
+        t.fail(`${r.constructor.name} has not been deleted.`);
+      });
+    });
+  }, 2000);
 });
 
 test('On a new device registration at a node, eventaully the registry', function (t) {

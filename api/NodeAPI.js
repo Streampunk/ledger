@@ -182,7 +182,8 @@ function NodeAPI (port, store) {
                return type.toLowerCase() === x; }) ) {
           var deleteFn = Promise.denodeify(store['delete' + nameToCamel(type)]);
           resolve(deleteFn.call(store, id));
-        } else { reject(new Error('Type is not a string or a known type.')) };
+        } else {
+          reject(new Error('Type is not a string or a known type.')); };
       });
     });
     storePromise = nextState.then(function (ro) {
@@ -507,7 +508,18 @@ function NodeAPI (port, store) {
         regConnected = true;
         regAddress = selected.addresses[0];
         regPort = selected.port;
-        registerSelf();
+        storePromise.then(function (s) {
+          registerSelf();
+          s.getDevices(function (e, ds) { ds.forEach(function (d) {
+            // don't push senders and receivers ... bootstrap issue
+            pushResource(d.set("senders", []).set("receivers", []));
+          }); });
+          s.getSources(function (e, ss) { ss.forEach(pushResource); });
+          s.getFlows(function (e, fs) { fs.forEach(pushResource); });
+          s.getSenders(function (e, ss) { ss.forEach(pushResource); });
+          s.getReceivers(function (e, rs) { rs.forEach(pushResource); });
+          return s;
+        });
       }
       selectionTimer = null;
     }
@@ -530,6 +542,7 @@ function NodeAPI (port, store) {
         'Content-Length' : reqBody.length
       }
     }, function (res) {
+      // console.log('PUSHED response', res.statusCode);
       if (res.statusCode >= 300) {
         console.error(`Received status code ${res.statusCode} when pushing ${resourceType}.`);
         res.setEncoding('utf8');
@@ -542,6 +555,7 @@ function NodeAPI (port, store) {
           console.error(`Error during push of ${resourceType}: ${e}`);
           resetMDNS();
         });
+        // res.setEncoding('utf8'); res.on('data', console.log);
         res.on('end', function () {
           console.log(`Pushed ${resourceType} and received Location ${res.headers.location}.`);
         });
