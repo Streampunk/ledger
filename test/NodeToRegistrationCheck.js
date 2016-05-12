@@ -167,18 +167,22 @@ test('Deleting a flow at the node', function (t) {
 });
 
 test('Updating a device at the node', function (t) {
-  t.plan(2);
+  t.plan(3);
   registrationAPI.getStore().getDevice(device.id, function (err, result) {
     if (err) return t.end('cannot be tested as the device does not exist.');
     t.equal(result.id, device.id, 'has our device registered.');
-    console.log(result);
     var deltaDevice = new ledger.Device(device.id, null, 'Switched up PUNK!',
       null, node.id, result.senders, result.receivers);
     nodeAPI.putResource(deltaDevice, function (e, x) {
       if (e) return t.fail('failed to update device in node store.');
       t.deepEqual(x, deltaDevice, 'device successfully updated on node store.');
-      console.log(x);
     });
+    setTimeout(function() {
+      registrationAPI.getStore().getDevice(deltaDevice.id, function (e, x) {
+        if (e) return t.fail('could not subsequently retrieve from the registry.');
+        t.deepEqual(x, deltaDevice, 'is stored as the delta device on the registry.');
+      });
+    }, 1000);
   });
 });
 

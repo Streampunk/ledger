@@ -107,7 +107,7 @@ function getItem(items, id, cb, argsLength, name) {
     if (argsLength !== 2) {
       cb(statusError(400, "Identifier and callback function must be provided."));
     } else if (!id || typeof id !== 'string'){
-      console.log(id);
+      // console.log(id);
       cb(statusError(400, "Identifier must be a string value."));
     } else if (id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/) == null) {
       cb(statusError(400, "Identifier must be a valid UUID."));
@@ -125,7 +125,7 @@ function deleteItem(items, id, cb, argsLength, name, tidy, node) {
     if (argsLength !== 2) {
       cb(statusError(400, "Identifier and callback functions must be provided."));
     } else if (!id || typeof id != 'string') {
-      console.log(id);
+      // console.log(id);
       cb(statusError(400, "Identifier must be a string value."));
     } else if ((id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/) == null)) {
       cb(statusError(400, "Identifier must be a valid UUID."));
@@ -304,7 +304,6 @@ NodeRAMStore.prototype.putDevice = function (device, cb) {
     }
 
     if (!device.senders.every(function (s) {
-      console.log(s, this.senders);
       return this.senders.hasOwnProperty(s);
     }.bind(this))) {
       return cb(statusError(400,
@@ -316,6 +315,21 @@ NodeRAMStore.prototype.putDevice = function (device, cb) {
       cb(statusError(400, "Receivers referenced from given device are not on this store."));
       return;
     }
+
+    Object.keys(this.senders).filter(function (x) {
+      return this.senders[x].device_id === device.id;
+    }.bind(this)).forEach(function (x) {
+      var deviceSenders = device.senders.asMutable();
+      if (deviceSenders.indexOf(x) < 0) deviceSenders.push(x);
+      device = device.set("senders", deviceSenders);
+    });
+    Object.keys(this.receivers).filter(function (x) {
+      return this.receivers[x].device_id === device.id;
+    }.bind(this)).forEach(function (x) {
+      var deviceReceivers = device.receivers.asMutable();
+      if (deviceReceivers.indexOf(x) < 0) deviceReceivers.push(x);
+      device = device.set("receivers", deviceReceivers);
+    });
 
     cb(null, {
       resource : device,

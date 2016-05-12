@@ -187,7 +187,7 @@ function NodeAPI (port, store) {
     });
     storePromise = nextState.then(function (ro) {
       store = ro.store;
-      registerDelete(ro.resource);
+      registerDelete(ro.id, type);
       return store;
     });
     return nextState.then(function (ro) { return ro.id; }).nodeify(cb);
@@ -540,7 +540,7 @@ function NodeAPI (port, store) {
           console.error(`Error during push of ${resourceType}: ${e}`);
         });
         res.on('end', function () {
-          console.log(`Pushed ${resourceType} and received Location ${res.headers.Location}.`);
+          console.log(`Pushed ${resourceType} and received Location ${res.headers.location}.`);
         });
       }
     });
@@ -553,18 +553,17 @@ function NodeAPI (port, store) {
     req.end();
   }
 
-  function registerDelete (r) {
+  function registerDelete (rid, resourceType) {
     if (!regConnected) return;
-    var resourceType = r.constructor.name.toLowerCase();
-    console.log('*** DELETE', resource.id);
+    var resourceType = resourceType.toLowerCase();
     var req = http.request({
       hostname: regAddress,
       port : regPort,
-      path : `/x-nmos/registration/v1.0/resource/${resourceType}s/${resource.id}`,
+      path : `/x-nmos/registration/v1.0/resource/${resourceType}s/${rid}`,
       method : 'DELETE'
     }, function (res) {
       if (res.statusCode !== 204)
-        console.error(`Failed to delete ${resourceType} with id ${resource.id}.`);
+        console.error(`Failed to delete ${resourceType} with id ${rid}.`);
     });
     req.end();
   }

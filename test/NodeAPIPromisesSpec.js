@@ -282,3 +282,17 @@ promiseTest('Can alter details of self via callback', function (t, api) {
     t.deepEqual(x, replacementNode, 'and value is as expected via promise.')
   });
 });
+
+promiseTest('Can update a device and senders/receivers get set', function (t, api) {
+  testResources.forEach(function (x) { api.putResource(x).catch(t.end); });
+  var deltaDevice = new Device(device.id, null, 'Switched up PUNK!',
+    null, node.id);
+  t.ok(deltaDevice.senders.length === 0, 'replacement candidate does not have senders.');
+  t.ok(deltaDevice.receivers.length === 0, 'repalcement candidate does not have receivers.');
+  api.putResource(deltaDevice).then(function (x) {
+    t.notDeepEqual(x, deltaDevice, 'devices are not equal.');
+    t.ok(x.senders.length === 2, 'returned replacement device has senders.');
+    t.ok(x.receivers.length === 2, 'returned replacement device has receivers.');
+    t.end()
+  }, t.end);
+});
