@@ -28,7 +28,7 @@ var Source = ledger.Source;
 var Flow = ledger.Flow;
 var Sender = ledger.Sender;
 var Receiver = ledger.Receiver;
-var testPort = 3211;
+var testPort = return Math.random() * 32768|0 + 32768;
 
 function serverTest(description, fn) {
   test(description, function (t) {

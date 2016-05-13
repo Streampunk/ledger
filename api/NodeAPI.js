@@ -22,6 +22,7 @@ var http = require('http');
 var Sender = require('../model/Sender.js');
 var getResourceName = require('./Util.js').getResourceName;
 var Promise = require('promise');
+var assert = require('assert');
 
 var knownResourceTypes = ['device', 'flow', 'source', 'receiver', 'sender'];
   // self is treated as a special case
@@ -383,6 +384,19 @@ function NodeAPI (port, store) {
     });
 
     napi.put('/receivers/:id/target', function (req, res, next) {
+      if (req.body.id === null) {
+        this.getResource(req.params.id, 'receiver', function (err, receiver) {
+          if (err) return next(err);
+          receiver = receiver
+            .set('subscription', { sender_id : null })
+            .set('version', Sender.prototype.generateVersion());
+          this.putResource(receiver, function (e, ro) {
+            if (e) return next(e);
+            return res.status(202).json({id : null});
+          }.bind(this));
+        }.bind(this));
+        return;
+      };
       var updatedSender = Sender.prototype.parse(req.body);
       store.getReceiver(req.params.id, function(err, receiver) {
         if (err) return next(err);
@@ -395,7 +409,7 @@ function NodeAPI (port, store) {
           .set('version', Sender.prototype.generateVersion());
         this.putResource(receiver, function (e, ro) {
           if (e) return next(e);
-          res.status(202).json(ro.resource);
+          res.status(202).json(updatedSender);
         }.bind(this));
       }.bind(this));
     }.bind(this));

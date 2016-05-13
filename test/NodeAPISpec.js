@@ -29,7 +29,7 @@ var Source = ledger.Source;
 var Flow = ledger.Flow;
 var Sender = ledger.Sender;
 var Receiver = ledger.Receiver;
-var testPort = 3210;
+var testPort = Math.random() * 32768|0 + 32768;
 
 function serverTest(description, node, fn) {
   test(description, function (t) {
@@ -793,6 +793,69 @@ serverTest('Subscribing receiver to sender', node,
           }).on('error', function (e) {
             t.fail(e); done();
           });
+        });
+      });
+      subscribeReq.write(subscribeToSender);
+      subscribeReq.end();
+    }
+  });
+});
+
+serverTest('Unsubscribing receiver from sender', node,
+    function (t, node, store, server, done) {
+  fillStore(store, function (e, s) {
+    if (e) { t.fail(e); }
+    else {
+      server.setStore(s);
+      var subscribeReq = http.request({
+        port : testPort,
+        path : `/x-nmos/node/v1.0/receivers/${videoReceiver.id}/target`,
+        method : 'PUT',
+        headers : {
+          'Content-Type' : 'application/json',
+          'Content-Length' : subscribeToSender.length
+        }
+      }, function (res) {
+        t.equals(res.statusCode, 202, 'produces a 202 Accepted error code.');
+        res.setEncoding('utf8');
+        res.on('data', function (result) {
+          t.deepEqual(Sender.prototype.parse(result.toString()),
+            Sender.prototype.parse(subscribeToSender), 'returns what is sent.');
+        });
+        res.on('end', function () {
+          var unsubscribeBody = JSON.stringify({id : null});
+          var unsubscribeReq = http.request({
+            port : testPort,
+            path : `/x-nmos/node/v1.0/receivers/${videoReceiver.id}/target`,
+            method : 'PUT',
+            headers : {
+              'Content-Type' : 'application/json',
+              'Content-Length' : unsubscribeBody.length
+            }
+          }, function (res) {
+            t.equals(res.statusCode, 202, 'produces a 202 Accepted error code.');
+            res.setEncoding('utf8');
+            res.on('data', function (result) {
+              t.deepEqual(JSON.parse(result), {id : null}, 'returns what is sent.');
+            });
+            res.on('end', function () {
+              http.get({
+                  port : testPort,
+                  path : `/x-nmos/node/v1.0/receivers/${videoReceiver.id}`
+              }, function (res) {
+                t.equal(res.statusCode, 200, 'subsequent retrieve has status code 200.');
+                res.on('data', function (chunk) {
+                  t.equal(JSON.parse(chunk.toString()).subscription.sender_id,
+                    null, 'sets the "subscription.sender_id" to null.');
+                  done();
+                });
+              }).on('error', function (e) {
+                t.fail(e); done();
+              });
+            });
+          });
+          unsubscribeReq.write(unsubscribeBody);
+          unsubscribeReq.end();
         });
       });
       subscribeReq.write(subscribeToSender);
