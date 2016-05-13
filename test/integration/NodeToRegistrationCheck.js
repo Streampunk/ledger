@@ -16,11 +16,11 @@
 // Test the Node API interacting with the Regisration API.
 
 var test = require('tape');
-var ledger = require('../index.js');
+var ledger = require('../../index.js');
 
-var RegistrationAPI = require('../api/RegistrationAPI.js');
-var QueryAPI = require('../api/QueryAPI.js');
-var NodeRAMStore = require('../api/NodeRAMStore.js');
+var RegistrationAPI = require('../../api/RegistrationAPI.js');
+var QueryAPI = require('../../api/QueryAPI.js');
+var NodeRAMStore = require('../../api/NodeRAMStore.js');
 
 function generatePort() { return Math.random() * 32768|0 + 32768; };
 

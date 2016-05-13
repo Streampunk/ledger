@@ -1,6 +1,6 @@
 {
   "name": "nmos-ledger",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "NMOS discovery and registration APIs",
   "main": "index.js",
   "bin": {
@@ -21,7 +21,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "tape test/*.js"
+    "test": "tape test/integration/*.js test/*.js"
   },
   "repository": {
     "type": "git",
