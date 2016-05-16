@@ -1,6 +1,6 @@
 {
   "name": "nmos-ledger",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "NMOS discovery and registration APIs",
   "main": "index.js",
   "bin": {
@@ -35,7 +35,7 @@
     "JT-NM",
     "NMOS"
   ],
-  "author": "Christine S. MacNeill",
+  "author": "Streampunk Media Ltd.",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/Streampunk/ledger/issues"
