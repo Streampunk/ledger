@@ -749,7 +749,7 @@ serverTest('Retrieving the audio receiver (no slash)', node,
 var subscribeToSender = `{
     "description": "LCH Studio GoPro HD",
     "label": "LCH Studio GoPro HD",
-    "manifest_href": "http://172.29.176.142:12345/x-ipstudio/node/v1.0/self/pipelinemanager/run/pipeline/1/pipel/ipp_rtptx0c6d/misc/sdp/",
+    "manifest_href": "http://172.29.176.142:12345/x-nmos/node/v1.0/self/pipelinemanager/run/pipeline/1/pipel/ipp_rtptx0c6d/misc/sdp/",
     "flow_id": "84f1a535-748b-457c-a25f-49d6691bab30",
     "id": "72af8f63-15ad-4ec2-8a22-363b4a094fee",
     "version": "1455646074:437653635",
