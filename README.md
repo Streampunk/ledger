@@ -1,5 +1,4 @@
 [![CircleCI](https://circleci.com/gh/Streampunk/ledger.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/Streampunk/ledger)
-
 # Ledger
 
 Ledger is a [Node.js](http://nodejs.org/) Javascript implementation of the [Advanced Media Workflow Association's](http://www.amwa.tv/) [Networked Media Open Specifications](http://www.nmos.tv/) [discovery and registration APIs](https://github.com/AMWA-TV/nmos-discovery-registration).
