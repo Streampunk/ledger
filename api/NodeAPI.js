@@ -40,6 +40,7 @@ function NodeAPI (port, store) {
   var server = null;
   var healthcheck = null;
   var storePromise = Promise.resolve(store);
+  var sdps = {};
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -233,12 +234,34 @@ function NodeAPI (port, store) {
     });
     return nextState.then(function (ro) { return ro.resource; }).nodeify(cb);
   }
+
   /**
    * Returns the port that this Node API is configured to use.
    * @return {Number} Port for this node API.
    */
   this.getPort = function () {
     return port;
+  }
+
+  /**
+   * Put an SDP store into the local cache, as served from the /sdp resource.
+   * Existing SDP files with the same identifier will be overwritten. Identifiers
+   * are assumed to be the associated NMOS identifier.
+   * @param  {string} id  UUID of the sender associated with this SDP file.
+   * @param  {string} sdp String representation of the SDP file to cache.
+   */
+  this.putSDP = function (id, sdp) {
+    sdps[id] = sdp;
+  }
+
+  /**
+   * Delete the SDP associated with the given source identifier from the internal
+   * cache.
+   * @param  {string}  id UUID of the sender associated with this SDP file.
+   * @return {Boolean}    Whether or not the sender was successfully deleted.
+   */
+  this.deleteSDP = function (id) {
+    return sdps.hasOwnProperty(id) && delete sdps[id];
   }
 
   /**
@@ -260,6 +283,13 @@ function NodeAPI (port, store) {
       } else {
         next();
       }
+    });
+
+    app.get('/sdp/:id.sdp', function (req, res, next) {
+      var sdp = sdps[req.params.id];
+      if (!sdp) return next();
+      res.set('Content-Type', 'application/sdp');
+      res.send(new Buffer(sdp));
     });
 
     app.use(bodyparser.json());

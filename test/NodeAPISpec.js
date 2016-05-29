@@ -289,7 +289,7 @@ serverTest('Checking CORS headers using .../self', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : `/x-nmos/node/v1.0/self`}, function (res) {
     t.equal(res.statusCode, 200, 'has status code 200.');
-    console.log(res.headers);
+    // console.log(res.headers);
     t.equal(res.headers['access-control-allow-origin'], '*',
       'has Access-Control-Allow-Origin header.');
     t.equal(res.headers['access-control-allow-methods'],
@@ -355,7 +355,7 @@ serverTest('Retrieving devices (with slash)', node,
         t.equal(res.headers['x-streampunk-ledger-pages'], "1", 'pages header is 1.');
         t.equal(res.headers['x-streampunk-ledger-total'], "1", 'total header is 1.');
         res.on('data', function (chunk) {
-          console.log(s.devices);
+          // console.log(s.devices);
           t.deepEqual(JSON.parse(chunk.toString()), [d], 'matches the expected value.');
           done();
         });
@@ -931,5 +931,46 @@ serverTest('Subscribing receiver to sender with bad sender', node,
       subscribeReq.write(brokenSender);
       subscribeReq.end();
     }
+  });
+});
+
+serverTest('Serving an SDP file', node,
+    function (t, node, store, server, done) {
+  var senderID = uuid.v4();
+  server.putSDP(senderID, 'Test SDP');
+  http.get({ port : testPort, path : `/sdp/${senderID}.sdp`}, function (res) {
+    t.equal(res.statusCode, 200, 'has the expected status code.');
+    t.equal(res.headers['content-type'], 'application/sdp',
+      'has the SDP MIME type.');
+    t.equal(+res.headers['content-length'], 8,
+      'has the expected length.');
+    res.setEncoding('utf8');
+    res.on('data', function (result) {
+      t.equal(result, 'Test SDP', 'has the expected body.');
+    });
+    res.on('error', t.fail);
+    res.on('end', done);
+  });
+});
+
+serverTest('Accessing an SDP file that does not exist', node,
+    function (t, node, store, server, done) {
+  http.get({ port : testPort, path : `/sdp/${uuid.v4()}.sdp`}, function (res) {
+    t.equal(res.statusCode, 404, 'has the expected status code.');
+    res.on('error', t.fail);
+    done();
+  });
+});
+
+serverTest('Deleting an SDP file', node,
+    function (t, node, store, server, done) {
+  var senderID = uuid.v4();
+  server.putSDP(senderID, 'Test SDP');
+  t.notOk(server.deleteSDP(uuid.v4()), 'fails to delete unknown ID.');
+  t.ok(server.deleteSDP(senderID), 'reports successful delete.');
+  http.get({ port : testPort, path : `/sdp/${senderID}.sdp`}, function (res) {
+    t.equal(res.statusCode, 404, 'has the expected status code.');
+    res.on('error', t.fail);
+    done();
   });
 });
