@@ -93,6 +93,7 @@ function NodeAPI (port, store) {
    *                             resolves to the put resource.
    */
   this.putResource = function (resource, cb) {
+    // storePromise.then(console.log.bind(null, 'Blimey!'));
     var nextState = storePromise.then(function (store) {
       var putFn = Promise.denodeify(store['put' + resource.constructor.name]);
       return putFn.call(store, resource);
@@ -101,7 +102,7 @@ function NodeAPI (port, store) {
       store = ro.store;
       pushResource(ro.resource);
       return store;
-    }, function (e) { console.error(e); });
+    }, function (e) { console.error(e); return store; });
     return nextState.then(function (ro) { return ro.resource; }).nodeify(cb);
   }
 
