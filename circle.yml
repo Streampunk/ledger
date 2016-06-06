@@ -12,4 +12,4 @@ test:
   override:
     - npm install -g tap-xunit
     - mkdir $CIRCLE_TEST_REPORTS/xunit
-    - tape test/integration/*.js test/*.js | tap-xunit > $CIRCLE_TEST_REPORTS/xunit/xunit.xml
+    - npm test | tap-xunit > $CIRCLE_TEST_REPORTS/xunit/results.xml
