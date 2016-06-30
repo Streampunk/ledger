@@ -422,7 +422,7 @@ function NodeAPI (port, store) {
             .set('version', Sender.prototype.generateVersion());
           this.putResource(receiver, function (e, ro) {
             if (e) return next(e);
-            return res.status(202).json({id : null});
+            return res.status(202).json(req.body);
           }.bind(this));
         }.bind(this));
         return;
