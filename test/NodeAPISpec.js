@@ -823,7 +823,7 @@ serverTest('Unsubscribing receiver from sender', node,
             Sender.prototype.parse(subscribeToSender), 'returns what is sent.');
         });
         res.on('end', function () {
-          var unsubscribeBody = JSON.stringify({id : null});
+          var unsubscribeBody = JSON.stringify({});
           var unsubscribeReq = http.request({
             port : testPort,
             path : `/x-nmos/node/v1.0/receivers/${videoReceiver.id}/target`,
@@ -836,7 +836,7 @@ serverTest('Unsubscribing receiver from sender', node,
             t.equals(res.statusCode, 202, 'produces a 202 Accepted error code.');
             res.setEncoding('utf8');
             res.on('data', function (result) {
-              t.deepEqual(JSON.parse(result), {id : null}, 'returns what is sent.');
+              t.deepEqual(JSON.parse(result), {}, 'returns what is sent.');
             });
             res.on('end', function () {
               http.get({
