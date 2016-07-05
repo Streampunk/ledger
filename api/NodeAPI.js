@@ -415,7 +415,7 @@ function NodeAPI (port, store) {
     });
 
     napi.put('/receivers/:id/target', function (req, res, next) {
-      if (req.body.id === null) {
+      if (req.body.id === undefined) {
         this.getResource(req.params.id, 'receiver', function (err, receiver) {
           if (err) return next(err);
           receiver = receiver
@@ -423,7 +423,7 @@ function NodeAPI (port, store) {
             .set('version', Sender.prototype.generateVersion());
           this.putResource(receiver, function (e, ro) {
             if (e) return next(e);
-            return res.status(202).json({id : null});
+            return res.status(202).json(req.body);
           }.bind(this));
         }.bind(this));
         return;
