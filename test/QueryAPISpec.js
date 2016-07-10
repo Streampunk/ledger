@@ -871,3 +871,303 @@ serverTest('Retrieving the audio receiver by query parameters',
     }
   });
 });
+
+serverTest('Retreiving a list of subscriptions before creating one',
+    function (t, str, server, done) {
+  http.get({
+    port : testPort,
+    path : `/x-nmos/query/v1.0/subscriptions`
+  }, function (res) {
+    t.equal(res.statusCode, 200, 'has status code 200.');
+    res.on('data', function (chunk) {
+      t.deepEqual(JSON.parse(chunk.toString()), [], 'is an empty array.');
+      done();
+    })
+  }).on('error', function (e) {
+    t.fail(e); done();
+  });
+});
+
+var uuidRegex = /[0-9a-fA-f]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}/;
+var wshrefRegex = /ws:\/\/\S+\/ws\/\?uid=[0-9a-fA-f]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}/;
+
+serverTest('Creating a new subscription', function (t, str, server, done) {
+  var sub = {
+    max_update_rate_ms : 100,
+    resource_path: "/receivers",
+    params: { label: "fred" },
+    persist: false
+  };
+  var jsonToPost = JSON.stringify(sub);
+  var req = http.request({
+      port : testPort,
+      path : '/x-nmos/query/v1.0/subscriptions',
+      method : 'POST',
+      headers : {
+        'Content-Type' : 'application/json',
+        'Content-Length' : jsonToPost.length
+      }
+  }, function (res) {
+    t.equal(res.statusCode, 201, `has a 201 Created response.`);
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      var resSub = JSON.parse(chunk.toString());
+      t.equal(resSub.max_update_rate_ms, 100, 'has expected update rate.');
+      t.equal(resSub.resource_path, '/receivers', 'has expected resource path.');
+      t.equal(resSub.persist, false, 'has expected persist of false.');
+      t.deepEqual(resSub.params, { label : "fred" },
+        'has expected params.');
+      t.ok(typeof resSub.id === 'string' && resSub.id.match(uuidRegex),
+        'id is a UUID.');
+      t.ok(typeof resSub.ws_href === 'string' &&
+          resSub.ws_href.match(wshrefRegex), 'has valid web service href.');
+    });
+    res.on('error', function (e) { t.fail(e); done(); });
+    res.on('end', done);
+  });
+  req.on('error', function (e) { t.fail(e); done(); });
+  req.write(jsonToPost);
+  req.end();
+});
+
+serverTest('Creating a bad subscription with missing parameter',
+    function (t, str, server, done) {
+  var sub = {
+    max_update_rate_ms : 100,
+    params: { label: "fred" },
+    persist: false
+  };
+  var jsonToPost = JSON.stringify(sub);
+  var req = http.request({
+      port : testPort,
+      path : '/x-nmos/query/v1.0/subscriptions',
+      method : 'POST',
+      headers : {
+        'Content-Type' : 'application/json',
+        'Content-Length' : jsonToPost.length
+      }
+  }, function (res) {
+    t.equal(res.statusCode, 400, `has a 400 Bad Request response.`);
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      var errMsg = JSON.parse(chunk.toString());
+      t.equal(errMsg.code, 400, 'has error message has code 400.');
+      t.equal(errMsg.error,
+        'Subscription must have a \'resource_path\' property.',
+        'has expected error messaage.');
+    });
+    res.on('error', function (e) { t.fail(e); done(); });
+    res.on('end', done);
+  });
+  req.on('error', function (e) { t.fail(e); done(); });
+  req.write(jsonToPost);
+  req.end();
+});
+
+serverTest('Creating a bad subscription with wrong type',
+    function (t, str, server, done) {
+  var sub = {
+    max_update_rate_ms : 'herbert',
+    resource_path: "/receivers",
+    params: { label: "fred" },
+    persist: false
+  };
+  var jsonToPost = JSON.stringify(sub);
+  var req = http.request({
+      port : testPort,
+      path : '/x-nmos/query/v1.0/subscriptions',
+      method : 'POST',
+      headers : {
+        'Content-Type' : 'application/json',
+        'Content-Length' : jsonToPost.length
+      }
+  }, function (res) {
+    t.equal(res.statusCode, 400, `has a 400 Bad Request response.`);
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      var errMsg = JSON.parse(chunk.toString());
+      t.equal(errMsg.code, 400, 'has error message has code 400.');
+      t.equal(errMsg.error,
+        'Subscription parameter \'max_update_rate_ms\' should be a number and greater than or equal to 0.',
+        'has expected error messaage.');
+    });
+    res.on('error', function (e) { t.fail(e); done(); });
+    res.on('end', done);
+  });
+  req.on('error', function (e) { t.fail(e); done(); });
+  req.write(jsonToPost);
+  req.end();
+});
+
+serverTest('Creating a bad subscription with unknown path',
+    function (t, str, server, done) {
+  var sub = {
+    max_update_rate_ms : 100,
+    resource_path: "/selfs",
+    params: { label: "fred" },
+    persist: false
+  };
+  var jsonToPost = JSON.stringify(sub);
+  var req = http.request({
+      port : testPort,
+      path : '/x-nmos/query/v1.0/subscriptions',
+      method : 'POST',
+      headers : {
+        'Content-Type' : 'application/json',
+        'Content-Length' : jsonToPost.length
+      }
+  }, function (res) {
+    t.equal(res.statusCode, 400, `has a 400 Bad Request response.`);
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      var errMsg = JSON.parse(chunk.toString());
+      t.equal(errMsg.code, 400, 'has error message has code 400.');
+      t.equal(errMsg.error,
+        'Subscription parameter \'resource_path\' must be one of /nodes,/devices,/sources,/flows,/senders,/receivers.');
+    });
+    res.on('error', function (e) { t.fail(e); done(); });
+    res.on('end', done);
+  });
+  req.on('error', function (e) { t.fail(e); done(); });
+  req.write(jsonToPost);
+  req.end();
+});
+
+serverTest('Creating a new subscription and read back all',
+    function (t, str, server, done) {
+  var sub = {
+    max_update_rate_ms : 100,
+    resource_path: "/receivers",
+    params: { label: "fred" },
+    persist: false
+  };
+  var jsonToPost = JSON.stringify(sub);
+  var req = http.request({
+      port : testPort,
+      path : '/x-nmos/query/v1.0/subscriptions',
+      method : 'POST',
+      headers : {
+        'Content-Type' : 'application/json',
+        'Content-Length' : jsonToPost.length
+      }
+  }, function (res) {
+    t.equal(res.statusCode, 201, `has a 201 Created response.`);
+    res.setEncoding('utf8');
+    res.on('data', function () { });
+    res.on('error', function (e) { t.fail(e); done(); });
+    res.on('end', function () {
+      var get = http.get({
+        port: testPort,
+        path : `/x-nmos/query/v1.0/subscriptions`
+      }, function (res) {
+        t.equal(res.statusCode, 200, 'read back is successdul.');
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+          var resSubA = JSON.parse(chunk.toString());
+          t.ok(Array.isArray(resSubA), 'result of read is an array.');
+          var resSub = resSubA[0];
+          t.equal(resSub.max_update_rate_ms, 100, 'has expected update rate.');
+          t.equal(resSub.resource_path, '/receivers', 'has expected resource path.');
+          t.equal(resSub.persist, false, 'has expected persist of false.');
+          t.deepEqual(resSub.params, { label : "fred" },
+            'has expected params.');
+          t.ok(typeof resSub.id === 'string' && resSub.id.match(uuidRegex),
+            'id is a UUID.');
+          t.ok(typeof resSub.ws_href === 'string' &&
+              resSub.ws_href.match(wshrefRegex), 'has valid web service href.');
+        });
+        res.on('error', t.fail);
+        res.on('end', done);
+      });
+      get.on('error', t.fail);
+    });
+  });
+  req.on('error', function (e) { t.fail(e); done(); });
+  req.write(jsonToPost);
+  req.end();
+});
+
+serverTest('Creating a new subscription and read specific',
+    function (t, str, server, done) {
+  var sub = {
+    max_update_rate_ms : 100,
+    resource_path: "/receivers",
+    params: { label: "fred" },
+    persist: false
+  };
+  var jsonToPost = JSON.stringify(sub);
+  var req = http.request({
+      port : testPort,
+      path : '/x-nmos/query/v1.0/subscriptions',
+      method : 'POST',
+      headers : {
+        'Content-Type' : 'application/json',
+        'Content-Length' : jsonToPost.length
+      }
+  }, function (res) {
+    var subId = null;
+    t.equal(res.statusCode, 201, `has a 201 Created response.`);
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      var resSub = JSON.parse(chunk.toString());
+      subId = resSub.id;
+      t.ok(subId, 'returns an indentifier that can be queried.');
+    });
+    res.on('error', function (e) { t.fail(e); done(); });
+    res.on('end', function () {
+      var get = http.get({
+        port: testPort,
+        path : `/x-nmos/query/v1.0/subscriptions/${subId}`
+      }, function (res) {
+        t.equal(res.statusCode, 200, 'read back is successdul.');
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+          var resSub = JSON.parse(chunk.toString());
+          t.equal(resSub.max_update_rate_ms, 100, 'has expected update rate.');
+          t.equal(resSub.resource_path, '/receivers', 'has expected resource path.');
+          t.equal(resSub.persist, false, 'has expected persist of false.');
+          t.deepEqual(resSub.params, { label : "fred" },
+            'has expected params.');
+          t.equal(resSub.id, subId, 'has the expected identifier.');
+          t.ok(typeof resSub.ws_href === 'string' &&
+              resSub.ws_href.match(wshrefRegex), 'has valid web service href.');
+          t.ok(resSub.ws_href.endsWith(subId), 'ends with the identifier.');
+        });
+        res.on('error', t.fail);
+        res.on('end', done);
+      });
+      get.on('error', t.fail);
+    });
+  });
+  req.on('error', function (e) { t.fail(e); done(); });
+  req.write(jsonToPost);
+  req.end();
+});
+
+serverTest('Reading a subscription that does not exist',
+    function (t, str, server, done) {
+  var get = http.get({
+    port : testPort,
+    path : `/x-nmos/query/v1.0/subscriptions/${uuid.v4()}`
+  }, function (res) {
+    t.equal(res.statusCode, 404, 'produces a 404 Not Found response.');
+    res.on('data', function () { });
+    res.on('end', done);
+  });
+  get.on('error', t.fail);
+});
+
+serverTest('Deleting a subscription that does not exist',
+    function (t, str, server, done) {
+  var req = http.request({
+    port : testPort,
+    path : `/x-nmos/query/v1.0/subscriptions/${uuid.v4()}`,
+    method : 'DELETE'
+  }, function (res) {
+    t.equal(res.statusCode, 404, 'produces a 404 Not Found response.');
+    res.on('data', function () { });
+    res.on('end', done);
+  });
+  req.on('error', t.fail);
+  req.end();
+});

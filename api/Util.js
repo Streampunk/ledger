@@ -34,10 +34,24 @@ function getResourceName(r) {
   // TODO conside changing to ES6 <Function>.name
 }
 
+function getFirstExternalNetworkInterface() {
+  var nis = require('os').getNetworkInterfaces();
+  var nias = [];
+  Object.keys(nis).forEach(function (nik) {
+    var ni = nis[nik];
+    ni.forEach(function (n) {
+      n.interface = nik;
+      nias.push(n);
+    });
+  });
+  return nias.find(function (x) { return x.internal === false && x.family === 'IPv4'; });
+}
+
 var util = {
   extractVersions : extractVersions,
   compareVersions : compareVersions,
-  getResourceName : getResourceName
+  getResourceName : getResourceName,
+  getFirstExternalNetworkInterface : getFirstExternalNetworkInterface
 };
 
 module.exports = util;

@@ -19,11 +19,20 @@ var express = require('express');
 var immutable = require('seamless-immutable');
 var NodeStore = require('./NodeStore.js');
 var mdns = require('mdns-js');
+var bodyparser = require('body-parser');
+var uuid = require('uuid');
+var WebSocketServer = require('ws').Server;
+var os = require('os');
+
+var pathEnum = ["/nodes", "/devices", "/sources", "/flows", "/senders", "/receivers"];
+var firstExtNetIf = require('./Util.js').getFirstExternalNetworkInterface().address;
 
 function QueryAPI (port, storeFn, serviceName, pri) {
   var app = express();
   var server = null;
+  var wss = null;
   var mdnsService = null;
+  var webSockets = {};
   if (!pri || Number(pri) !== pri || pri % 1 !== 0) pri = 100;
   if (!serviceName || typeof serviceName !== 'string') serviceName = 'ledger_query';
 
@@ -63,6 +72,8 @@ function QueryAPI (port, storeFn, serviceName, pri) {
         next();
       }
     });
+
+    app.use(bodyparser.json());
 
     app.get('/', function (req, res) {
       res.json(['x-nmos/']);
@@ -195,23 +206,77 @@ function QueryAPI (port, storeFn, serviceName, pri) {
     });
 
     qapi.post('/subscriptions', function (req, res, next) {
-      next(NodeStore.prototype.statusError(501,
-        "Subscriptions are not yet implemented for the ledger query API."));
+      var sub = req.body;
+      if (!sub.max_update_rate_ms)
+        return next(NodeStore.prototype.statusError(400,
+          "Subscription must have a 'max_update_rate_ms' property."));
+      if (typeof sub.persist === 'undefined')
+        return next(NodeStore.prototype.statusError(400,
+          "Subscription must have a 'persist' property."));
+      if (!sub.resource_path)
+        return next(NodeStore.prototype.statusError(400,
+          "Subscription must have a 'resource_path' property."));
+      if (!sub.params)
+        return next(NodeStore.prototype.statusError(400,
+          "Subscription must have a 'params' property, although this may be an " +
+          "empty object."));
+      if (typeof sub.max_update_rate_ms !== 'number' ||
+           sub.max_update_rate_ms < 0)
+        return next(NodeStore.prototype.statusError(400,
+          "Subscription parameter 'max_update_rate_ms' should be a number and " +
+          "greater than or equal to 0."));
+      sub.max_update_rate_ms = sub.max_update_rate_ms | 0;
+      if (typeof sub.persist !== 'boolean')
+        return next(NodeStore.prototype.statusError(400,
+          "Subscription parameter 'persist' must be a boolean."));
+      if (typeof sub.resource_path !== 'string' ||
+           pathEnum.indexOf(sub.resource_path) === -1)
+        return next(NodeStore.prototype.statusError(400,
+          "Subscription parameter 'resource_path' must be one of " +
+          pathEnum.toString() + "."));
+      if (typeof sub.params !== 'object')
+        return next(NodeStore.prototype.statusError(400,
+          "Subscription parameter 'params' must be an object."));
+      sub.id = uuid.v4();
+      sub.ws_href = `ws://${firstExtNetIf}:${server.address().port}/` +
+        `ws/?uid=${sub.id}`;
+      if (webSockets[sub.id]) {
+        webSockets[sub.id] = sub;
+        res.status(200).json(sub);
+      } else {
+        webSockets[sub.id] = sub;
+        res.status(201).json(sub);
+      };
     });
 
     qapi.get('/subscriptions', function (req, res, next) {
-      next(NodeStore.prototype.statusError(501,
-        "Subscriptions are not yet implemented for the ledger query API."));
+      res.json(Object.keys(webSockets).map(function (k) {
+        return webSockets[k];
+      }));
     });
 
     qapi.get('/subscriptions/:id', function (req, res, next) {
-      next(NodeStore.prototype.statusError(501,
-        "Subscriptions are not yet implemented for the ledger query API."));
+      if (!webSockets[req.params.id])
+        return next(NodeStore.prototype.statusError(404,
+          `A web socket subscription with id '${req.params.id}' is now known ` +
+          `to this query API.`));
+      res.json(webSockets[req.params.id]);
     });
 
     qapi.delete('/subscriptions/:id', function (req, res, next) {
-      next(NodeStore.prototype.statusError(501,
-        "Subscriptions are not yet implemented for the ledger query API."));
+      console.log('Gravyard!');
+      if (!webSockets[req.params.id])
+        return next(NodeStore.prototype.statusError(404,
+          `On delete, a web socket subscription with id '${req.params.id}' is now known ` +
+          `to this query API.`));
+      if (webSockets[req.params.id].persist === false) {
+        return next(NodeStore.prototye.statusError(403,
+          `A delete request is made against a non-persistent subscription with ` +
+          `id '${req.params.id}' that is ` +
+          `managed by the Query API and cannot be deleted.`));
+      }
+      delete webSockets[req.params.id];
+      res.status(204).end();
     });
 
     app.use(function (err, req, res, next) {
@@ -265,6 +330,13 @@ function QueryAPI (port, storeFn, serviceName, pri) {
         if (cb) cb();
       };
     });
+
+    wss = new WebSocketServer({ server : server });
+
+    // wss.on('connection', function (ws) {
+    //   var location = url.parse(ws.upgradeReq.url, true);
+    //
+    // });
 
     this.startMDNS();
 
