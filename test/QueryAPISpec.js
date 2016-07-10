@@ -1111,7 +1111,7 @@ serverTest('Creating a new subscription and read specific',
     res.on('data', function (chunk) {
       var resSub = JSON.parse(chunk.toString());
       subId = resSub.id;
-      t.ok(subId, 'returns an indentifier that can be queried.');
+      t.ok(subId, 'returns an identifier that can be queried.');
     });
     res.on('error', function (e) { t.fail(e); done(); });
     res.on('end', function () {
@@ -1119,7 +1119,7 @@ serverTest('Creating a new subscription and read specific',
         port: testPort,
         path : `/x-nmos/query/v1.0/subscriptions/${subId}`
       }, function (res) {
-        t.equal(res.statusCode, 200, 'read back is successdul.');
+        t.equal(res.statusCode, 200, 'read back is successful.');
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
           var resSub = JSON.parse(chunk.toString());
@@ -1169,5 +1169,110 @@ serverTest('Deleting a subscription that does not exist',
     res.on('end', done);
   });
   req.on('error', t.fail);
+  req.end();
+});
+
+serverTest('Creating a new persistent subscription and then deleting',
+    function (t, str, server, done) {
+  var sub = {
+    max_update_rate_ms : 100,
+    resource_path: "/receivers",
+    params: { label: "fred" },
+    persist: true
+  };
+  var jsonToPost = JSON.stringify(sub);
+  var req = http.request({
+      port : testPort,
+      path : '/x-nmos/query/v1.0/subscriptions',
+      method : 'POST',
+      headers : {
+        'Content-Type' : 'application/json',
+        'Content-Length' : jsonToPost.length
+      }
+  }, function (res) {
+    var subId = null;
+    t.equal(res.statusCode, 201, `has a 201 Created response.`);
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      var resSub = JSON.parse(chunk.toString());
+      subId = resSub.id;
+      t.ok(subId, 'returns an identifier that can be queried.');
+    });
+    res.on('error', function (e) { t.fail(e); done(); });
+    res.on('end', function () {
+      var del = http.request({
+        port: testPort,
+        path : `/x-nmos/query/v1.0/subscriptions/${subId}`,
+        method : 'DELETE'
+      }, function (res) {
+        t.equal(res.statusCode, 204, 'delete is successful.');
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+          t.equal(chunk.length, 0, 'empty body with delete.');
+        });
+        res.on('error', t.fail);
+        res.on('end', done);
+      });
+      del.on('error', t.fail);
+      del.end();
+    });
+  });
+  req.on('error', function (e) { t.fail(e); done(); });
+  req.write(jsonToPost);
+  req.end();
+});
+
+serverTest('Creating a new non-persistent subscription and then failing to delete',
+    function (t, str, server, done) {
+  var sub = {
+    max_update_rate_ms : 100,
+    resource_path: "/receivers",
+    params: { label: "fred" },
+    persist: false
+  };
+  var jsonToPost = JSON.stringify(sub);
+  var req = http.request({
+      port : testPort,
+      path : '/x-nmos/query/v1.0/subscriptions',
+      method : 'POST',
+      headers : {
+        'Content-Type' : 'application/json',
+        'Content-Length' : jsonToPost.length
+      }
+  }, function (res) {
+    var subId = null;
+    t.equal(res.statusCode, 201, `has a 201 Created response.`);
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      var resSub = JSON.parse(chunk.toString());
+      subId = resSub.id;
+      t.ok(subId, 'returns an identifier that can be queried.');
+    });
+    res.on('error', function (e) { t.fail(e); done(); });
+    res.on('end', function () {
+      var del = http.request({
+        port: testPort,
+        path : `/x-nmos/query/v1.0/subscriptions/${subId}`,
+        method : 'DELETE'
+      }, function (res) {
+        t.equal(res.statusCode, 403, 'delete fails as expected.');
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+          var errMsg = JSON.parse(chunk);
+          t.equal(errMsg.code, 403, 'error has expected code.');
+          t.equal(errMsg.error,
+            `A delete request is made against a non-persistent subscription with id ` +
+            `'${subId}' that is managed by the Query API and cannot be deleted.`,
+            'error has expected message.');
+        });
+        res.on('error', t.fail);
+        res.on('end', done);
+      });
+      del.on('error', t.fail);
+      del.end();
+    });
+  });
+  req.on('error', function (e) { t.fail(e); done(); });
+  req.write(jsonToPost);
   req.end();
 });

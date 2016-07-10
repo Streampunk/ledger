@@ -264,13 +264,12 @@ function QueryAPI (port, storeFn, serviceName, pri) {
     });
 
     qapi.delete('/subscriptions/:id', function (req, res, next) {
-      console.log('Gravyard!');
       if (!webSockets[req.params.id])
         return next(NodeStore.prototype.statusError(404,
           `On delete, a web socket subscription with id '${req.params.id}' is now known ` +
           `to this query API.`));
       if (webSockets[req.params.id].persist === false) {
-        return next(NodeStore.prototye.statusError(403,
+        return next(NodeStore.prototype.statusError(403,
           `A delete request is made against a non-persistent subscription with ` +
           `id '${req.params.id}' that is ` +
           `managed by the Query API and cannot be deleted.`));
