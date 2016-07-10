@@ -35,7 +35,7 @@ function getResourceName(r) {
 }
 
 function getFirstExternalNetworkInterface() {
-  var nis = require('os').getNetworkInterfaces();
+  var nis = require('os').networkInterfaces();
   var nias = [];
   Object.keys(nis).forEach(function (nik) {
     var ni = nis[nik];
