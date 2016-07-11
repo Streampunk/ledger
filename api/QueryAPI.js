@@ -37,6 +37,7 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents) {
   var wss = null;
   var mdnsService = null;
   var webSockets = {};
+  var wsFilter = {};
   var instanceUUID = uuid.v4();
   if (!pri || Number(pri) !== pri || pri % 1 !== 0) pri = 100;
   if (!serviceName || typeof serviceName !== 'string') serviceName = 'ledger_query';
@@ -344,13 +345,8 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents) {
     });
 
     wss = new WebSocketServer({ server : server });
-
-    wss.on('connection', function (ws) {
-      console.log(url.parse(ws.upgradeReq.url, true));
-
-      setInterval(function () {
-        ws.send(JSON.stringify({ msg : 'Hello matey!'}), { mask : true }); }, 2000);
-    });
+    wss.on('connection', connectWS);
+    wss.on('error', console.error.bind(null, 'Websocket Error:'));
 
     this.startMDNS();
 
@@ -402,6 +398,7 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents) {
          server = null;
        }.bind(this));
      }
+     wss.close();
 
      return this;
    }
@@ -427,6 +424,85 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents) {
        port % 1 === 0 &&
        port > 0;
    }
+
+   function connectWS (ws) {
+     var reqUrl = url.parse(ws.upgradeReq.url, true);
+     if (!reqUrl.query.uid || !webSockets[reqUrl.query.uid]) {
+       return ws.close(1008, JSON.stringify({
+         code : 404,
+         error : `Subscription with identifier '${reqUrl.query.uid}' could not be found.`
+       }));
+     }
+     var sub = webSockets[reqUrl.query.uid];
+     ws.ledgerID = uuid.v4();
+     if (wsFilter[sub.resource_path]) {
+       wsFilter[sub.resource_path].push({ sub : sub, socket : ws });
+     } else {
+       wsFilter[sub.resource_path] = [ { sub : sub, socket : ws } ];
+     }
+     ws.on('close', function () {
+       wsFilter[sub.resource_path] = wsFilter[sub.resource_path].filter(function (x) {
+         return x.socket.ledgerID !== ws.ledgerID;
+       });
+       if (!sub.persist && !wsFilter[sub.resource_path].find(function (x) {
+         return x.sub.id === sub.id;
+       })) {
+         delete webSockets[sub.id];
+       };
+     });
+   };
+
+   this.on('modify', function (ev) {
+     var subs = wsFilter[ev.topic.slice(0, -1)];
+     if (subs) {
+       subs.forEach(function (subWs) {
+        //  if (!Object.keys(subWs.params).every(function (k) {
+        //    return (ev.data[0].post && ev.data[0].post[k] === subWs.params[k]) ||
+        //      (ev.data[0].pre && ev.data[0].pre[k] === subWs.params[k]);
+        //    })) return; // pre or post must match the parameters
+         var tsBase = Date.now();
+         var ts = `${tsBase / 1000|0}:${tsBase % 1000 * 1000000}`;
+         var g = {
+           grain_type : "event",
+           source_id : instanceUUID,
+           flow_id : subWs.sub.id,
+           origin_timestamp : ts,
+           sync_timestamp : ts,
+           creation_timestamp : ts,
+           rate : { numerator: 0, denominator: 1 },
+           duration : { numerator: 0, denominator: 1 },
+           grain : {
+             type : "urn:x-nmos:format:data.event",
+             topic : ev.topic,
+             data : ev.data
+           }
+         };
+         if (subWs.builder) {
+           subWs.builder.grain.data.push(g.grain.data[0]);
+           g.grain.data = subWs.builder.grain.data;
+           subWs.builder = g;
+         } else {
+           subWs.builder = g;
+         }
+         if (subWs.lastTime &&
+             tsBase - subWs.lastTime < subWs.sub.max_update_rate_ms) {
+           if (!subWs.timeout) {
+             subWs.timeout = setTimeout(function () {
+               subWs.socket.send(JSON.stringify(subWs.builder), { mask : true });
+               delete subWs.builder;
+               delete subWs.timeout;
+               subWs.lastTime = tsBase;
+             }, subWs.sub.max_update_rate_ms - (tsBase - subWs.lastTime));
+           }
+         } else {
+           subWs.socket.send(JSON.stringify(subWs.builder), { mask : true });
+           delete subWs.builder;
+           delete subWs.timeout;
+           subWs.lastTime = tsBase;
+         };
+       });
+     };
+   });
 
    if (!validPort(port))
      return new Error('Port is not a valid value. Must be an integer greater than zero.');

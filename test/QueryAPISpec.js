@@ -13,7 +13,7 @@
   limitations under the License.
 */
 
-// Test the registration API.
+// Test the query API.
 
 var test = require('tape');
 var http = require('http');
