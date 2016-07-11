@@ -104,6 +104,30 @@ Reading and updating the _self_ node is achieved using the `getSelf` and `putSel
 
 The previously recommended methods of `getStore` and `setStore` have been deprecated.
 
+### Modify events
+
+The node NodeAPI, QueryAPI and RegistrationAPI are Node.js event emitters that
+create `modify` events whenever a resource on the underlying store is modified.
+The events that are sent are similar to the grain sub-objects documented for the
+[QueryAPI websockets](https://github.com/AMWA-TV/nmos-discovery-registration/blob/master/docs/4.2.%20Behaviour%20-%20Querying.md). For example, Javascript:
+
+```javascript
+nodeAPI.on('modify', console.log);
+nodeAPI.putResource(device).catch(console.error);
+```
+
+... will produce the following output on the console if the device is successfully
+created:
+
+```javascript
+{ topic: '/devices/',
+  data: [ { path: 'cfe6803a-70df-44f1-b3b0-9b78b94b2f02', pre: [Object] } ] }
+```
+
+These events provide the underlying mechanism for serving the websocket
+subscriptions and can be filtered to provide local application features by
+developers.
+
 ## Extra features
 
 The API has some features that are not specified in the NMOS documentation. These include:

@@ -23,6 +23,8 @@ var Sender = require('../model/Sender.js');
 var getResourceName = require('./Util.js').getResourceName;
 var Promise = require('promise');
 var assert = require('assert');
+const EventEmitter = require('events');
+var util = require('util');
 
 var knownResourceTypes = ['device', 'flow', 'source', 'receiver', 'sender'];
   // self is treated as a special case
@@ -36,11 +38,13 @@ var knownResourceTypes = ['device', 'flow', 'source', 'receiver', 'sender'];
  * @return {(NodeAPI|Error)}  Creates a NodeAPI or returns an error.
  */
 function NodeAPI (port, store) {
+  EventEmitter.call(this);
   var app = express();
   var server = null;
   var healthcheck = null;
   var storePromise = Promise.resolve(store);
   var sdps = {};
+  var api = this;
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -101,6 +105,17 @@ function NodeAPI (port, store) {
     storePromise = nextState.then(function (ro) {
       store = ro.store;
       pushResource(ro.resource);
+      if (ro.previous) {
+        api.emit('modify', {
+          topic : ro.topic,
+          data : [ { path : ro.path, pre : ro.previous, post : ro.resource }]
+        });
+      } else {
+        api.emit('modify', {
+          topic : ro.topic,
+          data : [ { path : ro.path, post : ro.resource }]
+        });
+      }
       return store;
     }, function (e) { console.error(e); return store; });
     return nextState.then(function (ro) { return ro.resource; }).nodeify(cb);
@@ -192,6 +207,10 @@ function NodeAPI (port, store) {
     storePromise = nextState.then(function (ro) {
       store = ro.store;
       registerDelete(ro.id, type);
+      api.emit('modify', {
+        topic : ro.topic,
+        data : [ { path : ro.path, pre : ro.previous } ]
+      });
       return store;
     });
     return nextState.then(function (ro) { return ro.id; }).nodeify(cb);
@@ -761,7 +780,7 @@ function NodeAPI (port, store) {
     return new Error('Port is not a valid value. Must be an integer greater than zero.');
   if (!validStore(store))
     return new Error('Store does not have a sufficient contract.');
-  return immutable(this, { prototype : NodeAPI.prototype });
+  // return immutable(this, { prototype : NodeAPI.prototype });
 }
 
 /**
@@ -769,5 +788,7 @@ function NodeAPI (port, store) {
  * @callback {NodeAPI~trackStatus}
  * @param {Error=} Set if an error occurred when starting or stopping the server.
  */
+
+util.inherits(NodeAPI, EventEmitter);
 
 module.exports = NodeAPI;

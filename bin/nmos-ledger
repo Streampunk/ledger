@@ -58,7 +58,7 @@ if (isNaN(+properties.queryPri)) {
 var registrationAPI = new RegistrationAPI(+properties.registrationPort, store,
   properties.registrationName, +properties.registrationPri);
 var queryAPI = new QueryAPI(+properties.queryPort, registrationAPI.getStore,
-  properties.queryName, +properties.queryPri);
+  properties.queryName, +properties.queryPri, registrationAPI);
 
 registrationAPI.init().start();
 queryAPI.init().start();

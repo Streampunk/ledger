@@ -1276,3 +1276,40 @@ serverTest('Creating a new non-persistent subscription and then failing to delet
   req.write(jsonToPost);
   req.end();
 });
+
+test('Registration events pass through', function (t) {
+  store = new ledger.NodeRAMStore();
+  var regAPI = new ledger.RegistrationAPI(testPort+1, store, 'none');
+  var qAPI = new ledger.QueryAPI(testPort, regAPI.getStore, 'none', 0, regAPI);
+  regAPI.init().start(function (e) {
+    if (e) {
+      t.fail('Failed to start registration server');
+      return t.end();
+    }
+    qAPI.init().start(function (e) {
+      if (e) {
+        t.fail('Failed to start query server.');
+        return t.end();
+      }
+      var event = null;
+      qAPI.on('modify', function (ev) { event = ev; });
+      regAPI.putResource(node1).then(function () {
+        t.ok(event, 'event has been received.');
+        t.equal(event.topic, '/nodes/', 'event has expected topic.');
+        var data = event.data[0];
+        t.equal(data.path, node1.id, 'event data has expected path.');
+        t.ok(typeof data.pre === 'undefined', 'event has no previous.');
+        t.deepEqual(data.post, node1, 'event carried the posted node.');
+        qAPI.stop(function () {
+          regAPI.stop(t.end);
+        });
+      })
+      .catch(function (e) {
+        t.fail(e);
+        qAPI.stop(function () {
+          regAPI.stop(t.end);
+        });
+      });
+    });
+  });
+});

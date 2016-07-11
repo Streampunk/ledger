@@ -132,7 +132,13 @@ function deleteItem(items, id, cb, argsLength, name, tidy, node) {
     } else {
       if (items.hasOwnProperty(id)) {
         var tidied = (node) ? tidy() : tidy;
-        cb(null, { id: id, store: tidied.setIn([name + 's'], items.without(id))});
+        cb(null, {
+          id : id,
+          path : id,
+          previous : items[id],
+          topic : `/${name}s/`,
+          store: tidied.setIn([name + 's'], items.without(id))
+        });
       } else {
         cb(statusError(404, "A " + name + " with identifier '" + id +
           "' could not be found on a delete request."));
@@ -249,7 +255,12 @@ NodeRAMStore.prototype.putSelf = function (node, cb) {
     }
     // Not sure if services has to be checked.
 
-    cb(null, { resource : node, store: this.set('self', node) });
+    cb(null, {
+      topic : '/self',
+      path : '',
+      previous : this.self,
+      resource : node,
+      store: this.set('self', node) });
   }.bind(this) );
 }
 
@@ -268,7 +279,12 @@ NodeRAMStore.prototype.putNode = function (node, cb) {
         "Value being used to put a node is not of Node type."));
     };
     if (!checkValidAndForward(node, this.nodes, 'node', cb)) return;
-    cb(null, { resource : node, store: this.setIn(['nodes', node.id], node) });
+    cb(null, {
+      topic : '/nodes/',
+      path : node.id,
+      previous : this.nodes[node.id],
+      resource : node,
+      store: this.setIn(['nodes', node.id], node) });
   }.bind(this));
 }
 
@@ -332,6 +348,9 @@ NodeRAMStore.prototype.putDevice = function (device, cb) {
     });
 
     cb(null, {
+      topic : '/devices/',
+      path : device.id,
+      previous : this.devices[device.id],
       resource : device,
       store: this.setIn(['devices', device.id], device)
     });
@@ -361,7 +380,13 @@ NodeRAMStore.prototype.putSource = function (source, cb) {
       return cb(statusError(400,
         "Referenced device '" + source.device_id + "' is not known on this node."));
     }
-    cb(null, { resource: source, store: this.setIn(['sources', source.id], source) });
+    cb(null, {
+      topic : '/sources/',
+      path : source.id,
+      previous : this.sources[source.id],
+      resource: source,
+      store: this.setIn(['sources', source.id], source)
+    });
   }.bind(this));
 }
 
@@ -396,11 +421,22 @@ NodeRAMStore.prototype.putSender = function (sender, cb) {
       var deviceSenders = this.devices[sender.device_id].senders.asMutable();
       deviceSenders.push(sender.id);
       // console.log(this.setIn(['senders', sender.id], sender));
-      cb(null, { resource : sender, store: this.setIn(['senders', sender.id], sender)
-        .setIn(['devices', sender.device_id, 'senders'], deviceSenders) });
+      cb(null, {
+        topic : '/senders/',
+        path : sender.id,
+        previous : this.senders[sender.id],
+        resource : sender,
+        store: this.setIn(['senders', sender.id], sender)
+          .setIn(['devices', sender.device_id, 'senders'], deviceSenders)
+      });
     } else {
-      cb(null, { resource : sender,
-        store : this.setIn(['senders', sender.id], sender) });
+      cb(null, {
+        topic : '/senders/',
+        path : sender.id,
+        previous : this.senders[sender.id],
+        resource : sender,
+        store : this.setIn(['senders', sender.id], sender)
+      });
     }
   }.bind(this));
 }
@@ -431,11 +467,22 @@ NodeRAMStore.prototype.putReceiver = function (receiver, cb) {
       var deviceReceivers = this.devices[receiver.device_id].receivers.asMutable();
       deviceReceivers.push(receiver.id);
       // console.log(deviceReceivers);
-      cb(null, { resource : receiver, store : this.setIn(['receivers', receiver.id], receiver)
-          .setIn(['devices', receiver.device_id, 'receivers'], deviceReceivers) });
+      cb(null, {
+        topic : '/receivers/',
+        path : receiver.id,
+        previous : this.receivers[receiver.id],
+        resource : receiver,
+        store : this.setIn(['receivers', receiver.id], receiver)
+          .setIn(['devices', receiver.device_id, 'receivers'], deviceReceivers)
+      });
     } else {
-      cb(null, { resource : receiver,
-        store : this.setIn(['receivers', receiver.id], receiver) });
+      cb(null, {
+        topic : '/receivers/',
+        path : receiver.id,
+        previous : this.receivers[receiver.id],
+        resource : receiver,
+        store : this.setIn(['receivers', receiver.id], receiver)
+      });
     }
   }.bind(this));
 }
@@ -463,7 +510,12 @@ NodeRAMStore.prototype.putFlow = function (flow, cb) {
       return cb(statusError(400,
         "Referenced source '" + flow.source_id + "' is not known to this node.'"));
     }
-    cb(null, { resource : flow, store : this.setIn(['flows', flow.id], flow) });
+    cb(null, {
+      topic : '/flows/',
+      path : flow.id,
+      previous : this.flows[flow.id],
+      resource : flow,
+      store : this.setIn(['flows', flow.id], flow) });
   }.bind(this));
 }
 

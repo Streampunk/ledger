@@ -974,3 +974,45 @@ serverTest('Deleting an SDP file', node,
     done();
   });
 });
+
+// More detailed tests of event generation with the registration API.
+serverTest('Checking event on post', node,
+    function (t, node, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; });
+  server.putResource(device).then(function () {
+    t.ok(event, 'event has been received.');
+    t.equal(event.topic, '/devices/', 'event has expected topic.');
+    var data = event.data[0];
+    t.equal(data.path, device.id, 'event data has expected path.');
+    t.ok(typeof data.pre === 'undefined', 'event has no previous.');
+    t.deepEqual(data.post, device, 'event carried the posted device.');
+    done();
+  })
+  .catch(function (e) {
+    t.fail(e);
+    done();
+  });
+});
+
+serverTest('Checking event on delete', node,
+    function (t, node, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; });
+  server.putResource(device)
+  .then(function () {
+    return server.deleteResource(device.id, 'device');
+  }).then(function () {
+    t.ok(event, 'event has been received.');
+    t.equal(event.topic, '/devices/', 'event has expected topic.');
+    var data = event.data[0];
+    t.equal(data.path, device.id, 'event data has expected path.');
+    t.deepEqual(data.pre, device, 'event has expected previous.');
+    t.ok(typeof data.post === 'undefined', 'event has no post value.');
+    done();
+  })
+  .catch(function (e) {
+    t.fail(e);
+    done();
+  });
+});

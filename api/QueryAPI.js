@@ -23,18 +23,31 @@ var bodyparser = require('body-parser');
 var uuid = require('uuid');
 var WebSocketServer = require('ws').Server;
 var os = require('os');
+var url = require('url');
+const EventEmitter = require('events');
+var util = require('util');
 
 var pathEnum = ["/nodes", "/devices", "/sources", "/flows", "/senders", "/receivers"];
 var firstExtNetIf = require('./Util.js').getFirstExternalNetworkInterface().address;
 
-function QueryAPI (port, storeFn, serviceName, pri) {
+function QueryAPI (port, storeFn, serviceName, pri, modifyEvents) {
+  EventEmitter.call(this);
   var app = express();
   var server = null;
   var wss = null;
   var mdnsService = null;
   var webSockets = {};
+  var instanceUUID = uuid.v4();
   if (!pri || Number(pri) !== pri || pri % 1 !== 0) pri = 100;
   if (!serviceName || typeof serviceName !== 'string') serviceName = 'ledger_query';
+  var api = this;
+
+  if (modifyEvents && typeof modifyEvents === 'object' &&
+       modifyEvents.on && typeof modifyEvents.on === 'function') { // Pass it on
+    modifyEvents.on('modify', function (ev) {
+      api.emit('modify', ev);
+    });
+  };
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -332,10 +345,12 @@ function QueryAPI (port, storeFn, serviceName, pri) {
 
     wss = new WebSocketServer({ server : server });
 
-    // wss.on('connection', function (ws) {
-    //   var location = url.parse(ws.upgradeReq.url, true);
-    //
-    // });
+    wss.on('connection', function (ws) {
+      console.log(url.parse(ws.upgradeReq.url, true));
+
+      setInterval(function () {
+        ws.send(JSON.stringify({ msg : 'Hello matey!'}), { mask : true }); }, 2000);
+    });
 
     this.startMDNS();
 
@@ -415,7 +430,7 @@ function QueryAPI (port, storeFn, serviceName, pri) {
 
    if (!validPort(port))
      return new Error('Port is not a valid value. Must be an integer greater than zero.');
-   return immutable(this, { prototype : QueryAPI.prototype });
+   // return immutable(this, { prototype : QueryAPI.prototype });
 }
 
 /**
@@ -423,5 +438,7 @@ function QueryAPI (port, storeFn, serviceName, pri) {
  * @callback {QueryAPI~trackStatus}
  * @param {Error=} Set if an error occurred when starting or stopping the server.
  */
+
+util.inherits(QueryAPI, EventEmitter);
 
 module.exports = QueryAPI;

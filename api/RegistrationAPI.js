@@ -26,12 +26,16 @@ var uuid = require('uuid');
 var mdns = require('mdns-js');
 var NodeStore = require('./NodeStore.js');
 var Promise = require('promise');
+const EventEmitter = require('events');
+var util = require('util');
 
 var knownResourceTypes = ['node', 'device', 'flow', 'source', 'receiver', 'sender'];
 
 function RegistrationAPI (port, store, serviceName, pri) {
+  EventEmitter.call(this);
   var app = express();
   var server = null;
+  var api = this;
   if (!pri || Number(pri) !== pri || pri % 1 !== 0) pri = 100;
   if (!serviceName || typeof serviceName !== 'string') serviceName = 'ledger_reg';
 
@@ -47,6 +51,8 @@ function RegistrationAPI (port, store, serviceName, pri) {
   this.getPort = function () {
     return port;
   }
+
+
 
   /**
    * Replace the [store]{@link NodeStore} set for this API.
@@ -87,6 +93,17 @@ function RegistrationAPI (port, store, serviceName, pri) {
     });
     storePromise = nextState.then(function (ro) {
       store = ro.store;
+      if (ro.previous) {
+        api.emit('modify', {
+          topic : ro.topic,
+          data : [ { path : ro.path, pre : ro.previous, post : ro.resource }]
+        });
+      } else {
+        api.emit('modify', {
+          topic : ro.topic,
+          data : [ { path : ro.path, post : ro.resource }]
+        });
+      }
       return store;
     }, function (e) { console.error(e); });
     return nextState.then(function (ro) { return ro.resource; }).nodeify(cb);
@@ -118,6 +135,10 @@ function RegistrationAPI (port, store, serviceName, pri) {
     });
     storePromise = nextState.then(function (ro) {
       store = ro.store;
+      api.emit('modify', {
+        topic : ro.topic,
+        data : [ { path : ro.path, pre : ro.previous } ]
+      });
       return store;
     });
     return nextState.then(function (ro) { return ro.id; }).nodeify(cb);
@@ -411,7 +432,6 @@ function RegistrationAPI (port, store, serviceName, pri) {
     return new Error('Port is not a valid value. Must be an integer greater than zero.');
   if (!validStore(store))
     return new Error('Store does not have a sufficient contract.');
-  return immutable(this, { prototype : RegistrationAPI.prototype });
 }
 
 /**
@@ -419,5 +439,7 @@ function RegistrationAPI (port, store, serviceName, pri) {
  * @callback {RegistrationAPI~trackStatus}
  * @param {Error=} Set if an error occurred when starting or stopping the server.
  */
+
+util.inherits(RegistrationAPI, EventEmitter);
 
 module.exports = RegistrationAPI;

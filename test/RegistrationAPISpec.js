@@ -262,14 +262,34 @@ var node = new Node(null, null, "Punkd Up Node", "http://tereshkova.local:3000",
   "tereshkova");
 serverTest('The server allows a node to be created',
     function (t, store, server, done) {
-  postResource(node, t, store, server, 201, done);
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
+  postResource(node, t, store, server, 201, function () {
+    t.ok(event, 'event has been received.');
+    t.equal(event.topic, '/nodes/', 'event has expected topic.');
+    var data = event.data[0];
+    t.equal(data.path, node.id, 'event data has expected path.');
+    t.ok(typeof data.pre === 'undefined', 'event has no previous.');
+    t.deepEqual(data.post, node, 'event carried the posted node.');
+    done();
+  });
 });
 
 serverTest('The server allows a node to be updated with new version',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   postResource(node, t, store, server, 201, function () {
     var node2 = node.merge({version : Node.prototype.generateVersion() });
-    postResource(node2, t, server.getStore(), server, 200, done);
+    postResource(node2, t, server.getStore(), server, 200, function () {
+      t.ok(event, 'event has been received.');
+      t.equal(event.topic, '/nodes/', 'event has expected topic.');
+      var data = event.data[0];
+      t.equal(data.path, node.id, 'event data has expected path.');
+      t.deepEqual(data.pre, node, 'event has expected previous.');
+      t.deepEqual(data.post, node2, 'event carried the posted node.');
+      done();
+    });
   });
 });
 
@@ -278,39 +298,69 @@ serverTest('The server allows a node to be updated with the same version',
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(node, t, server.getStore(), server, 200, cb); }
-  ], function (err) { if (err)  t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err); done(); });
 });
 
 var device = new Device(null, null, "Dat Punking Ting", null, node.id);
 serverTest('The server allows a device to be created',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)}
-  ], function (err) { if (err) t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err);
+    t.ok(event, 'event has been received.');
+    t.equal(event.topic, '/devices/', 'event has expected topic.');
+    var data = event.data[0];
+    t.equal(data.path, device.id, 'event data has expected path.');
+    t.ok(typeof data.pre === 'undefined', 'event has no previous.');
+    t.deepEqual(data.post, device, 'event carried the posted device.');
+    done();
+  });
 });
 
 var videoSource = new Source(null, null, "Garish Punk", "Will you turn it down!!",
   ledger.formats.video, null, null, device.id);
 serverTest('The server allows a source to be created',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)}
-  ], function (err) { if (err) t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err);
+    t.ok(event, 'event has been received.');
+    t.equal(event.topic, '/sources/', 'event has expected topic.');
+    var data = event.data[0];
+    t.equal(data.path, videoSource.id, 'event data has expected path.');
+    t.ok(typeof data.pre === 'undefined', 'event has no previous.');
+    t.deepEqual(data.post, videoSource, 'event carried the posted source.');
+    done();
+  });
 });
 
 var videoFlow = new Flow(null, null, "Junk Punk", "You looking at me, punk?",
   ledger.formats.video, null, videoSource.id);
 serverTest('The server allows a flow to be created',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)}
-  ], function (err) { if (err) t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err);
+    t.ok(event, 'event has been received.');
+    t.equal(event.topic, '/flows/', 'event has expected topic.');
+    var data = event.data[0];
+    t.equal(data.path, videoFlow.id, 'event data has expected path.');
+    t.ok(typeof data.pre === 'undefined', 'event has no previous.');
+    t.deepEqual(data.post, videoFlow, 'event carried the posted flow.');
+    done();
+  });
 });
 
 var videoSender = new Sender(null, null, "In Ya Face Punk",
@@ -318,13 +368,23 @@ var videoSender = new Sender(null, null, "In Ya Face Punk",
   ledger.transports.rtp_mcast, device.id, "http://tereshkova.local/video.sdp");
 serverTest('The server allows a sender to be created',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoSource, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)}
-  ], function (err) { if (err) t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err);
+    t.ok(event, 'event has been received.');
+    t.equal(event.topic, '/senders/', 'event has expected topic.');
+    var data = event.data[0];
+    t.equal(data.path, videoSender.id, 'event data has expected path.');
+    t.ok(typeof data.pre === 'undefined', 'event has no previous.');
+    t.deepEqual(data.post, videoSender, 'event carried the posted sender.');
+    done();
+  });
 });
 
 var videoReceiver = new Receiver(null, null, "Watching da Punks",
@@ -332,6 +392,8 @@ var videoReceiver = new Receiver(null, null, "Watching da Punks",
   ledger.transports.rtp_mcast);
 serverTest('The server allows a receiver to be created',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
@@ -339,11 +401,21 @@ serverTest('The server allows a receiver to be created',
     function (cb) { postResource(videoFlow, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoSender, t, server.getStore(), server, 201, cb)},
     function (cb) { postResource(videoReceiver, t, server.getStore(), server, 201, cb)}
-  ], function (err) { if (err) t.fail(err); done(); });
+  ], function (err) { if (err) t.fail(err);
+    t.ok(event, 'event has been received.');
+    t.equal(event.topic, '/receivers/', 'event has expected topic.');
+    var data = event.data[0];
+    t.equal(data.path, videoReceiver.id, 'event data has expected path.');
+    t.ok(typeof data.pre === 'undefined', 'event has no previous.');
+    t.deepEqual(data.post, videoReceiver, 'event carried the posted receiver.');
+    done();
+  });
 });
 
 serverTest('The server allows an unreferenced node to be deleted',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   postResource(node, t, store, server, 201, function () {
     t.ok(server.getStore().nodes[node.id] !== undefined,
       'store initially contains node.');
@@ -357,6 +429,12 @@ serverTest('The server allows an unreferenced node to be deleted',
       res.on('end', function () {
         t.ok(server.getStore().nodes[node.id] === undefined,
           'store no longer contains node.');
+        t.ok(event, 'event has been received.');
+        t.equal(event.topic, '/nodes/', 'event has expected topic.');
+        var data = event.data[0];
+        t.equal(data.path, node.id, 'event data has expected path.');
+        t.deepEqual(data.pre, node, 'event carried the previous value.');
+        t.ok(typeof data.post === 'undefined', 'event has no post value.');
         done();
       });
     });
@@ -366,6 +444,8 @@ serverTest('The server allows an unreferenced node to be deleted',
 
 serverTest('The server allows an unreferenced device to be deleted',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)}
@@ -383,6 +463,12 @@ serverTest('The server allows an unreferenced device to be deleted',
       res.on('end', function () {
         t.ok(server.getStore().devices[device.id] === undefined,
           'store no longer contains device.');
+        t.ok(event, 'event has been received.');
+        t.equal(event.topic, '/devices/', 'event has expected topic.');
+        var data = event.data[0];
+        t.equal(data.path, device.id, 'event data has expected path.');
+        t.deepEqual(data.pre, device, 'event carried the previous value.');
+        t.ok(typeof data.post === 'undefined', 'event has no post value.');
         done();
       });
     });
@@ -392,6 +478,8 @@ serverTest('The server allows an unreferenced device to be deleted',
 
 serverTest('The server allows an unreferenced source to be deleted',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
@@ -410,6 +498,12 @@ serverTest('The server allows an unreferenced source to be deleted',
       res.on('end', function () {
         t.ok(server.getStore().sources[videoSource.id] === undefined,
           'store no longer contains source.');
+        t.ok(event, 'event has been received.');
+        t.equal(event.topic, '/sources/', 'event has expected topic.');
+        var data = event.data[0];
+        t.equal(data.path, videoSource.id, 'event data has expected path.');
+        t.deepEqual(data.pre, videoSource, 'event carried the previous value.');
+        t.ok(typeof data.post === 'undefined', 'event has no post value.');
         done();
       });
     });
@@ -419,6 +513,8 @@ serverTest('The server allows an unreferenced source to be deleted',
 
 serverTest('The server allows an unreferenced flow to be deleted',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
@@ -438,6 +534,12 @@ serverTest('The server allows an unreferenced flow to be deleted',
       res.on('end', function () {
         t.ok(server.getStore().flows[videoFlow.id] === undefined,
           'store no longer contains flow.');
+        t.ok(event, 'event has been received.');
+        t.equal(event.topic, '/flows/', 'event has expected topic.');
+        var data = event.data[0];
+        t.equal(data.path, videoFlow.id, 'event data has expected path.');
+        t.deepEqual(data.pre, videoFlow, 'event carried the previous value.');
+        t.ok(typeof data.post === 'undefined', 'event has no post value.');
         done();
       });
     });
@@ -447,6 +549,8 @@ serverTest('The server allows an unreferenced flow to be deleted',
 
 serverTest('The server allows an unreferenced sender to be deleted',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
@@ -467,6 +571,12 @@ serverTest('The server allows an unreferenced sender to be deleted',
       res.on('end', function () {
         t.ok(server.getStore().senders[videoSender.id] === undefined,
           'store no longer contains sender.');
+        t.ok(event, 'event has been received.');
+        t.equal(event.topic, '/senders/', 'event has expected topic.');
+        var data = event.data[0];
+        t.equal(data.path, videoSender.id, 'event data has expected path.');
+        t.deepEqual(data.pre, videoSender, 'event carried the previous value.');
+        t.ok(typeof data.post === 'undefined', 'event has no post value.');
         done();
       });
     });
@@ -476,6 +586,8 @@ serverTest('The server allows an unreferenced sender to be deleted',
 
 serverTest('The server allows an unreferenced receiver to be deleted',
     function (t, store, server, done) {
+  var event = null;
+  server.on('modify', function (ev) { event = ev; })
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(device, t, server.getStore(), server, 201, cb)},
@@ -497,6 +609,12 @@ serverTest('The server allows an unreferenced receiver to be deleted',
       res.on('end', function () {
         t.ok(server.getStore().receivers[videoReceiver.id] === undefined,
           'store no longer contains receiver.');
+        t.ok(event, 'event has been received.');
+        t.equal(event.topic, '/receivers/', 'event has expected topic.');
+        var data = event.data[0];
+        t.equal(data.path, videoReceiver.id, 'event data has expected path.');
+        t.deepEqual(data.pre, videoReceiver, 'event carried the previous value.');
+        t.ok(typeof data.post === 'undefined', 'event has no post value.');
         done();
       });
     });
