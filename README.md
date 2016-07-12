@@ -1,7 +1,7 @@
 [![CircleCI](https://circleci.com/gh/Streampunk/ledger.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/Streampunk/ledger)
 # Ledger
 
-Ledger is a [Node.js](http://nodejs.org/) Javascript implementation of the [Advanced Media Workflow Association's](http://www.amwa.tv/) [Networked Media Open Specifications](http://www.nmos.tv/) [discovery and registration APIs](https://github.com/AMWA-TV/nmos-discovery-registration).
+Ledger is a [Node.js](http://nodejs.org/) Javascript implementation of the [Advanced Media Workflow Association's](http://www.amwa.tv/) [Networked Media Open Specifications](http://www.nmos.tv/) [discovery and registration APIs](https://github.com/AMWA-TV/nmos-discovery-registration) version 1.0.
 
 Currently, this is a fairly complete implementation of the node, registration and query APIs. (Work on the support of the peer-to-peer API is still in progress.)
 
@@ -124,7 +124,7 @@ created:
   data: [ { path: 'cfe6803a-70df-44f1-b3b0-9b78b94b2f02', pre: [Object] } ] }
 ```
 
-### Websocket notifications
+## Websocket notifications
 
 [Websocket](https://tools.ietf.org/html/rfc6455) notifications are now supported
 by ledger as described in the [QueryAPI websocket](https://github.com/AMWA-TV/nmos-discovery-registration/blob/master/docs/4.2.%20Behaviour%20-%20Querying.md) documentation. The implementation has been tested with
