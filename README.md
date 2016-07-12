@@ -124,9 +124,11 @@ created:
   data: [ { path: 'cfe6803a-70df-44f1-b3b0-9b78b94b2f02', pre: [Object] } ] }
 ```
 
-These events provide the underlying mechanism for serving the websocket
-subscriptions and can be filtered to provide local application features by
-developers.
+### Websocket notifications
+
+[Websocket](https://tools.ietf.org/html/rfc6455) notifications are now supported
+by ledger as described in the [QueryAPI websocket](https://github.com/AMWA-TV/nmos-discovery-registration/blob/master/docs/4.2.%20Behaviour%20-%20Querying.md) documentation. The implementation has been tested with
+the Node.js [ws](https://www.npmjs.com/package/ws) package.
 
 ## Extra features
 

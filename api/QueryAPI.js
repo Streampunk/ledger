@@ -456,10 +456,11 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents) {
      var subs = wsFilter[ev.topic.slice(0, -1)];
      if (subs) {
        subs.forEach(function (subWs) {
-        //  if (!Object.keys(subWs.params).every(function (k) {
-        //    return (ev.data[0].post && ev.data[0].post[k] === subWs.params[k]) ||
-        //      (ev.data[0].pre && ev.data[0].pre[k] === subWs.params[k]);
-        //    })) return; // pre or post must match the parameters
+         if (!Object.keys(subWs.sub.params).every(function (k) {
+           var preMatch = (ev.data[0].pre && ev.data[0].pre[k]) === subWs.sub.params[k];
+           var postMatch = (ev.data[0].post && ev.data[0].post[k]) === subWs.sub.params[k];
+           return preMatch || postMatch;
+         })) return;
          var tsBase = Date.now();
          var ts = `${tsBase / 1000|0}:${tsBase % 1000 * 1000000}`;
          var g = {
