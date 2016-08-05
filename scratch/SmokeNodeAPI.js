@@ -36,7 +36,7 @@ nodeAPI.init().start();
 
 var device = new Device(null, null, "Dat Punking Ting", null, node.id);
 function regDev() {
-  store.putDevice(device, function (e, d, s) {
+  nodeAPI.putResource(device, function (e, d, s) {
     if (e) console.error(e);
     else {
       nodeAPI.setStore(s);
@@ -48,7 +48,7 @@ function regDev() {
 var videoSource = new Source(null, null, "Noisy Punk", "Will you turn it down!!",
   formats.video, null, null, device.id);
 function regVideoSource() {
-  nodeAPI.getStore().putSource(videoSource, function (e, d, s) {
+  nodeAPI.putResource(videoSource, function (e, d, s) {
     if (e) console.error(e);
     else nodeAPI.setStore(s);
     regAudioSource();
@@ -58,7 +58,7 @@ function regVideoSource() {
 var audioSource = new Source(null, null, "Garish Punk", "What do you look like!!",
   formats.audio, null, null, device.id);
 function regAudioSource() {
-  nodeAPI.getStore().putSource(audioSource, function (e, d, s) {
+  nodeAPI.putResource(audioSource, function (e, d, s) {
     if (e) console.error(e);
     else nodeAPI.setStore(s);
     regAudioFlow();
@@ -68,7 +68,7 @@ function regAudioSource() {
 var audioFlow = new Flow(null, null, "Funk Punk", "Blasting at you, punk!",
   formats.audio, null, audioSource.id);
 function regAudioFlow() {
-  nodeAPI.getStore().putFlow(audioFlow, function (e, d, s) {
+  nodeAPI.putResource(audioFlow, function (e, d, s) {
     if (e) console.error(e);
     else nodeAPI.setStore(s);
     regVideoFlow();
@@ -78,7 +78,7 @@ function regAudioFlow() {
 var videoFlow = new Flow(null, null, "Junk Punk", "You looking at me, punk?",
   formats.video, null, videoSource.id);
 function regVideoFlow() {
-  nodeAPI.getStore().putFlow(videoFlow, function (e, d, s) {
+  nodeAPI.putResource(videoFlow, function (e, d, s) {
     if (e) console.error(e);
     else nodeAPI.setStore(s);
     regAudioSender();
@@ -89,7 +89,7 @@ var audioSender = new Sender(null, null, "Listen Up Punk",
   "Should have listened to your Mother!", audioFlow.id,
   transports.rtp_mcast, device.id, "http://tereshkova.local/audio.sdp");
 function regAudioSender() {
-  nodeAPI.getStore().putSender(audioSender, function (e, d, s) {
+  nodeAPI.putResource(audioSender, function (e, d, s) {
     if (e) console.error(e);
     else nodeAPI.setStore(s);
     regVideoSender();
@@ -100,7 +100,7 @@ var videoSender = new Sender(null, null, "In Ya Face Punk",
   "What do you look like?", videoFlow.id,
   transports.rtp_mcast, device.id, "http://tereshkova.local/video.sdp");
 function regVideoSender() {
-  nodeAPI.getStore().putSender(videoSender, function (e, d, s) {
+  nodeAPI.putResource(videoSender, function (e, d, s) {
     if (e) console.error(e);
     else nodeAPI.setStore(s);
     regAudioReceiver();
@@ -111,7 +111,7 @@ var audioReceiver = new Receiver(null, null, "Say It Punk?",
   "You talking to me?", formats.audio, null, null, device.id,
   transports.rtp_mcast);
 function regAudioReceiver() {
-  nodeAPI.getStore().putReceiver(audioReceiver, function (e, d, s) {
+  nodeAPI.putResource(audioReceiver, function (e, d, s) {
     if (e) console.error(e);
     else nodeAPI.setStore(s);
     regVideoReceiver();
@@ -122,7 +122,7 @@ var videoReceiver = new Receiver(null, null, "Watching da Punks",
   "Looking hot, punk!", formats.video, null, null, device.id,
   transports.rtp_mcast);
 function regVideoReceiver() {
-  nodeAPI.getStore().putReceiver(videoReceiver, function (e, d, s) {
+  nodeAPI.putResource(videoReceiver, function (e, d, s) {
     if (e) console.error(e);
     else nodeAPI.setStore(s);
     console.log('Demo registration complete.');
