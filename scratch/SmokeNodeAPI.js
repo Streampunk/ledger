@@ -35,99 +35,47 @@ var nodeAPI = new NodeAPI(3000, store);
 nodeAPI.init().start();
 
 var device = new Device(null, null, "Dat Punking Ting", null, node.id);
-function regDev() {
-  nodeAPI.putResource(device, function (e, d, s) {
-    if (e) console.error(e);
-    else {
-      nodeAPI.setStore(s);
-      regVideoSource();
-    }
-  });
-}
 
 var videoSource = new Source(null, null, "Noisy Punk", "Will you turn it down!!",
   formats.video, null, null, device.id);
-function regVideoSource() {
-  nodeAPI.putResource(videoSource, function (e, d, s) {
-    if (e) console.error(e);
-    else nodeAPI.setStore(s);
-    regAudioSource();
-  });
-}
 
 var audioSource = new Source(null, null, "Garish Punk", "What do you look like!!",
   formats.audio, null, null, device.id);
-function regAudioSource() {
-  nodeAPI.putResource(audioSource, function (e, d, s) {
-    if (e) console.error(e);
-    else nodeAPI.setStore(s);
-    regAudioFlow();
-  });
-}
 
 var audioFlow = new Flow(null, null, "Funk Punk", "Blasting at you, punk!",
   formats.audio, null, audioSource.id);
-function regAudioFlow() {
-  nodeAPI.putResource(audioFlow, function (e, d, s) {
-    if (e) console.error(e);
-    else nodeAPI.setStore(s);
-    regVideoFlow();
-  });
-}
 
 var videoFlow = new Flow(null, null, "Junk Punk", "You looking at me, punk?",
   formats.video, null, videoSource.id);
-function regVideoFlow() {
-  nodeAPI.putResource(videoFlow, function (e, d, s) {
-    if (e) console.error(e);
-    else nodeAPI.setStore(s);
-    regAudioSender();
-  });
-}
 
 var audioSender = new Sender(null, null, "Listen Up Punk",
   "Should have listened to your Mother!", audioFlow.id,
   transports.rtp_mcast, device.id, "http://tereshkova.local/audio.sdp");
-function regAudioSender() {
-  nodeAPI.putResource(audioSender, function (e, d, s) {
-    if (e) console.error(e);
-    else nodeAPI.setStore(s);
-    regVideoSender();
-  });
-}
 
 var videoSender = new Sender(null, null, "In Ya Face Punk",
   "What do you look like?", videoFlow.id,
   transports.rtp_mcast, device.id, "http://tereshkova.local/video.sdp");
-function regVideoSender() {
-  nodeAPI.putResource(videoSender, function (e, d, s) {
-    if (e) console.error(e);
-    else nodeAPI.setStore(s);
-    regAudioReceiver();
-  });
-}
 
 var audioReceiver = new Receiver(null, null, "Say It Punk?",
   "You talking to me?", formats.audio, null, null, device.id,
   transports.rtp_mcast);
-function regAudioReceiver() {
-  nodeAPI.putResource(audioReceiver, function (e, d, s) {
-    if (e) console.error(e);
-    else nodeAPI.setStore(s);
-    regVideoReceiver();
-  });
-}
 
 var videoReceiver = new Receiver(null, null, "Watching da Punks",
   "Looking hot, punk!", formats.video, null, null, device.id,
   transports.rtp_mcast);
-function regVideoReceiver() {
-  nodeAPI.putResource(videoReceiver, function (e, d, s) {
-    if (e) console.error(e);
-    else nodeAPI.setStore(s);
-    console.log('Demo registration complete.');
-  //  console.log(JSON.stringify(s));
-  });
+
+function putRes(res) {
+  return function () { return nodeAPI.putResource(res); };
 }
 
-regDev();
+nodeAPI.putResource(device)
+.then(putRes(videoSource))
+.then(putRes(audioSource))
+.then(putRes(videoFlow))
+.then(putRes(audioFlow))
+.then(putRes(videoSender))
+.then(putRes(audioSender))
+.then(putRes(videoReceiver))
+.then(putRes(audioSender))
+.catch(console.error.bind(null, 'Failed to register resources:'))
+.done(function() { console.log('Demo registration complete.'); });
