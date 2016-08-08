@@ -30,7 +30,7 @@ var util = require('util');
 var pathEnum = ["/nodes", "/devices", "/sources", "/flows", "/senders", "/receivers"];
 var firstExtNetIf = require('./Util.js').getFirstExternalNetworkInterface().address;
 
-function QueryAPI (port, storeFn, serviceName, pri, modifyEvents) {
+function QueryAPI (port, storeFn, serviceName, pri, modifyEvents, iface) {
   EventEmitter.call(this);
   var app = express();
   var server = null;
@@ -49,6 +49,7 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents) {
       api.emit('modify', ev);
     });
   };
+  if (!iface) iface = '0.0.0.0';
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -328,7 +329,7 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents) {
    *                                    to start the server.
    */
   this.start = function (cb) {
-    server = app.listen(port, function (e) {
+    server = app.listen(port, iface, function (e) {
       var host = server.address().address;
       var port = server.address().port;
       if (e) {

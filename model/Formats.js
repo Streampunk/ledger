@@ -41,7 +41,7 @@ formats.validFormat = function (f) {
     (f.startsWith(formats.video) ||
       f.startsWith(formats.audio) ||
       f.startsWith(formats.event) ||
-      f.startsWith(foramts.mux_sdi));
+      f.startsWith(formats.mux_sdi));
 };
 
 module.exports = Object.freeze(formats);

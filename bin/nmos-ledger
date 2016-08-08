@@ -27,7 +27,8 @@ var properties = {
   queryName : 'ledger_query',
   registrationName : 'ledger_registration',
   queryPri : '100',
-  registrationPri : '100'
+  registrationPri : '100',
+  iface : '0.0.0.0'
 };
 
 for ( var i = 2 ; i < process.argv.length ; i++ ) {
@@ -56,9 +57,9 @@ if (isNaN(+properties.queryPri)) {
 }
 
 var registrationAPI = new RegistrationAPI(+properties.registrationPort, store,
-  properties.registrationName, +properties.registrationPri);
+  properties.registrationName, +properties.registrationPri, properties.iface);
 var queryAPI = new QueryAPI(+properties.queryPort, registrationAPI.getStore,
-  properties.queryName, +properties.queryPri, registrationAPI);
+  properties.queryName, +properties.queryPri, registrationAPI, properties.iface);
 
 registrationAPI.init().start();
 queryAPI.init().start();

@@ -31,13 +31,14 @@ var util = require('util');
 
 var knownResourceTypes = ['node', 'device', 'flow', 'source', 'receiver', 'sender'];
 
-function RegistrationAPI (port, store, serviceName, pri) {
+function RegistrationAPI (port, store, serviceName, pri, iface) {
   EventEmitter.call(this);
   var app = express();
   var server = null;
   var api = this;
   if (!pri || Number(pri) !== pri || pri % 1 !== 0) pri = 100;
   if (!serviceName || typeof serviceName !== 'string') serviceName = 'ledger_reg';
+  if (!iface) iface = '0.0.0.0';
 
   var storePromise = Promise.resolve(store);
 
@@ -268,6 +269,9 @@ function RegistrationAPI (port, store, serviceName, pri) {
         return next(NodeStore.prototype.statusError(400,
           'Given node identifier path parameter on health check is not a valid UUID.'));
       }
+      if (!nodeHealth[req.params.nodeID])
+        return next(NodeStore.prototype.statusError(404,
+          `Node health check received but no node with ID ${req.params.nodeID} is registered.`));
       var healthNow = Date.now() / 1000|0;
       nodeHealth[req.params.nodeID] = healthNow;
       res.json({ health : `${healthNow}` });
@@ -318,7 +322,7 @@ function RegistrationAPI (port, store, serviceName, pri) {
    *                                           to start the server.
    */
   this.start = function (cb) {
-    server = app.listen(port, function (e) {
+    server = app.listen(port, iface, function (e) {
       var host = server.address().address;
       var port = server.address().port;
       if (e) {
@@ -427,6 +431,19 @@ function RegistrationAPI (port, store, serviceName, pri) {
       typeof store.getFlow === 'function';
       // TODO add more of the required methods ... or drop this check?
   }
+
+  this.on('modify', function (ev) {
+    if (ev.topic === '/nodes/') {
+      if (ev.data[0].pre && ev.data[0].post) return; // modification
+      if (ev.data[0].post) {
+        nodeHealth[ev.data[0].path] = Date.now() / 1000|0;
+        // console.log('*** Adding node to track health', Object.keys(nodeHealth));
+      } else if (ev.data[0].pre) {
+        delete nodeHealth[ev.data[0].path];
+        // console.log('*** Removing node to track health', Object.keys(nodeHealth));
+      } else return;
+    }
+  });
 
   if (!validPort(port))
     return new Error('Port is not a valid value. Must be an integer greater than zero.');

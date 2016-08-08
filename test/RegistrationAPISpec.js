@@ -288,7 +288,14 @@ serverTest('Posting a health request for an unknown node',
     }, function (res) {
     t.equal(res.statusCode, 404, 'has a 404 Not Found response.');
     res.setEncoding('utf8');
-    res.on('data', console.log);
+    res.on('data', function (errMsg) {
+      var err = JSON.parse(errMsg);
+      console.log(err);
+      t.equal(err.code, 404, 'error message has expected status.');
+      t.equal(err.error,
+        `Node health check received but no node with ID ${nodeID} is registered.`,
+        'error description is as expected.');
+    });
     res.on('end', done);
   });
   req.end();

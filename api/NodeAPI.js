@@ -37,7 +37,7 @@ var knownResourceTypes = ['device', 'flow', 'source', 'receiver', 'sender'];
  * @param {NodeStore} store Store containing access to the details of the node.
  * @return {(NodeAPI|Error)}  Creates a NodeAPI or returns an error.
  */
-function NodeAPI (port, store) {
+function NodeAPI (port, store, iface) {
   EventEmitter.call(this);
   var app = express();
   var server = null;
@@ -45,6 +45,7 @@ function NodeAPI (port, store) {
   var storePromise = Promise.resolve(store);
   var sdps = {};
   var api = this;
+  if (!iface) iface = '0.0.0.0';
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -500,7 +501,7 @@ function NodeAPI (port, store) {
    *                                   to start the server.
    */
   this.start = function (cb) {
-    server = app.listen(port, function (e) {
+    server = app.listen(port, iface, function (e) {
       var host = server.address().address;
       var port = server.address().port;
       if (e) {

@@ -27,6 +27,10 @@ The following is a example of configuring properties such as port numbers, DNS-S
 
     nmos-ledger queryPort=4000 registrationPort=4001 queryName=qi queryPri=10
 
+It is also possible to bind the HTTP interfaces to a specific interface:
+
+    nmos-ledger iface=192.168.42.42
+
 ### Install as a local dependency
 
 To install ledger for use in you own application, such as when implementing a node, use npm as follows:
