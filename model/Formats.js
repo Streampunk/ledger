@@ -31,14 +31,17 @@ var formats = {
   /** Value <code>urn:x-nmos:format:audio</code>. */
   audio: "urn:x-nmos:format:audio",
   /** Value <code>urn:x-nmos:format:event</code>. */
-  event: "urn:x-nmos:format:event"
+  event: "urn:x-nmos:format:event",
+  /** Value <code>urn:x-nmos:format:mux:sdi</code>/ */
+  mux_sdi: "urn:x-nmos:format:mux:sdi"
 };
 
 formats.validFormat = function (f) {
   return typeof f === 'string' &&
     (f.startsWith(formats.video) ||
       f.startsWith(formats.audio) ||
-      f.startsWith(formats.event) );
+      f.startsWith(formats.event) ||
+      f.startsWith(foramts.mux_sdi));
 };
 
 module.exports = Object.freeze(formats);

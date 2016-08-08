@@ -202,32 +202,6 @@ serverTest('Checking CORS headers using base response',
   });
 });
 
-serverTest('The server allows a health status to be posted',
-    function (t, store, server, done) {
-  var nodeID = uuid.v4();
-  var req = http.request({
-      port : testPort,
-      path : `/x-nmos/registration/v1.0/health/nodes/${nodeID}`,
-      method : 'POST',
-      headers : {
-        'Content-Length' : 0
-      }
-    }, function (res) {
-    t.equal(res.statusCode, 200, 'has an OK response.');
-    res.setEncoding('utf8');
-    res.on('data', function (chunk) {
-      var body = JSON.parse(chunk.toString());
-      console.log(body);
-      t.ok(body.hasOwnProperty('health'), 'result has health property.');
-      t.ok(typeof body.health === 'string' && !isNaN(+body.health),
-        'health result is a string which contains a number.');
-      t.ok(+body.health > (Date.now() / 1000|0 - 10), 'health is in the last 10s.');
-    });
-    res.on('end', done);
-  });
-  req.end();
-});
-
 function postResource(item, t, store, server, status, done) {
   var jsonToPost = JSON.stringify({
     type: getResourceName(item),
@@ -299,6 +273,52 @@ serverTest('The server allows a node to be updated with the same version',
     function (cb) { postResource(node, t, store, server, 201, cb); },
     function (cb) { postResource(node, t, server.getStore(), server, 200, cb); }
   ], function (err) { if (err) t.fail(err); done(); });
+});
+
+serverTest('Posting a health request for an unknown node',
+  function (t, store, server, done) {
+  var nodeID = uuid.v4();
+  var req = http.request({
+      port : testPort,
+      path : `/x-nmos/registration/v1.0/health/nodes/${nodeID}`,
+      method : 'POST',
+      headers : {
+        'Content-Length' : 0
+      }
+    }, function (res) {
+    t.equal(res.statusCode, 404, 'has a 404 Not Found response.');
+    res.setEncoding('utf8');
+    res.on('data', console.log);
+    res.on('end', done);
+  });
+  req.end();
+});
+
+serverTest('The server allows a health status to be posted',
+    function (t, store, server, done) {
+  postResource(node, t, store, server, 201, function () {
+    var req = http.request({
+        port : testPort,
+        path : `/x-nmos/registration/v1.0/health/nodes/${node.id}`,
+        method : 'POST',
+        headers : {
+          'Content-Length' : 0
+        }
+      }, function (res) {
+      t.equal(res.statusCode, 200, 'has an OK response.');
+      res.setEncoding('utf8');
+      res.on('data', function (chunk) {
+        var body = JSON.parse(chunk.toString());
+        console.log(body);
+        t.ok(body.hasOwnProperty('health'), 'result has health property.');
+        t.ok(typeof body.health === 'string' && !isNaN(+body.health),
+          'health result is a string which contains a number.');
+        t.ok(+body.health > (Date.now() / 1000|0 - 10), 'health is in the last 10s.');
+      });
+      res.on('end', done);
+    });
+    req.end();
+  });
 });
 
 var device = new Device(null, null, "Dat Punking Ting", null, node.id);
