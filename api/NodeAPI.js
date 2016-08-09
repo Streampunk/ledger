@@ -445,6 +445,10 @@ function NodeAPI (port, store, iface) {
             if (e) return next(e);
             return res.status(202).json(req.body);
           }.bind(this));
+          api.emit('modify', {
+              topic : "/subscription/",
+              data : [ { receiver : receiver, sender : null }]
+            });
         }.bind(this));
         return;
       };
@@ -462,6 +466,10 @@ function NodeAPI (port, store, iface) {
           if (e) return next(e);
           res.status(202).json(updatedSender);
         }.bind(this));
+        api.emit('modify', {
+            topic : "/subscription/",
+            data : [ { receiver : receiver, sender : updatedSender }]
+          });
       }.bind(this));
     }.bind(this));
 
