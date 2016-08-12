@@ -150,7 +150,7 @@ function deleteItem(items, id, cb, argsLength, name, tidy, node) {
 function checkValidAndForward(item, items, name, cb) {
   if (!item.valid()) {
     cb(statusError(400,
-      "Given new or replcement " + name + " is not valid."));
+      "Given new or replacement " + name + " is not valid."));
     return false;
   }
   if (items[item.id]) { // Already stored
