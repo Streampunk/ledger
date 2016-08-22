@@ -25,6 +25,7 @@ var Sender = require('../model/Sender.js');
 var Receiver = require('../model/Receiver.js');
 var formats = require('../model/Formats.js');
 var transports = require('../model/Transports.js');
+var mdns = require('mdns-js');
 
 var node = new Node(null, null, "Punkd Up Node", "http://tereshkova.local:3000",
   "tereshkova");
@@ -79,3 +80,7 @@ nodeAPI.putResource(device)
 .then(putRes(audioSender))
 .catch(console.error.bind(null, 'Failed to register resources:'))
 .done(function() { console.log('Demo registration complete.'); });
+
+// setTimeout(function() {
+//   nodeAPI.stop(function () { console.log('Server closed.'); process.exit(); })
+// }, 10000);

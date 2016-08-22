@@ -530,25 +530,38 @@ function NodeAPI (port, store, iface) {
   var candidates = [];
   function startMDNS() {
     // mdns.excludeInterface('0.0.0.0');
-
-    console.log('Starting MDNS');
-    mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-node'), port, {
-      name : 'ledger',
-      txt : { }
-    });
-    if (!browser) {
-      browser = mdns.createBrowser('_nmos-registration._tcp.local.');
-      browser.on('ready', function () {
-        console.log('ready for mdns');
-        candidates = [];
-        browser.discover();
+    var hostname = store.self.hostname;
+    if (!hostname) hostname = 'ledger_' +
+      require('os').hostname().match(/([^\.]*)\.?.*/)[1] + '-' + process.pid;
+    console.log('Starting MDNS for hostname', hostname);
+    if (!mdnsService) {
+      mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-node'), port, {
+        name : hostname
       });
-    } else { // Strange behaviour where ready event is not called on reset
-      browser = mdns.createBrowser('_nmos-registration._tcp.local.');
-      setTimeout(() => { candidates = []; browser.discover(); console.log("DISCOVER"); }, 5000);
+
+      mdnsService.start();
+
+      process.on('SIGINT', function () {
+        if (mdnsService) {
+          mdnsService.stop();
+          console.log('Stopping ledger node service MDNS.');
+        };
+
+        setTimeout(function onTimeout() {
+          process.exit();
+        }, 100);
+      });
     }
+
     var selectionTimer = null;
+    browser = mdns.createBrowser(mdns.tcp('nmos-registration'));
+    browser.on('ready', function () {
+      console.log('Ready for mdns');
+      candidates = [];
+      browser.discover();
+    });
     browser.on('update', function (data) {
+      // console.log('UPDATE!!!', data);
       if (regConnected) return;
       if (data.fullname && data.fullname.indexOf('_nmos-registration._tcp') >= 0) {
         console.log("Found a registration service.", data.fullname, data.txt.length > 0 ? data.txt[0] : "");
@@ -557,7 +570,11 @@ function NodeAPI (port, store, iface) {
           selectCandidate(candidates); }, 1000);
         }
     });
-    browser.on('error', console.error);
+    // } else { // Strange behaviour where ready event is not called on reset
+    //   browser = mdns.createBrowser('_nmos-registration._tcp.local.');
+    //   setTimeout(() => { candidates = []; browser.discover(); console.log("DISCOVER"); }, 5000);
+    // }
+    browser.on('error', console.error.bind(null, 'ERROR!!!'));
     function selectCandidate(candidates) {
       function extractPri(x) {
         var match = x.txt[0].match(/pri=([0-9]+)/);
@@ -686,8 +703,10 @@ function NodeAPI (port, store, iface) {
             path : '/x-nmos/registration/v1.0/health/nodes/' + store.self.id,
             method: 'POST'
           }, function(res) {
-            if (res.statusCode != 200)
+            if (res.statusCode != 200) {
               console.log(`Unexpected health check response ${res.statusCode}.`);
+              resetMDNS();
+            }
             res.on('error', function (err) {
               console.error(`Error with healthcheck response from http://${regAddress}:${regPort}: ${err}`);
               resetMDNS();
@@ -735,7 +754,8 @@ function NodeAPI (port, store, iface) {
    *                                   to stop the server.
    */
   this.stop = function(cb) {
-    if (server) server.close(cb);
+    // Timeout covers MDNS shutdown
+    if (server) server.close(setTimeout.bind(null, cb, 1000));
     else {
       if (cb) cb(new Error('Server is not set for this Node API and so cannot be stopped.'));
     }
@@ -745,9 +765,8 @@ function NodeAPI (port, store, iface) {
       browser = null;
     }
     if (mdnsService) {
+      console.log('Forceable stop of ledger node MDNS service.');
       mdnsService.stop();
-      mdnsService.networking.stop();
-      mdnsService = null;
     }
     if (healthcheck) clearInterval(healthcheck);
     return this;

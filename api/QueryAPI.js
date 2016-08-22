@@ -355,6 +355,7 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents, iface) {
   }
 
   this.startMDNS = function startMDNS() {
+    // mdns.excludeInterface('0.0.0.0');
     if (serviceName === 'none') return; // For REST service acceptance testing
     mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-query'), port, {
       name : serviceName,
@@ -365,15 +366,16 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents, iface) {
 
     mdnsService.start();
 
-    if (process.listenerCount('SIGINT') === 0) {
-      process.on('SIGINT', function () {
-        if (mdnsService) mdnsService.stop();
+    process.on('SIGINT', function () {
+      if (mdnsService) {
+        mdnsService.stop();
+        console.log('Stopping ledger query service MDNS.');
+      }
 
-        setTimeout(function onTimeout() {
-          process.exit();
-        }, 1000);
-      });
-    }
+      setTimeout(function onTimeout() {
+        process.exit();
+      }, 1000);
+    });
   }
 
   /**

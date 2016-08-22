@@ -344,6 +344,7 @@ function RegistrationAPI (port, store, serviceName, pri, iface) {
   }
 
   this.startMDNS = function startMDNS() {
+    // mdns.excludeInterface('0.0.0.0');
     if (serviceName === 'none') return; // For acceptance testing of REST API
     mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-registration'), port, {
       name : serviceName,
@@ -354,15 +355,16 @@ function RegistrationAPI (port, store, serviceName, pri, iface) {
 
     mdnsService.start();
 
-    if (process.listenerCount('SIGINT') === 0) {
-      process.on('SIGINT', function () {
-        if (mdnsService) mdnsService.stop();
+    process.on('SIGINT', function () {
+      if (mdnsService) {
+        mdnsService.stop();
+        console.log('Stopped ledger registration service MDNS.');
+      }
 
-        setTimeout(function onTimeout() {
-          process.exit();
-        }, 1000);
-      });
-    }
+      setTimeout(function onTimeout() {
+        process.exit();
+      }, 1000);
+    });
   }
 
   /**
@@ -382,7 +384,7 @@ function RegistrationAPI (port, store, serviceName, pri, iface) {
     } else {
       this.stopMDNS(function (e) {
         if (e) cb(new Error(e.message +
-          ' Server is not set for this Registration API and so cannot be stopped.'));
+          'Server is not set for this Registration API and so cannot be stopped.'));
         else
           cb(new Error('Server is not set for this Registration API and so cannot be stopped.'));
         server = null;
