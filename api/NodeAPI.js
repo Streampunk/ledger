@@ -722,9 +722,10 @@ function NodeAPI (port, store, iface) {
         }
         ,5000);
       } else {
-        console.error(`Error registering node with http://${regAddress}:${regPort} with status ${res.statusCode}: ${err}`);
         res.setEncoding('utf8');
-        res.on('data', console.error);
+        res.on('data', function (err) {
+          console.error(`Error registering node with http://${regAddress}:${regPort} with status ${res.statusCode}: ${err}`);
+        });
         resetMDNS();
       }
     });
