@@ -693,39 +693,43 @@ function NodeAPI (port, store, iface) {
         'Content-Length' : payload.length
       }
     }, function(res) {
+      function makeHealthCheck() {
+        return setTimeout(function() {
+          var req = http.request({
+            hostname : regAddress,
+            port : regPort,
+            path : '/x-nmos/registration/v1.0/health/nodes/' + store.self.id,
+            method: 'POST'
+          }, function(res) {
+            if (res.statusCode != 200) {
+              console.log(`Unexpected health check response ${res.statusCode}.`);
+              return resetMDNS();
+            }
+            res.on('error', function (err) {
+              console.error(`Error with healthcheck response from http://${regAddress}:${regPort}: ${err}`);
+              resetMDNS();
+            });
+            res.setEncoding('utf8');
+            res.on('data', function (data) {
+              console.log(data);
+              healthcheck = makeHealthCheck();
+            });
+          });
+          req.on('error', function (err) {
+            console.error(`Error with healthcheck request to http://${regAddress}:${regPort}: ${err}`);
+            resetMDNS();
+          });
+          req.end();
+        }
+        ,5000);
+      };
       if (res.statusCode == 201) {
         console.log(`NMOS node registered with http://${regAddress}:${regPort}`);
         // Start health check ticker
-        function makeHealthCheck() {
-          return setTimeout(function() {
-            var req = http.request({
-              hostname : regAddress,
-              port : regPort,
-              path : '/x-nmos/registration/v1.0/health/nodes/' + store.self.id,
-              method: 'POST'
-            }, function(res) {
-              if (res.statusCode != 200) {
-                console.log(`Unexpected health check response ${res.statusCode}.`);
-                return resetMDNS();
-              }
-              res.on('error', function (err) {
-                console.error(`Error with healthcheck response from http://${regAddress}:${regPort}: ${err}`);
-                resetMDNS();
-              });
-              res.setEncoding('utf8');
-              res.on('data', function (data) {
-                console.log(data);
-                healthcheck = makeHealthCheck();
-              });
-            });
-            req.on('error', function (err) {
-              console.error(`Error with healthcheck request to http://${regAddress}:${regPort}: ${err}`);
-              resetMDNS();
-            });
-            req.end();
-          }
-          ,5000);
-        };
+        healthcheck = makeHealthCheck();
+      } else if (res.statusCode == 200) {
+        console.log(`NMOS node re-registered with registration API after break at http://${regAddress}:${regPort}`);
+        // Restart health check ticker
         healthcheck = makeHealthCheck();
       } else {
         res.setEncoding('utf8');
