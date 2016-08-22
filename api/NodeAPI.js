@@ -696,31 +696,37 @@ function NodeAPI (port, store, iface) {
       if (res.statusCode == 201) {
         console.log(`NMOS node registered with http://${regAddress}:${regPort}`);
         // Start health check ticker
-        healthcheck = setInterval(function() {
-          var req = http.request({
-            hostname : regAddress,
-            port : regPort,
-            path : '/x-nmos/registration/v1.0/health/nodes/' + store.self.id,
-            method: 'POST'
-          }, function(res) {
-            if (res.statusCode != 200) {
-              console.log(`Unexpected health check response ${res.statusCode}.`);
-              resetMDNS();
-            }
-            res.on('error', function (err) {
-              console.error(`Error with healthcheck response from http://${regAddress}:${regPort}: ${err}`);
+        function makeHealthCheck() {
+          return setTimeout(function() {
+            var req = http.request({
+              hostname : regAddress,
+              port : regPort,
+              path : '/x-nmos/registration/v1.0/health/nodes/' + store.self.id,
+              method: 'POST'
+            }, function(res) {
+              if (res.statusCode != 200) {
+                console.log(`Unexpected health check response ${res.statusCode}.`);
+                return resetMDNS();
+              }
+              res.on('error', function (err) {
+                console.error(`Error with healthcheck response from http://${regAddress}:${regPort}: ${err}`);
+                resetMDNS();
+              });
+              res.setEncoding('utf8');
+              res.on('data', function (data) {
+                console.log(data);
+                healthcheck = makeHealthCheck();
+              });
+            });
+            req.on('error', function (err) {
+              console.error(`Error with healthcheck request to http://${regAddress}:${regPort}: ${err}`);
               resetMDNS();
             });
-            res.setEncoding('utf8');
-            res.on('data', console.log);
-          });
-          req.on('error', function (err) {
-            console.error(`Error with healthcheck request to http://${regAddress}:${regPort}: ${err}`);
-            resetMDNS();
-          });
-          req.end();
-        }
-        ,5000);
+            req.end();
+          }
+          ,5000);
+        };
+        healthcheck = makeHealthCheck();
       } else {
         res.setEncoding('utf8');
         res.on('data', function (err) {
@@ -739,7 +745,7 @@ function NodeAPI (port, store, iface) {
 
   function resetMDNS() {
     console.log("Resetting NodeAPI MDNS registration services.");
-    clearInterval(healthcheck);
+    clearTimeout(healthcheck);
     if (browser) browser.stop();
     setTimeout(function () {
       regConnected = false;
@@ -769,7 +775,7 @@ function NodeAPI (port, store, iface) {
       console.log('Forceable stop of ledger node MDNS service.');
       mdnsService.stop();
     }
-    if (healthcheck) clearInterval(healthcheck);
+    if (healthcheck) clearTimeout(healthcheck);
     return this;
   }
 
