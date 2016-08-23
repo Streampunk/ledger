@@ -379,146 +379,151 @@ function NodeAPI (port, store, iface) {
     });
 
     app.get('/x-nmos/node/', function (req, res) {
-      res.json([ "v1.0/" ]);
+      res.json([ "v1.0/" , "v1.1/"]);
     });
 
-    var napi = express();
     // Mount all other methods at this base path
-    app.use('/x-nmos/node/v1.0/', napi);
+    app.use('/x-nmos/node/v1.0/', makeNapi('v1.0'));
+    app.use('/x-nmos/node/v1.1/', makeNapi('v1.1'));
 
-    napi.get('/', function (req, res) {
-      res.json([
-          "self/",
-          "sources/",
-          "flows/",
-          "devices/",
-          "senders/",
-          "receivers/"
-      ]);
-    });
+    function makeNapi (version) {
+      var napi = express();
 
-    napi.get('/self/', function (req, res, next) {
-      store.getSelf(function (err, self) {
-        if (err) next(err);
-        else res.json(self);
+      napi.get('/', function (req, res) {
+        res.json([
+            "self/",
+            "sources/",
+            "flows/",
+            "devices/",
+            "senders/",
+            "receivers/"
+        ]);
       });
-    });
 
-    // List devices
-    napi.get('/devices/', function (req, res, next) {
-      store.getDevices(req.query,
-          function (err, devices, total, pageOf, pages, size) {
-        if (err) next(err);
-        else setPagingHeaders(res, total, pageOf, pages, size).json(devices);
+      napi.get('/self/', function (req, res, next) {
+        store.getSelf(function (err, self) {
+          if (err) next(err);
+          else res.json(self);
+        });
       });
-    });
 
-    // Get a single device
-    napi.get('/devices/:id', function (req, res, next) {
-      store.getDevice(req.params.id, function (err, device) {
-        if (err) next(err);
-        else res.json(device);
+      // List devices
+      napi.get('/devices/', function (req, res, next) {
+        store.getDevices(req.query,
+            function (err, devices, total, pageOf, pages, size) {
+          if (err) next(err);
+          else setPagingHeaders(res, total, pageOf, pages, size).json(devices);
+        });
       });
-    });
 
-    // List sources
-    napi.get('/sources/', function (req, res, next) {
-      store.getSources(req.query,
-          function(err, sources, total, pageOf, pages, size) {
-        if (err) next(err);
-        else setPagingHeaders(res, total, pageOf, pages, size).json(sources);
+      // Get a single device
+      napi.get('/devices/:id', function (req, res, next) {
+        store.getDevice(req.params.id, function (err, device) {
+          if (err) next(err);
+          else res.json(device);
+        });
       });
-    });
 
-    // Get a single source
-    napi.get('/sources/:id', function (req, res, next) {
-      store.getSource(req.params.id, function (err, source) {
-        if (err) next(err);
-        else res.json(source);
+      // List sources
+      napi.get('/sources/', function (req, res, next) {
+        store.getSources(req.query,
+            function(err, sources, total, pageOf, pages, size) {
+          if (err) next(err);
+          else setPagingHeaders(res, total, pageOf, pages, size).json(sources);
+        });
       });
-    });
 
-    // List flows
-    napi.get('/flows/', function (req, res, next) {
-      store.getFlows(req.query,
-          function (err, flows, total, pageOf, pages, size) {
-        if (err) next(err);
-        else setPagingHeaders(res, total, pageOf, pages, size).json(flows);
+      // Get a single source
+      napi.get('/sources/:id', function (req, res, next) {
+        store.getSource(req.params.id, function (err, source) {
+          if (err) next(err);
+          else res.json(source);
+        });
       });
-    });
 
-    // Get a single flow
-    napi.get('/flows/:id', function (req, res, next) {
-      store.getFlow(req.params.id, function (err, flow) {
-        if (err) next(err);
-        else res.json(flow);
+      // List flows
+      napi.get('/flows/', function (req, res, next) {
+        store.getFlows(req.query,
+            function (err, flows, total, pageOf, pages, size) {
+          if (err) next(err);
+          else setPagingHeaders(res, total, pageOf, pages, size).json(flows);
+        });
       });
-    });
 
-    // List senders
-    napi.get('/senders/', function (req, res, next) {
-      store.getSenders(req.query,
-         function(err, senders, pageOf, size, page, total) {
-        if (err) next(err);
-        else setPagingHeaders(res, total, pageOf, page, size).json(senders);
+      // Get a single flow
+      napi.get('/flows/:id', function (req, res, next) {
+        store.getFlow(req.params.id, function (err, flow) {
+          if (err) next(err);
+          else res.json(flow);
+        });
       });
-    });
 
-    // Get a single sender
-    napi.get('/senders/:id', function (req, res, next) {
-      store.getSender(req.params.id, function (err, sender) {
-        if (err) next(err);
-        else res.json(sender);
+      // List senders
+      napi.get('/senders/', function (req, res, next) {
+        store.getSenders(req.query,
+           function(err, senders, pageOf, size, page, total) {
+          if (err) next(err);
+          else setPagingHeaders(res, total, pageOf, page, size).json(senders);
+        });
       });
-    });
 
-    // List receivers
-    napi.get('/receivers/', function (req, res, next) {
-      store.getReceivers(req.query,
-          function(err, receivers, total, pageOf, pages, size) {
-        if (err) next(err);
-        else setPagingHeaders(res, total, pageOf, pages, size).json(receivers);
+      // Get a single sender
+      napi.get('/senders/:id', function (req, res, next) {
+        store.getSender(req.params.id, function (err, sender) {
+          if (err) next(err);
+          else res.json(sender);
+        });
       });
-    });
 
-    // Get a single receiver
-    napi.get('/receivers/:id', function (req, res, next) {
-      store.getReceiver(req.params.id, function(err, receiver) {
-        if (err) next(err);
-        else res.json(receiver);
+      // List receivers
+      napi.get('/receivers/', function (req, res, next) {
+        store.getReceivers(req.query,
+            function(err, receivers, total, pageOf, pages, size) {
+          if (err) next(err);
+          else setPagingHeaders(res, total, pageOf, pages, size).json(receivers);
+        });
       });
-    });
 
-    napi.put('/receivers/:id/target', function (req, res, next) {
-      if (req.body.id === undefined) {
-        this.getResource(req.params.id, 'receiver', function (err, receiver) {
+      // Get a single receiver
+      napi.get('/receivers/:id', function (req, res, next) {
+        store.getReceiver(req.params.id, function(err, receiver) {
+          if (err) next(err);
+          else res.json(receiver);
+        });
+      });
+
+      napi.put('/receivers/:id/target', function (req, res, next) {
+        if (req.body.id === undefined) {
+          this.getResource(req.params.id, 'receiver', function (err, receiver) {
+            if (err) return next(err);
+            receiver = receiver
+              .set('subscription', { sender_id : null })
+              .set('version', Sender.prototype.generateVersion());
+            this.putResource(receiver, function (e, ro) {
+              if (e) return next(e);
+              return res.status(202).json(req.body);
+            }.bind(this));
+          }.bind(this));
+          return;
+        };
+        var updatedSender = Sender.prototype.parse(req.body);
+        store.getReceiver(req.params.id, function(err, receiver) {
           if (err) return next(err);
+          if (updatedSender.transport !== receiver.transport) {
+            return next(NodeStore.prototype.statusError(400,
+              "Cannot subscribe a receiver to a sender with different transport types."));
+          }
           receiver = receiver
-            .set('subscription', { sender_id : null })
+            .set('subscription', { sender_id: updatedSender.id })
             .set('version', Sender.prototype.generateVersion());
           this.putResource(receiver, function (e, ro) {
             if (e) return next(e);
-            return res.status(202).json(req.body);
+            res.status(202).json(updatedSender);
           }.bind(this));
         }.bind(this));
-        return;
-      };
-      var updatedSender = Sender.prototype.parse(req.body);
-      store.getReceiver(req.params.id, function(err, receiver) {
-        if (err) return next(err);
-        if (updatedSender.transport !== receiver.transport) {
-          return next(NodeStore.prototype.statusError(400,
-            "Cannot subscribe a receiver to a sender with different transport types."));
-        }
-        receiver = receiver
-          .set('subscription', { sender_id: updatedSender.id })
-          .set('version', Sender.prototype.generateVersion());
-        this.putResource(receiver, function (e, ro) {
-          if (e) return next(e);
-          res.status(202).json(updatedSender);
-        }.bind(this));
       }.bind(this));
-    }.bind(this));
+      return napi;
+    }
 
     app.use(function (err, req, res, next) {
       if (err.status) {

@@ -256,7 +256,7 @@ test('Flow objects', function(t) {
   t.deepEqual(methods.parse(
     JSON.stringify({ id : f.id, version : f.version, label : f.label,
         description : f.description, format : f.format, tags: f.tags,
-        source_id : f.source_id, parents : f.parents})), g,
+        source_id : f.source_id, parents : f.parents})), f,
     'converts from a JSON object as expected.');
   t.deepEqual(Flow.prototype.parse(g), f, "parse converts JSON object.");
   t.end();
@@ -271,3 +271,20 @@ test('Parsed BBC example', function (t) {
   t.ok(parsed.valid(), 'is valid.');
   t.end();
 });
+
+test('Generating grain rate', function (t) {
+  t.deepEqual(methods.generateGrainRate({ numerator : 30000, denominator: 1001 }),
+    { numerator : 30000, denominator: 1001 }, 'passes through grain rate.');
+  t.deepEqual(methods.generateGrainRate({ Numerator : 30000, denominaTor: 1001 }),
+    { numerator : 30000, denominator: 1001 }, 'corrects mixed case grain rate.');
+  t.deepEqual(methods.generateGrainRate({ Numerator : 30000, denominaTor: 1001, wibble : 'wobble'}),
+    { numerator : 30000, denominator: 1001 }, 'corrects additional parameter.');
+  t.deepEqual(methods.generateGrainRate({ numerator : 50 }),
+    { numerator : 50 }, 'is fine with numerator only.');
+  t.ok(typeof methods.generateGrainRate([]) === 'undefined', 'treats an array as undefined.');
+  t.ok(typeof methods.generateGrainRate(42) === 'undefined', 'treats a number as undefined.');
+  t.ok(typeof methods.generateGrainRate('fortytwo') === 'undefined', 'treats a string as undefined.');
+  t.ok(typeof methods.generateGrainRate(null) === 'undefined', 'treats a null as undefined.');
+  t.ok(typeof methods.generateGrainRate(undefined) === 'undefined', 'treats an undefined as undefined.');
+  t.end();
+})
