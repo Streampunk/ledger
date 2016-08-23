@@ -170,26 +170,40 @@ test('On a new flow registration at a node, eventaully the registry', function (
 });
 
 test('On a new sender registration at a node, eventaully the registry', function (t) {
+  t.ok(registrationAPI.getStore().devices[videoSender.device_id].senders.length === 0,
+    'current sender-referenced device has no senders registered')
   nodeAPI.putResource(videoSender, function (e, x) {
     if (e) return t.end(`failed to add a sender to the node: ${e}`);
     setTimeout(function () {
       registrationAPI.getStore().getSender(videoSender.id, function (err, result) {
         if (err) return t.fail('does not have our sender.');
         t.deepEqual(result, videoSender, 'has our sender registered.');
-        t.end();
+        registrationAPI.getStore().getDevice(videoSender.device_id, function (err, dev) {
+          if (err) return t.end('could not get related device for sender.');
+          t.ok(dev.senders.indexOf(videoSender.id) >= 0,
+            'device has been updated with sender identifier added.');
+          t.end();
+        });
       });
     }, 1000);
   });
 });
 
 test('On a new receiver registration at a node, eventaully the registry', function (t) {
+  t.ok(registrationAPI.getStore().devices[videoReceiver.device_id].receivers.length === 0,
+    'current receiver-referenced device has no receivers registered.');
   nodeAPI.putResource(videoReceiver, function (e, x) {
     if (e) return t.end(`failed to add a receiver to the node: ${e}`);
     setTimeout(function () {
       registrationAPI.getStore().getReceiver(videoReceiver.id, function (err, result) {
         if (err) return t.end('does not have our receiver.');
         t.deepEqual(result, videoReceiver, 'has our receiver registered.');
-        t.end();
+        registrationAPI.getStore().getDevice(videoReceiver.device_id, function (err, dev) {
+          if (err) return t.end('could not get related device for receiver.');
+          t.ok(dev.receivers.indexOf(videoReceiver.id) >= 0,
+            'device has been updated with receiver identifier added.');
+          t.end();
+        });
       });
     }, 1000);
   });

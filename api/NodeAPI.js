@@ -100,7 +100,16 @@ function NodeAPI (port, store, iface) {
    */
   this.putResource = function (resource, cb) {
     // storePromise.then(console.log.bind(null, 'Blimey!'));
+    var initDevice = null;
     var nextState = storePromise.then(function (store) {
+      switch (resource.constructor.name) {
+        case 'Sender':
+        case 'Receiver':
+          initDevice = store.devices[resource.device_id];
+          break;
+        default:
+          break;
+      }
       var putFn = Promise.denodeify(store['put' + resource.constructor.name]);
       return putFn.call(store, resource);
     });
@@ -117,6 +126,28 @@ function NodeAPI (port, store, iface) {
           topic : ro.topic,
           data : [ { path : ro.path, post : ro.resource }]
         });
+      }
+      switch (ro.resource.constructor.name) {
+        case 'Sender':
+        case 'Receiver':
+          var device = store.devices[ro.resource.device_id];
+          if (device) {
+            pushResource(device);
+            if (initDevice) {
+              api.emit('modify', {
+                topic : '/devices/',
+                data : [ { path : device.id, pre : initDevice, post : device }]
+              });
+            } else {
+              api.emit('modify', {
+                topic : '/devices/',
+                data : [ { path : device.id, post : device }]
+              });
+            }
+          }
+          break;
+        default:
+          break;
       }
       return store;
     }, function (e) { console.error(e); return store; });
@@ -195,7 +226,9 @@ function NodeAPI (port, store, iface) {
    *                          to the identifier of the resource being deleted.
    */
   this.deleteResource = function (id, type, cb) {
+    var initStore = null;
     var nextState = storePromise.then(function (store) {
+      initStore = store;
       return new Promise(function (resolve, reject) {
         if (type && typeof type === 'string' &&
              knownResourceTypes.some(function (x) {
@@ -213,6 +246,27 @@ function NodeAPI (port, store, iface) {
         topic : ro.topic,
         data : [ { path : ro.path, pre : ro.previous } ]
       });
+      switch (id.toLowerCase()) {
+        case 'receiver':
+        case 'sender':
+          var initDevice = initStore.devices[ro.previous.device_id];
+          var updatedDevice = store.devices[ro.previous.device_id];
+          pushResource(updatedDevice);
+          if (initDevice) {
+            api.emit('modify', {
+              topic : '/devices/',
+              data : [ { path : updatedDevice.id, pre : initDevice, post : updatedDevice }]
+            });
+          } else {
+            api.emit('modify', {
+              topic : '/devices/',
+              data : [ { path : updatedDevice.id, post : updatedDevice }]
+            });
+          }
+          break;
+        default:
+          break;
+      }
       return store;
     });
     return nextState.then(function (ro) { return ro.id; }).nodeify(cb);
