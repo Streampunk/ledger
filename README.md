@@ -3,7 +3,7 @@
 
 Ledger is a [Node.js](http://nodejs.org/) Javascript implementation of the [Advanced Media Workflow Association's](http://www.amwa.tv/) [Networked Media Open Specifications](http://www.nmos.tv/) [discovery and registration APIs](https://github.com/AMWA-TV/nmos-discovery-registration) version 1.0.
 
-Currently, this is a fairly complete implementation of the node, registration and query APIs. (Work on the support of the v1.0 changes and the peer-to-peer API is still in progress.)
+Currently, this is a fairly complete implementation of the node, registration and query APIs. (Work on the support of the v1.1 changes and the peer-to-peer API is still in progress.)
 
 ## Installation
 
