@@ -17,7 +17,7 @@ var express = require('express');
 var bodyparser = require('body-parser');
 var immutable = require('seamless-immutable');
 var NodeStore = require('./NodeStore.js');
-var mdns = require('mdns-js');
+var mdns = require('nmos-mdns-js');
 var http = require('http');
 var Sender = require('../model/Sender.js');
 var getResourceName = require('./Util.js').getResourceName;
@@ -533,8 +533,8 @@ function NodeAPI (port, store, iface) {
     var hostname = store.self.hostname;
     if (!hostname) hostname = 'ledger_' +
       require('os').hostname().match(/([^\.]*)\.?.*/)[1] + '-' + process.pid;
-    console.log('Starting MDNS for hostname', hostname);
     if (!mdnsService) {
+      console.log('Starting MDNS for hostname', hostname);
       mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-node'), port, {
         name : hostname
       });
@@ -753,7 +753,7 @@ function NodeAPI (port, store, iface) {
     if (browser) browser.stop();
     setTimeout(function () {
       regConnected = false;
-      startMDNS();
+      browser.discover();
     }, 5000);
   }
 
