@@ -42,6 +42,7 @@ function NodeAPI (port, store, iface) {
   var app = express();
   var server = null;
   var healthcheck = null;
+  var kickDiscovery = null;
   var storePromise = Promise.resolve(store);
   var sdps = {};
   var api = this;
@@ -719,6 +720,11 @@ function NodeAPI (port, store, iface) {
             console.error(`Error with healthcheck request to http://${regAddress}:${regPort}: ${err}`);
             resetMDNS();
           });
+          req.setTimeout(4000);
+          req.on('timeout', function () {
+            console.error(`Timeout after 4s for healthcheck request http://${regAddress}:${regPort}`);
+            resetMDNS();
+          });
           req.end();
         }
         ,5000);
@@ -749,11 +755,17 @@ function NodeAPI (port, store, iface) {
 
   function resetMDNS() {
     console.log("Resetting NodeAPI MDNS registration services.");
-    clearTimeout(healthcheck);
+    if (healthcheck) clearTimeout(healthcheck);
+    if (kickDiscovery) clearTimeout(kickDiscovery);
     if (browser) browser.stop();
+    regConnected = false;
     setTimeout(function () {
-      regConnected = false;
       browser.discover();
+      kickDiscovery = setTimeout(function () {
+        if (regConnected === false)
+          resetMDNS();
+        kickDiscovery = null;
+      }, 10000);
     }, 5000);
   }
 
