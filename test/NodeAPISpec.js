@@ -30,7 +30,8 @@ var Flow = ledger.Flow;
 var Sender = ledger.Sender;
 var Receiver = ledger.Receiver;
 var testPort = Math.random() * 32768|0 + 32768;
-
+var node = new Node(null, null, "Punkd Up Node", "http://tereshkova.local:3000",
+  "none");
 function serverTest(description, node, fn) {
   test(description, function (t) {
     var store = new ledger.NodeRAMStore(node);
@@ -51,7 +52,7 @@ function serverTest(description, node, fn) {
   });
 }
 
-serverTest('The server reports its root path (slash)', new Node(),
+serverTest('The server reports its root path (slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/'}, function (res) {
     res.on("data", function (chunk) {
@@ -63,7 +64,7 @@ serverTest('The server reports its root path (slash)', new Node(),
   });
 });
 
-serverTest('The server reports its root path (no slash)', new Node(),
+serverTest('The server reports its root path (no slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : ''}, function (res) {
     res.on("data", function (chunk) {
@@ -75,7 +76,7 @@ serverTest('The server reports its root path (no slash)', new Node(),
   });
 });
 
-serverTest('The server reports its api type (slash)', new Node(),
+serverTest('The server reports its api type (slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/x-nmos/'}, function (res) {
     res.on("data", function (chunk) {
@@ -87,7 +88,7 @@ serverTest('The server reports its api type (slash)', new Node(),
   });
 });
 
-serverTest('The server reports its api type (no slash)', new Node(),
+serverTest('The server reports its api type (no slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/x-nmos'}, function (res) {
     res.on("data", function (chunk) {
@@ -99,7 +100,7 @@ serverTest('The server reports its api type (no slash)', new Node(),
   });
 });
 
-serverTest('The server reports its version (slash)', new Node(),
+serverTest('The server reports its version (slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/x-nmos/node/'}, function (res) {
     res.on("data", function (chunk) {
@@ -111,7 +112,7 @@ serverTest('The server reports its version (slash)', new Node(),
   });
 });
 
-serverTest('The server reports its version (no slash)', new Node(),
+serverTest('The server reports its version (no slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/x-nmos/node'}, function (res) {
     res.on("data", function (chunk) {
@@ -132,7 +133,7 @@ var baseResponse = [
     "receivers/"
 ];
 
-serverTest('The server reports its resources (slash)', new Node(),
+serverTest('The server reports its resources (slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/x-nmos/node/v1.0/'}, function (res) {
     res.on("data", function (chunk) {
@@ -144,7 +145,7 @@ serverTest('The server reports its resources (slash)', new Node(),
   });
 });
 
-serverTest('The server reports its resources (no slash)', new Node(),
+serverTest('The server reports its resources (no slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/x-nmos/node/v1.0'}, function (res) {
     res.on("data", function (chunk) {
@@ -156,7 +157,7 @@ serverTest('The server reports its resources (no slash)', new Node(),
   });
 });
 
-serverTest('The server reports an error for an incorrect short path', new Node(),
+serverTest('The server reports an error for an incorrect short path', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/x-nmos/wibble'}, function (res) {
     t.equal(res.statusCode, 404, 'with status code 404.')
@@ -172,7 +173,7 @@ serverTest('The server reports an error for an incorrect short path', new Node()
   });
 });
 
-serverTest('The server reports an error for an incorrect long path', new Node(),
+serverTest('The server reports an error for an incorrect long path', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/x-nmos/node/v1.0/wibble'}, function (res) {
     t.equal(res.statusCode, 404, 'with status code 404.')
@@ -189,7 +190,7 @@ serverTest('The server reports an error for an incorrect long path', new Node(),
 });
 
 baseResponse.slice(1).forEach(function (r) {
-  serverTest(`Where no ${r} are registered (with slash)`, new Node(),
+  serverTest(`Where no ${r} are registered (with slash)`, node,
       function (t, node, store, server, done) {
     http.get({ port : testPort, path : `/x-nmos/node/v1.0/${r}`}, function (res) {
       t.equal(res.statusCode, 200, 'has status code 200.');
@@ -204,7 +205,7 @@ baseResponse.slice(1).forEach(function (r) {
 });
 
 baseResponse.slice(1).forEach(function (r) {
-  serverTest(`Where no ${r.slice(0, -1)} are registered (no slash)`, new Node(),
+  serverTest(`Where no ${r.slice(0, -1)} are registered (no slash)`, node,
       function (t, node, store, server, done) {
     http.get({ port : testPort, path : `/x-nmos/node/v1.0/${r.slice(0, -1)}`}, function (res) {
       t.equal(res.statusCode, 200, 'has status code 200.');
@@ -219,7 +220,7 @@ baseResponse.slice(1).forEach(function (r) {
 });
 
 baseResponse.slice(1).forEach(function (r) {
-  serverTest(`Where no ${r.slice(0, -1)} are registered (no slash)`, new Node(),
+  serverTest(`Where no ${r.slice(0, -1)} are registered (no slash)`, node,
       function (t, node, store, server, done) {
     http.get({ port : testPort, path : `/x-nmos/node/v1.0/${r}wibble`}, function (res) {
       t.equal(res.statusCode, 400, 'request for .../wibble has status code 400.');
@@ -239,7 +240,7 @@ baseResponse.slice(1).forEach(function (r) {
 
 baseResponse.slice(1).forEach(function (r) {
   var id = uuid.v4();
-  serverTest(`Where no ${r.slice(0, -1)} are registered (no slash)`, new Node(),
+  serverTest(`Where no ${r.slice(0, -1)} are registered (no slash)`, node,
       function (t, node, store, server, done) {
     http.get({ port : testPort, path : `/x-nmos/node/v1.0/${r}${id}`}, function (res) {
       t.equal(res.statusCode, 404, `request for .../${id} has status code 404.`);
@@ -257,8 +258,6 @@ baseResponse.slice(1).forEach(function (r) {
   });
 });
 
-var node = new Node(null, null, "Punkd Up Node", "http://tereshkova.local:3000",
-  "tereshkova");
 serverTest('Retrieving self via GET (no slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : `/x-nmos/node/v1.0/self`}, function (res) {

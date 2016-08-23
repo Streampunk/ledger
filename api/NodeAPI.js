@@ -534,6 +534,7 @@ function NodeAPI (port, store, iface) {
     var hostname = store.self.hostname;
     if (!hostname) hostname = 'ledger_' +
       require('os').hostname().match(/([^\.]*)\.?.*/)[1] + '-' + process.pid;
+    if (hostname === 'none') return; // don't run MDNS for local testing
     if (!mdnsService) {
       console.log('Starting MDNS for hostname', hostname);
       mdnsService = mdns.createAdvertisement(mdns.tcp('nmos-node'), port, {
@@ -778,8 +779,12 @@ function NodeAPI (port, store, iface) {
    */
   this.stop = function(cb) {
     // Timeout covers MDNS shutdown
-    if (server) server.close(setTimeout.bind(null, cb, 1000));
-    else {
+    if (server) {
+      server.close(function () {
+        if (browser || mdnsService) setTimeout.bind(null, cb, 1000);
+        else cb();
+      });
+    } else {
       if (cb) cb(new Error('Server is not set for this Node API and so cannot be stopped.'));
     }
     server = null;
