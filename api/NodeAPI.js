@@ -382,11 +382,7 @@ function NodeAPI (port, store, iface) {
       res.json([ "v1.0/" , "v1.1/"]);
     });
 
-    // Mount all other methods at this base path
-    app.use('/x-nmos/node/v1.0/', makeNapi('v1.0'));
-    app.use('/x-nmos/node/v1.1/', makeNapi('v1.1'));
-
-    function makeNapi (version) {
+    this.makeNapi = function (version) {
       var napi = express();
 
       napi.get('/', function (req, res) {
@@ -524,6 +520,9 @@ function NodeAPI (port, store, iface) {
       }.bind(this));
       return napi;
     }
+    // Mount all other methods at this base path
+    app.use('/x-nmos/node/v1.0/', this.makeNapi('v1.0'));
+    app.use('/x-nmos/node/v1.1/', this.makeNapi('v1.1'));
 
     app.use(function (err, req, res, next) {
       if (err.status) {
