@@ -159,9 +159,9 @@ Versionned.prototype.generateTransport = function (t) {
   else return t;
 }
 
-Versionned.prototype.validFormat = function (f) {
+Versionned.prototype.validFormat = function (f, v) {
   if (arguments.length === 0) return this.validFormat(this.format);
-  else return Formats.validFormat(f);
+  else return Formats.validFormat(f, v);
 }
 Versionned.prototype.generateFormat = function (format) {
   if (arguments.length === 0 || format === null || format === undefined)

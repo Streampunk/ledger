@@ -71,7 +71,7 @@ test('Validity checking of format values', function (t) {
     'matches video.');
   t.ok(methods.validFormat(Formats.audio),
     'matches audio.');
-  t.ok(methods.validFormat(Formats.event),
+  t.ok(methods.validFormat(Formats.data),
     'matches event.');
   t.ok(bbcFlow.validFormat(),
     'validates internal value.');
@@ -281,10 +281,31 @@ test('Generating grain rate', function (t) {
     { numerator : 30000, denominator: 1001 }, 'corrects additional parameter.');
   t.deepEqual(methods.generateGrainRate({ numerator : 50 }),
     { numerator : 50 }, 'is fine with numerator only.');
-  t.ok(typeof methods.generateGrainRate([]) === 'undefined', 'treats an array as undefined.');
+  t.deepEqual(methods.generateGrainRate({ numerator : 1000.1, denominator : 123.67 }),
+    { numerator : 1000, denominator : 123 }, 'corrects non integer values.');
+  t.ok(typeof methods.generateGrainRate({ numeratir : 50}) === 'undefined',
+    'object without numerator property results in undefined.');
+  t.ok(typeof methods.generateGrainRate({}) === 'undefined', 'treats an empty object as undefined.');
+  t.ok(typeof methods.generateGrainRate([]) === 'undefined', 'treats an empty array as undefined.');
   t.ok(typeof methods.generateGrainRate(42) === 'undefined', 'treats a number as undefined.');
   t.ok(typeof methods.generateGrainRate('fortytwo') === 'undefined', 'treats a string as undefined.');
   t.ok(typeof methods.generateGrainRate(null) === 'undefined', 'treats a null as undefined.');
   t.ok(typeof methods.generateGrainRate(undefined) === 'undefined', 'treats an undefined as undefined.');
+  t.ok(typeof methods.generateGrainRate() === 'undefined', 'default value for no args is undefined.');
+  t.ok(methods.validGrainRate(undefined), 'undefined is a valid value.');
+  t.ok(methods.validGrainRate({ numerator : 47 }), 'single value numerator is valid.');
+  t.ok(methods.validGrainRate({ numerator : 1001, denominator : 60000}),
+    'dual value numerator/denominator is valid.');
+  t.notOk(methods.validGrainRate({ numerator : 1001, wibble : 'wobble' }),
+    'extra properties are not valid.');
+  t.notOk(methods.validGrainRate({ numerator : 1001.42 }), 'numerator value must be an integer.');
+  t.notOk(methods.validGrainRate({ numerator : 1001, denominator : 60000.1}),
+    'denominator must be an integer.');
+  t.notOk(methods.validGrainRate({ numerator : 1001, denominator : 0 }),
+    'denominator cannot be zero.');
+  t.notOk(methods.validGrainRate({ numerator : true }),
+    'numerator must be a number.');
+  t.notOk(methods.validGrainRate({ numerator : 1001, denominator : 'wibble' }),
+    'denominator must be a number.');
   t.end();
-})
+});

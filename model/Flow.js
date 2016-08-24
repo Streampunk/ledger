@@ -15,7 +15,8 @@
 
 var Versionned = require('./Versionned.js');
 var immutable = require('seamless-immutable');
-
+var Formats = require('./Formats.js');
+var MediaTypes = require('./MediaTypes.js');
 // Describes a Flow
 
 /**
@@ -42,9 +43,11 @@ var immutable = require('seamless-immutable');
  *                             used if Flow is periodic: numerator/denominator -
  *                             denominator only required if non-integer rate.
  *                             From v1.1.
+ * @param {string} media_type  Subclassification of the format using IANA a
+ *                             assigned media types
  */
 function Flow(id, version, label, description, format,
-    tags, source_id, parents, grain_rate) {
+    tags, source_id, parents, grain_rate, media_type) {
   this.id = this.generateID(id);
   this.version = this.generateVersion(version);
   this.label = this.generateLabel(label);
@@ -86,6 +89,12 @@ function Flow(id, version, label, description, format,
    * @readonly
    */
   this.grain_rate = this.generateGrainRate(grain_rate);
+  /**
+   * Subclassification of the format using IANA assigned media types
+   * @param  {string} media_type
+   * @readonly
+   */
+  this.media_type = this.generateMediaType(media_type);
   return immutable(this, { prototype: Flow.prototype });
 }
 
@@ -120,26 +129,27 @@ Flow.prototype.validGrainRate = function (grain_rate) {
   if (typeof grain_rate !== 'object') return false;
   if (Array.isArray(grain_rate)) return false;
   var numeratorFound = false;
-  Object.keys(grain_rate).forEach(function (k) {
+  var allValid = Object.keys(grain_rate).every(function (k) {
     switch (k) {
       case 'numerator':
         if (typeof grain_rate[k] !== 'number') return false;
         if (grain_rate[k] % 1.0 !== 0.0) return false;
         numeratorFound = true;
-        break;
+        return true;
       case 'denominator':
         if (typeof grain_rate[k] !== 'number') return false;
         if (grain_rate[k] % 1.0 !== 0.0) return false;
         if (grain_rate[k] === 0) return false;
-        break;
+        return true;
       default:
         return false;
     }
   });
-  return numeratorFound;
+  return allValid && numeratorFound;
 }
 Flow.prototype.generateGrainRate = function (grain_rate) {
-  if (typeof grain_rate !== 'object' || Array.isArray(grain_rate) || grain_rate === null)
+  if (arguments.length === 0 || typeof grain_rate !== 'object' ||
+      Array.isArray(grain_rate) || grain_rate === null)
     return undefined;
   Object.keys(grain_rate).forEach(function (k) {
     switch (k.toLowerCase()) {
@@ -158,11 +168,40 @@ Flow.prototype.generateGrainRate = function (grain_rate) {
         break;
     }
   });
-  if (!grain_rate.numerator) grain_rate.numerator = 25;
+  if (!grain_rate.numerator) return undefined;
   return grain_rate;
 }
 
-Flow.prototype.valid = function() {
+Flow.prototype.validMediaType = function (media_type) {
+  if (arguments.length === 0) return this.validMediaType(this.media_type);
+  if (typeof media_type === 'undefined') return true;
+  if (typeof media_type !== 'string') return false;
+  var mtMatch = MediaTypes.match(media_type);
+  if (!mtMatch) return false;
+  switch (this.format) {
+    case Formats.video: return mtMatch[1] === 'video';
+    case Formats.audio: return mtMatch[2] === 'audio';
+    case Formats.data: return true;
+    case Formats.mux_sdi: return media_type === MediaTypes.video_ST2022_6;
+    default: return true;
+  };
+}
+Flow.prototype.generateMediaType = function (media_type) {
+  if (arguments.length === 0 || typeof media_type !== 'string')
+    return undefined;
+  var mtMatch = MediaTypes.match(media_type);
+  if (!mtMatch) {
+    switch (this.format) {
+      case Formats.video: return MediaTypes.video_raw;
+      case Formats.audio: return MediaTypes.audio_l24;
+      case Formats.data: return MediaTypes.video_smpte291;
+      case Formats.mux_sdi: return MediaTypes.video_ST2022_6;
+      default: return undefined;
+    }
+  }
+}
+
+Flow.prototype.valid = function (v) {
   return this.validID(this.id) &&
     this.validVersion(this.version) &&
     this.validLabel(this.label) &&
@@ -171,7 +210,8 @@ Flow.prototype.valid = function() {
     this.validTags(this.tags) &&
     this.validSourceID(this.source_id) &&
     this.validParents(this.parents) &&
-    this.validGrainRate(this.grain_rate);
+    this.validGrainRate(this.grain_rate) &&
+    this.validMediaType(this.media_type);
 }
 
 Flow.prototype.stringify = function () { return JSON.stringify(this); }
@@ -187,7 +227,8 @@ Flow.prototype.parse = function (json) {
     throw "Cannot parse JSON to a Flow value because it is not a valid input.";
   var parsed = (typeof json === 'string') ? JSON.parse(json) : json;
   return new Flow(parsed.id, parsed.version, parsed.label, parsed.description,
-      parsed.format, parsed.tags, parsed.source_id, parsed.parents, parsed.grain_rate);
+      parsed.format, parsed.tags, parsed.source_id, parsed.parents,
+      parsed.grain_rate, parsed.media_type);
 }
 
 // Flow.prototype.asVersion(v) = function {
