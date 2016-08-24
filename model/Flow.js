@@ -190,6 +190,15 @@ Flow.prototype.parse = function (json) {
       parsed.format, parsed.tags, parsed.source_id, parsed.parents, parsed.grain_rate);
 }
 
+// Flow.prototype.asVersion(v) = function {
+//   switch (v) {
+//     case 1.0:
+//       return this.without('grain_rate');
+//     default:
+//       return this;
+//   }
+// }
+
 Flow.isFlow = function (x) {
   return x !== null &&
     typeof x === 'object' &&

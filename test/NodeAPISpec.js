@@ -15,13 +15,12 @@
 
 // Test the node API.
 
-// TODO tests of pagination features.
-
 var test = require('tape');
 var http = require('http');
 var uuid = require('uuid');
 var async = require('async');
 var ledger = require('../index.js');
+var deepishEqual = require('./util/deepishEqual.js');
 
 var Node = ledger.Node;
 var Device = ledger.Device;
@@ -521,10 +520,8 @@ serverTest('Retrieving flows (with slash)', node,
       http.get({ port : testPort, path : `/x-nmos/node/v1.0/flows/`}, function (res) {
         t.equal(res.statusCode, 200, 'has status code 200.');
         res.on('data', function (chunk) {
-          t.deepEqual(JSON.parse(chunk.toString()).map(function (f) {
-            f.grain_rate = undefined; // TODO patching up during 1.1 developmwnt
-            return f;
-          }), flws, 'matches the expected value.');
+          t.ok(deepishEqual(JSON.parse(chunk.toString()), flws),
+            'matches the expected value.');
           done();
         });
       }).on('error', function (e) {
@@ -544,10 +541,8 @@ serverTest('Retrieving flows (no slash)', node,
       http.get({ port : testPort, path : `/x-nmos/node/v1.0/flows`}, function (res) {
         t.equal(res.statusCode, 200, 'has status code 200.');
         res.on('data', function (chunk) {
-          t.deepEqual(JSON.parse(chunk.toString()).map(function (f) {
-            f.grain_rate = undefined; // TODO patching up during 1.1 developmwnt
-            return f;
-          }), flws, 'matches the expected value.');
+          t.ok(deepishEqual(JSON.parse(chunk.toString()), flws),
+            'matches the expected value.');
           done();
         });
       }).on('error', function (e) {
@@ -566,9 +561,8 @@ serverTest('Retrieving the audio flow (with slash)', node,
       http.get({ port : testPort, path : `/x-nmos/node/v1.0/flows/${audioFlow.id}/`}, function (res) {
         t.equal(res.statusCode, 200, 'has status code 200.');
         res.on('data', function (chunk) {
-          var testValue = JSON.parse(chunk.toString()); // TODO patching up during 1.1 developmwnt
-          testValue.grain_rate = undefined;
-          t.deepEqual(testValue, s.flows[audioFlow.id], 'matches the expected value.');
+          t.ok(deepishEqual(JSON.parse(chunk.toString()), s.flows[audioFlow.id]),
+            'matches the expected value.');
           done();
         });
       }).on('error', function (e) {
@@ -587,9 +581,8 @@ serverTest('Retrieving the audio flow (with slash)', node,
       http.get({ port : testPort, path : `/x-nmos/node/v1.0/flows/${audioFlow.id}`}, function (res) {
         t.equal(res.statusCode, 200, 'has status code 200.');
         res.on('data', function (chunk) {
-          var testValue = JSON.parse(chunk.toString()); // TODO patching up during 1.1 developmwnt
-          testValue.grain_rate = undefined;
-          t.deepEqual(testValue, s.flows[audioFlow.id], 'matches the expected value.');
+          t.ok(deepishEqual(JSON.parse(chunk.toString()), s.flows[audioFlow.id]),
+            'matches the expected value.');
           done();
         });
       }).on('error', function (e) {

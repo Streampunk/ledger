@@ -21,6 +21,7 @@ var uuid = require('uuid');
 var ledger = require('../index.js');
 var WebSocket = require('ws');
 var Promise = require('promise');
+var deepishEqual = require('./util/deepishEqual.js');
 
 var Node = ledger.Node;
 var Device = ledger.Device;
@@ -107,8 +108,8 @@ function checkGrain(t, g, sub, data) {
     t.ok(typeof i === 'object', `grain data item ${x} is an object.`);
     var path = (data[x].pre) ? data[x].pre.id : data[x].post.id;
     t.equal(i.path, path, `data item ${x} has expected path.`);
-    t.deepEqual(i.pre, data[x].pre, `data item ${x} has expected pre-condition.`);
-    t.deepEqual(i.post, data[x].post, `data item ${x} has expected post-condition.`);
+    t.ok(deepishEqual(i.pre, data[x].pre), `data item ${x} has expected pre-condition.`);
+    t.ok(deepishEqual(i.post, data[x].post), `data item ${x} has expected post-condition.`);
   }
 }
 
