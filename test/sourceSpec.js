@@ -72,8 +72,8 @@ test('Validity checking of format values', function (t) {
     'matches video.');
   t.ok(methods.validFormat(Formats.audio),
     'matches audio.');
-  t.ok(methods.validFormat(Formats.event),
-    'matches event.');
+  t.ok(methods.validFormat(Formats.data),
+    'matches data.');
   t.ok(bbcSource.validFormat(),
     'validates internal value.');
   t.notOk(methods.validFormat('streampunk'),

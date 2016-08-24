@@ -21,16 +21,16 @@ test('A valid format', function(t) {
     'is "urn:x-nmos:format:video".');
   t.ok(Formats.validFormat('urn:x-nmos:format:audio'),
     'is "urn:x-nmos:format:audio".');
-  t.ok(Formats.validFormat('urn:x-nmos:format:event'),
-    'is "urn:x-nmos:format:event".');
+  t.ok(Formats.validFormat('urn:x-nmos:format:data'),
+    'is "urn:x-nmos:format:data".');
   t.ok(Formats.validFormat('urn:x-nmos:format:video.raw'),
     'is a format with a sub-type such as "urn:x-nmos:format:video.raw".');
   t.ok(Formats.validFormat(Formats.video),
     'is Formats.video.');
   t.ok(Formats.validFormat(Formats.audio),
     'is Formats.audio.');
-  t.ok(Formats.validFormat(Formats.event),
-    'is Formats.event.');
+  t.ok(Formats.validFormat(Formats.data),
+    'is Formats.data.');
   t.notOk(Formats.validFormat('streampunk'),
     'is not an arbitrary string.');
   t.notOk(Formats.validFormat(),
