@@ -50,6 +50,7 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents, iface) {
     });
   };
   if (!iface) iface = '0.0.0.0';
+  if (iface !== '0.0.0.0') firstExtNetIf = iface;
 
   function setPagingHeaders(res, total, pageOf, pages, size) {
     if (pageOf) res.set('X-Streampunk-Ledger-PageOf', pageOf.toString());
@@ -259,6 +260,7 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents, iface) {
         webSockets[sub.id] = sub;
         res.status(200).json(sub);
       } else {
+        console.log("Creating subscription.", sub.ws_href);
         webSockets[sub.id] = sub;
         res.status(201).json(sub);
       };
@@ -346,7 +348,7 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents, iface) {
     });
 
     wss = new WebSocketServer({ server : server });
-    wss.on('connection', connectWS);
+    wss.on('connection', connectWS.bind(this));
     wss.on('error', console.error.bind(null, 'Websocket Error:'));
 
     this.startMDNS();
@@ -453,6 +455,32 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents, iface) {
          delete webSockets[sub.id];
        };
      });
+     var method = `get${sub.resource_path[1].toUpperCase()}${sub.resource_path.slice(2)}`;
+     storeFn()[method]("",
+       function (err, resources, total, pageOf, pages, size) {
+         if (err) return console.error('Failed to read resources on websocket connection.');
+         var tsBase = Date.now();
+         var ts = `${tsBase / 1000|0}:${tsBase % 1000 * 1000000}`;
+         var g = {
+           grain_type : "event",
+           source_id : instanceUUID,
+           flow_id : sub.id,
+           origin_timestamp : ts,
+           sync_timestamp : ts,
+           creation_timestamp : ts,
+           rate : { numerator: 0, denominator: 1 },
+           duration : { numerator: 0, denominator: 1 },
+           grain : {
+             type : "urn:x-nmos:format:data.event",
+             topic : `${sub.resourcePath}/`,
+             data : resources.map(function (ro) {
+               return { path : ro.id, pre : ro, post : ro };
+             })
+           }
+         };
+         ws.send(JSON.stringify(g), { mask : false});
+         ws.lastTime = tsBase;
+     });
    };
 
    this.on('modify', function (ev) {
@@ -492,14 +520,14 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents, iface) {
              tsBase - subWs.lastTime < subWs.sub.max_update_rate_ms) {
            if (!subWs.timeout) {
              subWs.timeout = setTimeout(function () {
-               subWs.socket.send(JSON.stringify(subWs.builder), { mask : true });
+               subWs.socket.send(JSON.stringify(subWs.builder), { mask : false });
                delete subWs.builder;
                delete subWs.timeout;
                subWs.lastTime = tsBase;
              }, subWs.sub.max_update_rate_ms - (tsBase - subWs.lastTime));
            }
          } else {
-           subWs.socket.send(JSON.stringify(subWs.builder), { mask : true });
+           subWs.socket.send(JSON.stringify(subWs.builder), { mask : false });
            delete subWs.builder;
            delete subWs.timeout;
            subWs.lastTime = tsBase;
