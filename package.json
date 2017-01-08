@@ -1,6 +1,6 @@
 {
   "name": "nmos-ledger",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "NMOS discovery and registration APIs",
   "main": "index.js",
   "bin": {
@@ -13,7 +13,7 @@
     "async": "^1.5.2",
     "body-parser": "^1.14.2",
     "express": "^4.13.3",
-    "nmos-mdns-js": "^0.5.2",
+    "mdns-js": "^0.5.3",
     "promise": "^7.1.1",
     "seamless-immutable": "^4.0.2",
     "tape": "^4.2.2",
