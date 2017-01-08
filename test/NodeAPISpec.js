@@ -104,7 +104,7 @@ serverTest('The server reports its version (slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/x-nmos/node/'}, function (res) {
     res.on("data", function (chunk) {
-      t.equal(chunk.toString(), JSON.stringify(['v1.0/']), 'and it is as expected.');
+      t.equal(chunk.toString(), JSON.stringify(['v1.0/', 'v1.1/']), 'and it is as expected.');
       done();
     });
   }).on('error', function (e) {
@@ -116,7 +116,7 @@ serverTest('The server reports its version (no slash)', node,
     function (t, node, store, server, done) {
   http.get({ port : testPort, path : '/x-nmos/node'}, function (res) {
     res.on("data", function (chunk) {
-      t.equal(chunk.toString(), JSON.stringify(['v1.0/']), 'and it is as expected.');
+      t.equal(chunk.toString(), JSON.stringify(['v1.0/', 'v1.1/']), 'and it is as expected.');
       done();
     });
   }).on('error', function (e) {

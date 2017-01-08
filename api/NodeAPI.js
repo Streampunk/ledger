@@ -345,9 +345,9 @@ function NodeAPI (port, store, iface) {
    * @return {NodeAPI} Returns this object with the routing table initialised and
    *                   ready to {@link NodeAPI#start}.
    */
-  this.init = function() {
+  this.init = () => {
 
-    app.use(function(req, res, next) {
+    app.use((req, res, next) => {
       // TODO enhance this to better supports CORS
       res.header("Access-Control-Allow-Origin", "*");
       res.header("Access-Control-Allow-Methods", "GET, PUT, POST, HEAD, OPTIONS, DELETE");
@@ -361,7 +361,7 @@ function NodeAPI (port, store, iface) {
       }
     });
 
-    app.get('/sdp/:id.sdp', function (req, res, next) {
+    app.get('/sdp/:id.sdp', (req, res, next) => {
       var sdp = sdps[req.params.id];
       if (!sdp) return next();
       res.set('Content-Type', 'application/sdp');
@@ -370,44 +370,52 @@ function NodeAPI (port, store, iface) {
 
     app.use(bodyparser.json());
 
-    app.get('/', function (req, res) {
+    app.get('/', (req, res) => {
       res.json(['x-nmos/']);
     });
 
-    app.get('/x-nmos/', function (req, res) {
+    app.get('/x-nmos/', (req, res) => {
       res.json(['node/']);
     });
 
-    app.get('/x-nmos/node/', function (req, res) {
-      res.json([ "v1.0/" ]);
+    app.get('/x-nmos/node/', (req, res) => {
+      res.json([ "v1.0/", "v1.1/" ]);
     });
 
     var napi = express();
+    var napi11 = express();
+
     // Mount all other methods at this base path
     app.use('/x-nmos/node/v1.0/', napi);
+    app.use('/x-nmos/node/v1.1/', napi11);
 
-    napi.get('/', function (req, res) {
-      res.json([
-          "self/",
-          "sources/",
-          "flows/",
-          "devices/",
-          "senders/",
-          "receivers/"
-      ]);
-    });
+    var rootResult = (req, res) => { res.json([
+        "self/",
+        "sources/",
+        "flows/",
+        "devices/",
+        "senders/",
+        "receivers/"
+    ])};
+    napi.get('/', rootResult);
+    napi11.get('/', rootResult);
 
-    napi.get('/self/', function (req, res, next) {
-      store.getSelf(function (err, self) {
+    napi.get('/self/', (req, res, next) => {
+      store.getSelf((err, self) => {
         if (err) next(err);
         else res.json(self);
       });
     });
+    napi11.get('/self/', (req, res, next) => {
+      store.getSelf((err, self) => {
+        if (err) next(err);
+        else res.json(self); // Will have a means to go from
+      });
+    });
 
     // List devices
-    napi.get('/devices/', function (req, res, next) {
-      store.getDevices(req.query,
-          function (err, devices, total, pageOf, pages, size) {
+    napi.get('/devices/', (req, res, next) => {
+      store.getDevices(req.query, (err, devices, total, pageOf, pages, size) => {
         if (err) next(err);
         else setPagingHeaders(res, total, pageOf, pages, size).json(devices);
       });
