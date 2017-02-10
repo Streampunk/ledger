@@ -847,7 +847,7 @@ function NodeAPI (port, store, iface) {
     req.on('error', function (err) {
       console.error(`Error sending node registration to http://${regAddress}:${regPort}: ${err}`);
       resetMDNS();
-      if (cb) cb(e);
+      if (cb) cb(err);
     });
     req.end();
   }
