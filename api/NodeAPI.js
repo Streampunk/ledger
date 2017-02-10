@@ -728,6 +728,7 @@ function NodeAPI (port, store, iface) {
           resetMDNS();
         });
         // res.setEncoding('utf8'); res.on('data', console.log);
+        res.on('data', () => {}); // 'data' handler is required or the 'end' event will not fire
         res.on('end', function () {
           console.log(`Pushed ${resourceType} and received Location ${res.headers.location}.`);
         });
@@ -760,6 +761,7 @@ function NodeAPI (port, store, iface) {
         console.error(`Response error when deleting registered resournce: ${e}`);
         resetMDNS();
       })
+      res.on('data', () => {}); // every response needs a 'data' handler or it will consume memory
       if (cb) cb();
     });
 
@@ -824,10 +826,12 @@ function NodeAPI (port, store, iface) {
       };
       if (res.statusCode == 201) {
         console.log(`NMOS node registered with http://${regAddress}:${regPort}`);
+        res.on('data', () => {}); // every response needs a 'data' handler or it will consume memory
         // Start health check ticker
         healthcheck = makeHealthCheck();
       } else if (res.statusCode == 200) {
         console.log(`NMOS node re-registered with registration API after break at http://${regAddress}:${regPort}`);
+        res.on('data', () => {}); // every response needs a 'data' handler or it will consume memory
         // Restart health check ticker
         healthcheck = makeHealthCheck();
       } else {
