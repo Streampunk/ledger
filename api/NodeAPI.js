@@ -44,6 +44,7 @@ function NodeAPI (port, store, iface) {
   var healthcheck = null;
   var kickDiscovery = null;
   var storePromise = Promise.resolve(store);
+  var registerPromise = Promise.resolve(null);
   var sdps = {};
   var api = this;
   if (!iface) iface = '0.0.0.0';
@@ -115,7 +116,7 @@ function NodeAPI (port, store, iface) {
     });
     storePromise = nextState.then(function (ro) {
       store = ro.store;
-      pushResource(ro.resource);
+      registerResource(ro.resource);
       if (ro.previous) {
         api.emit('modify', {
           topic : ro.topic,
@@ -132,7 +133,7 @@ function NodeAPI (port, store, iface) {
         case 'Receiver':
           var device = store.devices[ro.resource.device_id];
           if (device) {
-            pushResource(device);
+            registerResource(device);
             if (initDevice) {
               api.emit('modify', {
                 topic : '/devices/',
@@ -671,7 +672,25 @@ function NodeAPI (port, store, iface) {
     }
   }
 
-  function pushResource (r) {
+  function registerResource(r) {
+    registerPromise = registerPromise.then(() => {
+      return Promise.denodeify(pushResource)(r);
+    });
+  }
+
+  function registerDelete(rid, resourceType) {
+    registerPromise = registerPromise.then(() => {
+      return Promise.denodeify(pushDelete)(rid, resourceType);
+    });
+  }
+
+  function registerSelf() {
+    registerPromise = registerPromise.then(() => {
+      return Promise.denodeify(pushSelf)();
+    });
+  }
+
+  function pushResource(r, cb) {
     if (!regConnected) return;
     var resourceType = r.constructor.name.toLowerCase();
     var reqBody = JSON.stringify({
@@ -706,18 +725,20 @@ function NodeAPI (port, store, iface) {
           console.log(`Pushed ${resourceType} and received Location ${res.headers.location}.`);
         });
       }
+      if (cb) cb();
     });
 
     req.on('error', (e) => {
       console.error(`Problem with ${resourceType} request: ${e.message}`);
       resetMDNS();
+      if (cb) cb(e);
     });
 
     req.write(reqBody);
     req.end();
   }
 
-  function registerDelete (rid, resourceType) {
+  function pushDelete(rid, resourceType, cb) {
     if (!regConnected) return;
     var resourceType = resourceType.toLowerCase();
     var req = http.request({
@@ -732,16 +753,18 @@ function NodeAPI (port, store, iface) {
         console.error(`Response error when deleting registered resournce: ${e}`);
         resetMDNS();
       })
+      if (cb) cb();
     });
 
     req.on('error', function (e) {
       console.error(`Request error when deleting registered resource: ${e}`);
       resetMDNS();
+      if (cb) cb(e);
     });
     req.end();
   }
 
-  function registerSelf() {
+  function pushSelf(cb) {
     // Register node
     var payload = JSON.stringify({
       type: "node",
@@ -807,11 +830,13 @@ function NodeAPI (port, store, iface) {
         });
         resetMDNS();
       }
+      if (cb) cb();
     });
     req.write(payload);
     req.on('error', function (err) {
       console.error(`Error sending node registration to http://${regAddress}:${regPort}: ${err}`);
       resetMDNS();
+      if (cb) cb(e);
     });
     req.end();
   }
