@@ -657,19 +657,26 @@ function NodeAPI (port, store, iface) {
         regPort = selected.port;
         storePromise.then(function (s) {
           registerSelf();
-          s.getDevices(function (e, ds) { ds.forEach(function (d) {
+          s.getDevices(function (e, ds) { registerResources(ds.map((d) => {
             // don't push senders and receivers ... bootstrap issue
-            pushResource(d.set("senders", []).set("receivers", []));
-          }); });
-          s.getSources(function (e, ss) { ss.forEach(pushResource); });
-          s.getFlows(function (e, fs) { fs.forEach(pushResource); });
-          s.getSenders(function (e, ss) { ss.forEach(pushResource); });
-          s.getReceivers(function (e, rs) { rs.forEach(pushResource); });
+            return d.set("senders", []).set("receivers", []);
+          })); });
+          s.getSources(function (e, ss) { registerResources(ss); });
+          s.getFlows(function (e, fs) { registerResources(fs); });
+          s.getSenders(function (e, ss) { registerResources(ss); });
+          s.getReceivers(function (e, rs) { registerResources(rs); });
           return s;
         });
       }
       selectionTimer = null;
     }
+  }
+
+  // only use registerResources for independent resources
+  function registerResources(rs) {
+    registerPromise = registerPromise.then(() => {
+      return Promise.all(rs.map((r) => { return Promise.denodeify(pushResource)(r); }));
+    });
   }
 
   function registerResource(r) {
