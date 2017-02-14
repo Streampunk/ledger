@@ -698,7 +698,10 @@ function NodeAPI (port, store, iface) {
   }
 
   function pushResource(r, cb) {
-    if (!regConnected) return;
+    if (!regConnected) {
+      if (cb) cb();
+      return;
+    }
     var resourceType = r.constructor.name.toLowerCase();
     var reqBody = JSON.stringify({
       type : resourceType,
@@ -747,7 +750,10 @@ function NodeAPI (port, store, iface) {
   }
 
   function pushDelete(rid, resourceType, cb) {
-    if (!regConnected) return;
+    if (!regConnected) {
+      if (cb) cb();
+      return;
+    }
     var resourceType = resourceType.toLowerCase();
     var req = http.request({
       hostname: regAddress,
