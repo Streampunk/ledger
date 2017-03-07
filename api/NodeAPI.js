@@ -44,6 +44,7 @@ function NodeAPI (port, store, iface) {
   var healthcheck = null;
   var kickDiscovery = null;
   var storePromise = Promise.resolve(store);
+  var registerPromise = Promise.resolve(null);
   var sdps = {};
   var api = this;
   if (!iface) iface = '0.0.0.0';
@@ -115,7 +116,7 @@ function NodeAPI (port, store, iface) {
     });
     storePromise = nextState.then(function (ro) {
       store = ro.store;
-      pushResource(ro.resource);
+      registerResource(ro.resource);
       if (ro.previous) {
         api.emit('modify', {
           topic : ro.topic,
@@ -132,7 +133,7 @@ function NodeAPI (port, store, iface) {
         case 'Receiver':
           var device = store.devices[ro.resource.device_id];
           if (device) {
-            pushResource(device);
+            registerResource(device);
             if (initDevice) {
               api.emit('modify', {
                 topic : '/devices/',
@@ -656,14 +657,14 @@ function NodeAPI (port, store, iface) {
         regPort = selected.port;
         storePromise.then(function (s) {
           registerSelf();
-          s.getDevices(function (e, ds) { ds.forEach(function (d) {
+          s.getDevices(function (e, ds) { registerResources(ds.map((d) => {
             // don't push senders and receivers ... bootstrap issue
-            pushResource(d.set("senders", []).set("receivers", []));
-          }); });
-          s.getSources(function (e, ss) { ss.forEach(pushResource); });
-          s.getFlows(function (e, fs) { fs.forEach(pushResource); });
-          s.getSenders(function (e, ss) { ss.forEach(pushResource); });
-          s.getReceivers(function (e, rs) { rs.forEach(pushResource); });
+            return d.set("senders", []).set("receivers", []);
+          })); });
+          s.getSources(function (e, ss) { registerResources(ss); });
+          s.getFlows(function (e, fs) { registerResources(fs); });
+          s.getSenders(function (e, ss) { registerResources(ss); });
+          s.getReceivers(function (e, rs) { registerResources(rs); });
           return s;
         });
       }
@@ -671,8 +672,36 @@ function NodeAPI (port, store, iface) {
     }
   }
 
-  function pushResource (r) {
-    if (!regConnected) return;
+  // only use registerResources for independent resources
+  function registerResources(rs) {
+    registerPromise = registerPromise.then(() => {
+      return Promise.all(rs.map((r) => { return Promise.denodeify(pushResource)(r); }));
+    });
+  }
+
+  function registerResource(r) {
+    registerPromise = registerPromise.then(() => {
+      return Promise.denodeify(pushResource)(r);
+    });
+  }
+
+  function registerDelete(rid, resourceType) {
+    registerPromise = registerPromise.then(() => {
+      return Promise.denodeify(pushDelete)(rid, resourceType);
+    });
+  }
+
+  function registerSelf() {
+    registerPromise = registerPromise.then(() => {
+      return Promise.denodeify(pushSelf)();
+    });
+  }
+
+  function pushResource(r, cb) {
+    if (!regConnected) {
+      if (cb) cb();
+      return;
+    }
     var resourceType = r.constructor.name.toLowerCase();
     var reqBody = JSON.stringify({
       type : resourceType,
@@ -702,23 +731,29 @@ function NodeAPI (port, store, iface) {
           resetMDNS();
         });
         // res.setEncoding('utf8'); res.on('data', console.log);
+        res.on('data', () => {}); // 'data' handler is required or the 'end' event will not fire
         res.on('end', function () {
           console.log(`Pushed ${resourceType} and received Location ${res.headers.location}.`);
         });
       }
+      if (cb) cb();
     });
 
     req.on('error', (e) => {
       console.error(`Problem with ${resourceType} request: ${e.message}`);
       resetMDNS();
+      if (cb) cb(e);
     });
 
     req.write(reqBody);
     req.end();
   }
 
-  function registerDelete (rid, resourceType) {
-    if (!regConnected) return;
+  function pushDelete(rid, resourceType, cb) {
+    if (!regConnected) {
+      if (cb) cb();
+      return;
+    }
     var resourceType = resourceType.toLowerCase();
     var req = http.request({
       hostname: regAddress,
@@ -732,16 +767,19 @@ function NodeAPI (port, store, iface) {
         console.error(`Response error when deleting registered resournce: ${e}`);
         resetMDNS();
       })
+      res.on('data', () => {}); // every response needs a 'data' handler or it will consume memory
+      if (cb) cb();
     });
 
     req.on('error', function (e) {
       console.error(`Request error when deleting registered resource: ${e}`);
       resetMDNS();
+      if (cb) cb(e);
     });
     req.end();
   }
 
-  function registerSelf() {
+  function pushSelf(cb) {
     // Register node
     var payload = JSON.stringify({
       type: "node",
@@ -794,10 +832,12 @@ function NodeAPI (port, store, iface) {
       };
       if (res.statusCode == 201) {
         console.log(`NMOS node registered with http://${regAddress}:${regPort}`);
+        res.on('data', () => {}); // every response needs a 'data' handler or it will consume memory
         // Start health check ticker
         healthcheck = makeHealthCheck();
       } else if (res.statusCode == 200) {
         console.log(`NMOS node re-registered with registration API after break at http://${regAddress}:${regPort}`);
+        res.on('data', () => {}); // every response needs a 'data' handler or it will consume memory
         // Restart health check ticker
         healthcheck = makeHealthCheck();
       } else {
@@ -807,11 +847,13 @@ function NodeAPI (port, store, iface) {
         });
         resetMDNS();
       }
+      if (cb) cb();
     });
     req.write(payload);
     req.on('error', function (err) {
       console.error(`Error sending node registration to http://${regAddress}:${regPort}: ${err}`);
       resetMDNS();
+      if (cb) cb(err);
     });
     req.end();
   }
