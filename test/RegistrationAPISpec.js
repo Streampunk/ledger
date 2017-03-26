@@ -745,7 +745,7 @@ serverTest('The server can retrieve debug details about a source',
   });
 });
 
-serverTest('The server allows a flow to be created',
+serverTest('The server can retrieve debug details about a flow',
     function (t, store, server, done) {
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
@@ -769,7 +769,7 @@ serverTest('The server allows a flow to be created',
   });
 });
 
-serverTest('The server allows a sender to be created',
+serverTest('The server can retrieve debug details about a sender',
     function (t, store, server, done) {
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
@@ -794,7 +794,7 @@ serverTest('The server allows a sender to be created',
   });
 });
 
-serverTest('The server allows a receiver to be created',
+serverTest('The server can retrieve debug details about a receivers',
     function (t, store, server, done) {
   async.waterfall([
     function (cb) { postResource(node, t, store, server, 201, cb); },
