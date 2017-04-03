@@ -629,7 +629,7 @@ function NodeAPI (port, store, iface) {
       // console.log('UPDATE!!!', data);
       if (regConnected) return;
       if (data.fullname && data.fullname.indexOf('_nmos-registration._tcp') >= 0) {
-        console.log("Found a registration service.", data.fullname, data.txt.length > 0 ? data.txt[0] : "");
+        console.log("Found a registration service.", data.fullname, data.txt.length > 0 ? data.txt : "");
         candidates.push(data);
         if (!selectionTimer) selectionTimer = setTimeout(function () {
           selectCandidate(candidates); }, 1000);
