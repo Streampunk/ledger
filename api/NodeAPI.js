@@ -629,7 +629,7 @@ function NodeAPI (port, store, iface) {
       // console.log('UPDATE!!!', data);
       if (regConnected) return;
       if (data.fullname && data.fullname.indexOf('_nmos-registration._tcp') >= 0) {
-        console.log("Found a registration service.", data.fullname, data.txt.length > 0 ? data.txt[0] : "");
+        console.log("Found a registration service.", data.fullname, data.txt.length > 0 ? data.txt : "");
         candidates.push(data);
         if (!selectionTimer) selectionTimer = setTimeout(function () {
           selectCandidate(candidates); }, 1000);
@@ -642,9 +642,13 @@ function NodeAPI (port, store, iface) {
     browser.on('error', console.error.bind(null, 'ERROR!!!'));
     function selectCandidate(candidates) {
       function extractPri(x) {
-        var match = x.txt[0].match(/pri=([0-9]+)/);
-        if (match) return +match[1];
-        else return NaN;
+        var pri = NaN;
+        x.txt.find(txt => {
+          var match = txt.match(/^pri=([0-9]+)$/);
+          if (match) pri = +match[1];
+          return null != match;
+        });
+        return pri;
       }
       if (candidates.length > 0) {
         var selected = candidates.sort(function (x, y) {
