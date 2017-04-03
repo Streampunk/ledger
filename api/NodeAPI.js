@@ -642,9 +642,13 @@ function NodeAPI (port, store, iface) {
     browser.on('error', console.error.bind(null, 'ERROR!!!'));
     function selectCandidate(candidates) {
       function extractPri(x) {
-        var match = x.txt[0].match(/pri=([0-9]+)/);
-        if (match) return +match[1];
-        else return NaN;
+        var pri = NaN;
+        x.txt.find(txt => {
+          var match = txt.match(/^pri=([0-9]+)$/);
+          if (match) pri = +match[1];
+          return null != match;
+        });
+        return pri;
       }
       if (candidates.length > 0) {
         var selected = candidates.sort(function (x, y) {
