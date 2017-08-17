@@ -472,7 +472,7 @@ function QueryAPI (port, storeFn, serviceName, pri, modifyEvents, iface) {
            duration : { numerator: 0, denominator: 1 },
            grain : {
              type : "urn:x-nmos:format:data.event",
-             topic : `${sub.resourcePath}/`,
+             topic : `${sub.resource_path}/`,
              data : resources.map(function (ro) {
                return { path : ro.id, pre : ro, post : ro };
              })
