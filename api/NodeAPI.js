@@ -866,7 +866,6 @@ function NodeAPI (port, store, iface) {
     console.log("Resetting NodeAPI MDNS registration services.");
     if (healthcheck) clearTimeout(healthcheck);
     if (kickDiscovery) clearTimeout(kickDiscovery);
-    if (browser) browser.stop();
     regConnected = false;
     setTimeout(function () {
       browser.discover();
