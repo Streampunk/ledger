@@ -1,6 +1,6 @@
 {
   "name": "nmos-ledger",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "NMOS discovery and registration APIs",
   "main": "index.js",
   "bin": {
@@ -10,15 +10,15 @@
     "test": "test"
   },
   "dependencies": {
-    "async": "^1.5.2",
-    "body-parser": "^1.14.2",
-    "express": "^4.13.3",
-    "mdns-js": "^0.5.3",
-    "promise": "^7.1.1",
-    "seamless-immutable": "^4.0.2",
-    "tape": "^4.2.2",
+    "async": "^2.6.0",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "mdns-js": "git+https://github.com/Streampunk/nmos-mdns-js#master",
+    "promise": "^8.0.1",
+    "seamless-immutable": "^7.1.3",
+    "tape": "^4.9.0",
     "uuid": "^2.0.1",
-    "ws": "^1.1.1"
+    "ws": "^4.1.0"
   },
   "devDependencies": {},
   "scripts": {
