@@ -451,6 +451,41 @@ function RegistrationAPI (port, store, serviceName, pri, iface) {
     return new Error('Port is not a valid value. Must be an integer greater than zero.');
   if (!validStore(store))
     return new Error('Store does not have a sufficient contract.');
+
+  const healthCheck = setInterval(() => {
+    const curTime = Date.now() / 1000|0;
+    Object.keys(nodeHealth).map(nodeID => {
+      if (nodeHealth[nodeID] < curTime - 12) {
+        console.log(`Node has failed health check - removing: ${nodeID} - node: ${nodeHealth[nodeID]}, now: ${curTime}`);
+        this.getStore().getDevices({ node_id: nodeID }, (err, ds) => {
+          if (err) console.log(err);
+          ds.forEach(d => {
+            this.getStore().getReceivers({ device_id: d.id }, (err, rs) => {
+              if (err) console.log(err);
+              rs.forEach(r => this.deleteResource(r.id, 'receiver', err => { if (err) console.log(err); }));
+            });
+            this.getStore().getSenders({ device_id: d.id }, (err, ss) => {
+              if (err) console.log(err);
+              ss.forEach(s => this.deleteResource(s.id, 'sender', err => { if (err) console.log(err); }));
+            });
+            this.getStore().getSources({ device_id: d.id }, (err, ss) => {
+              if (err) console.log(err);
+              ss.forEach(s => {
+                this.getStore().getFlows({ source_id: s.id }, (err, fs) => {
+                  if (err) console.log(err);
+                  fs.forEach(f => this.deleteResource(f.id, 'flow', err => { if (err) console.log(err); }));
+                });
+                this.deleteResource(s.id, 'source', err => { if (err) console.log(err); })
+              });
+            });
+            this.deleteResource(d.id, 'device', err => { if (err) console.log(err); })
+          });
+        });
+        this.deleteResource(nodeID, 'node', err => { if (err) console.log(err); });
+        delete nodeHealth[nodeID];
+      }
+    });
+  }, 12000);
 }
 
 /**
