@@ -6,7 +6,7 @@ deployment:
 
 machine:
   node:
-    version: 4.4.5
+    version: 8.9.4
     
 test:
   override:
