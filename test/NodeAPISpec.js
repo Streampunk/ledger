@@ -921,7 +921,7 @@ serverTest('Subscribing receiver to sender with bad sender', node,
           var error = JSON.parse(result.toString())
           t.equal(error.code, 400, 'error message has correct code.');
           t.equal(error.error,
-            'Unexpected token p',
+            'Unexpected token p in JSON at position 0',
             'error message is as expected.');
         });
         res.on('end', done);
