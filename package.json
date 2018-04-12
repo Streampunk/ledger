@@ -16,11 +16,12 @@
     "mdns-js": "git+https://github.com/Streampunk/nmos-mdns-js#master",
     "promise": "^8.0.1",
     "seamless-immutable": "^7.1.3",
-    "tape": "^4.9.0",
     "uuid": "^2.0.1",
-    "ws": "^4.1.0"
+    "ws": "^5.1.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "tape": "^4.9.0"
+  },
   "scripts": {
     "test": "tape test/integration/*.js test/*.js"
   },
