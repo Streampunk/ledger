@@ -30,10 +30,6 @@ jobs:
     - run: echo 'export PATH="~/Streampunk/ledger/node_modules/.bin:$PATH"' >> $BASH_ENV
 #    - run: mkdir -p $CIRCLE_TEST_REPORTS/eslint
     - run: mkdir -p $CIRCLE_TEST_REPORTS/xunit
-    - run: mkdir -p $CIRCLE_ARTIFACTS/modules
-    - run: ls node_modules > /tmp/circleci-artifacts/modules/modules1.txt
-    - run: npm install
-    - run: ls node_modules > /tmp/circleci-artifacts/modules/modules2.txt
 #    - run: eslint **/*.js -f junit -o /tmp/circleci-test-results/eslint/eslint.xml
     - run: set -eo pipefail && npm test | tap-xunit > /tmp/circleci-test-results/xunit/results.xml
       
