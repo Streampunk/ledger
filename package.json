@@ -1,6 +1,6 @@
 {
   "name": "nmos-ledger",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "NMOS discovery and registration APIs",
   "main": "index.js",
   "bin": {
