@@ -290,7 +290,7 @@ serverTest('Posting a health request for an unknown node',
     res.setEncoding('utf8');
     res.on('data', function (errMsg) {
       var err = JSON.parse(errMsg);
-      console.log(err);
+      // console.log(err);
       t.equal(err.code, 404, 'error message has expected status.');
       t.equal(err.error,
         `Node health check received but no node with ID ${nodeID} is registered.`,
@@ -316,7 +316,7 @@ serverTest('The server allows a health status to be posted',
       res.setEncoding('utf8');
       res.on('data', function (chunk) {
         var body = JSON.parse(chunk.toString());
-        console.log(body);
+        // console.log(body);
         t.ok(body.hasOwnProperty('health'), 'result has health property.');
         t.ok(typeof body.health === 'string' && !isNaN(+body.health),
           'health result is a string which contains a number.');

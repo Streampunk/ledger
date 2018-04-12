@@ -22,7 +22,6 @@ jobs:
         # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
         - v1-dep-
     - run: npm install
-    - run: npm install
     - run: npm install tap-xunit
     - save_cache:
         key: v1-dep-{{ .Branch }}-{{ epoch }}
@@ -32,7 +31,9 @@ jobs:
 #    - run: mkdir -p $CIRCLE_TEST_REPORTS/eslint
     - run: mkdir -p $CIRCLE_TEST_REPORTS/xunit
     - run: mkdir -p $CIRCLE_ARTIFACTS/modules
-    - run: ls node_modules > modules.txt
+    - run: ls node_modules > /tmp/circleci-artifacts/modules/modules1.txt
+    - run: npm install
+    - run: ls node_modules > /tmp/circleci-artifacts/modules/modules2.txt
 #    - run: eslint **/*.js -f junit -o /tmp/circleci-test-results/eslint/eslint.xml
     - run: set -eo pipefail && npm test | tap-xunit > /tmp/circleci-test-results/xunit/results.xml
       
