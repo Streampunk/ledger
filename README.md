@@ -9,6 +9,8 @@ Currently, this is a fairly complete implementation of the node, registration an
 
 Install [Node.js](http://nodejs.org/) for your platform. This software has been developed against the long term stable (LTS) release.
 
+Make sure `git` is installed for your system. This is because the current version of ledger depends on a fork of the [mdns-js](https://github.com/mdns-js/node-mdns-js) library, created by the authors of ledger to fix a bug, rather than the version published to NPM. A pull request is in progress.
+
 Ledger can be run as a standalone registration application and query API or `require`d to use from your own application, such as to create an instance of a Node API to represent local devices.
 
 ### Standalone registration
